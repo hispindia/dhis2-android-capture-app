@@ -56,10 +56,12 @@ public class OrgUnitHolder extends TreeNode.BaseNodeViewHolder<OrganisationUnitM
                 node.getViewHolder().getTreeView().expandNode(node);
         });
 
+        //ToDO @Sou Save multiple orgunits to same attribute
         checkBox.setOnClickListener(v -> {
             if (!isMultiSelection)
-                for (TreeNode treeNode : node.getViewHolder().getTreeView().getSelected())
-                    ((OrgUnitHolder) treeNode.getViewHolder()).update();
+                //@Sou TOdo for multiselection enable update
+//                for (TreeNode treeNode : node.getViewHolder().getTreeView().getSelected())
+//                    ((OrgUnitHolder) treeNode.getViewHolder()).update();
             update();
         });
 
