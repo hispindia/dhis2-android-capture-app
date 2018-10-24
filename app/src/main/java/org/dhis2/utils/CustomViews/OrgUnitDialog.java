@@ -11,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-
 import org.dhis2.R;
 import org.dhis2.databinding.DialogOrgunitBinding;
 import org.dhis2.usescases.main.program.OrgUnitHolder;
@@ -137,8 +136,17 @@ public class OrgUnitDialog extends DialogFragment {
         return treeView.getSelected() != null && !treeView.getSelected().isEmpty() ? ((OrganisationUnitModel) treeView.getSelected().get(0).getValue()).uid() : "";
     }
 
+    //ToDO @Sou set multiselect orgunits name as per selections
     public String getSelectedOrgUnitName() {
-        return treeView.getSelected() != null && !treeView.getSelected().isEmpty() ? ((OrganisationUnitModel) treeView.getSelected().get(0).getValue()).displayName() : "";
+        return treeView.getSelected() != null && !treeView.getSelected().isEmpty() ? ((OrganisationUnitModel) treeView.getSelected().get(0).getValue()).displayName()  : "";
+    }
+    public String getSelectedOrgUnitName_multi() {
+        String displayText="";
+        for(int selected=0;selected<treeView.getSelected().size();selected++)
+        {
+            displayText=displayText+((OrganisationUnitModel) treeView.getSelected().get(selected).getValue()).displayName()+",";
+        }
+        return treeView.getSelected() != null && !treeView.getSelected().isEmpty() ? displayText  : "";
     }
 
     public OrganisationUnitModel getSelectedOrgUnitModel() {
