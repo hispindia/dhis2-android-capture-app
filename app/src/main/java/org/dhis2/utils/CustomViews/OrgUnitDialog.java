@@ -21,6 +21,7 @@ import com.unnamed.b.atv.view.AndroidTreeView;
 
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnitModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -142,6 +143,28 @@ public class OrgUnitDialog extends DialogFragment {
     }
 
     public OrganisationUnitModel getSelectedOrgUnitModel() {
+
         return ((OrganisationUnitModel) treeView.getSelected().get(0).getValue());
     }
+
+    public List<String> getSelectedOrgUnits(){
+        List<String> selectedOrgUnits = new ArrayList<>();
+        for(TreeNode ouModel: treeView.getSelected()){
+            selectedOrgUnits.add(((OrganisationUnitModel)ouModel.getValue()).uid());
+
+        }
+
+        return selectedOrgUnits;
+    }
+
+    public List<String> getSelectedOrgUnitsNameString(){
+        List<String> selectedOrgUnits = new ArrayList<>();
+        for(TreeNode ouModel: treeView.getSelected()){
+            selectedOrgUnits.add(((OrganisationUnitModel)ouModel.getValue()).displayName());
+
+        }
+
+        return selectedOrgUnits;
+    }
+
 }

@@ -8,6 +8,9 @@ import org.hisp.dhis.android.core.common.ValueType;
 import org.hisp.dhis.android.core.option.OptionModel;
 import org.hisp.dhis.android.core.trackedentity.TrackedEntityAttributeValueModel;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * QUADRAM. Created by ppajuelo on 25/09/2018.
  */
@@ -25,18 +28,22 @@ public class ValueUtils {
         int optionSetIndex = cursor.getColumnIndex("optionSet");
         if (cursor.getString(valueTypeIndex).equals(ValueType.ORGANISATION_UNIT.name())) {
             String orgUnitUid = cursor.getString(cursor.getColumnIndex("value"));
-            Cursor orgUnitCursor = briteDatabase.query("SELECT OrganisationUnit.displayName FROM OrganisationUnit WHERE OrganisationUnit.uid = ?", orgUnitUid);
-            if (orgUnitCursor != null && orgUnitCursor.moveToFirst()) {
-                String orgUnitName = orgUnitCursor.getString(0);
-                teAttrValue = TrackedEntityAttributeValueModel.builder()
-                        .trackedEntityInstance(teAttrValue.trackedEntityInstance())
-                        .lastUpdated(teAttrValue.lastUpdated())
-                        .created(teAttrValue.created())
-                        .trackedEntityAttribute(teAttrValue.trackedEntityAttribute())
-                        .value(orgUnitName)
-                        .build();
-                orgUnitCursor.close();
-            }
+
+
+                Cursor orgUnitCursor = briteDatabase.query("SELECT OrganisationUnit.displayName FROM OrganisationUnit WHERE OrganisationUnit.uid = ?", orgUnitUid);
+                if (orgUnitCursor != null && orgUnitCursor.moveToFirst()) {
+                    String orgUnitName = orgUnitCursor.getString(0);
+                    teAttrValue = TrackedEntityAttributeValueModel.builder()
+                            .trackedEntityInstance(teAttrValue.trackedEntityInstance())
+                            .lastUpdated(teAttrValue.lastUpdated())
+                            .created(teAttrValue.created())
+                            .trackedEntityAttribute(teAttrValue.trackedEntityAttribute())
+                            .value(orgUnitName)
+                            .build();
+                    orgUnitCursor.close();
+                }
+
+
         } else if (cursor.getString(optionSetIndex) != null) {
             String optionSet = cursor.getString(optionSetIndex);
             String optionCode = cursor.getString(cursor.getColumnIndex("value"));

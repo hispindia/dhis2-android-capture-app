@@ -4,6 +4,7 @@ import android.databinding.ViewDataBinding;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -11,8 +12,13 @@ import org.dhis2.R;
 import org.dhis2.data.forms.dataentry.fields.FormViewHolder;
 import org.dhis2.data.forms.dataentry.fields.RowAction;
 import org.dhis2.utils.CustomViews.OrgUnitDialog;
+import org.dhis2.utils.StringUtils;
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnitModel;
+import org.hisp.dhis.android.core.utils.Utils;
 
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import io.reactivex.Observable;
@@ -44,16 +50,20 @@ public class OrgUnitHolder extends FormViewHolder {
         this.inputLayout = binding.getRoot().findViewById(R.id.input_layout);
         this.description = binding.getRoot().findViewById(R.id.descriptionLabel);
         this.orgUnitsObservable = orgUnits;
-
+        getOrgUnits();
         this.editText.setOnClickListener(view -> {
             editText.setEnabled(false);
             orgUnitDialog = new OrgUnitDialog()
                     .setTitle(model.label())
-                    .setMultiSelection(false)
+                    .setMultiSelection(true)
                     .setOrgUnits(this.orgUnits)
                     .setPossitiveListener(data -> {
-                        processor.onNext(RowAction.create(model.uid(), orgUnitDialog.getSelectedOrgUnit()));
-                        this.editText.setText(orgUnitDialog.getSelectedOrgUnitName());
+
+                        processor.onNext(RowAction.create(model.uid(),
+                                Utils.joinCollectionWithSeparator(orgUnitDialog.getSelectedOrgUnits(),";")));
+//                        processor.onNext(RowAction.create(model.uid(), orgUnitDialog.getSelectedOrgUnit()));
+//                        this.editText.setText(orgUnitDialog.getSelectedOrgUnitName());
+                        this.editText.setText(Utils.joinCollectionWithSeparator(orgUnitDialog.getSelectedOrgUnitsNameString(),";"));
                         orgUnitDialog.dismiss();
                         editText.setEnabled(true);
                     })
@@ -66,7 +76,7 @@ public class OrgUnitHolder extends FormViewHolder {
         });
 
 
-        getOrgUnits();
+
     }
 
     @Override
@@ -95,7 +105,48 @@ public class OrgUnitHolder extends FormViewHolder {
             editText.setError(null);
 
         if (viewModel.value() != null) {
-            editText.post(() -> editText.setText(getOrgUnitName(viewModel.value())));
+//            editText.post(() -> editText.setText(getOrgUnitName(viewModel.value())));
+//            if(viewModel.value().contains(";")){
+//
+//                String orgunitvalue = "";
+//                List<String> orgids = Arrays.asList(viewModel.value().split(";"));
+//                for(String  oid : orgids){
+//                    orgunitvalue+= getOrgUnitName(oid)+" ";
+//                }
+//                final String val = orgunitvalue;
+//                editText.post(()->editText.setText(val));
+//            }else{
+//                editText.post(() -> editText.setText(getOrgUnitName(viewModel.value())));
+//            }
+            String orgunitvalue = "";
+                List<String> orgids = Arrays.asList(viewModel.value().split(";"));
+                if(orgUnits==null){
+                    List<String> orgnames = new ArrayList<>();
+                    compositeDisposable.add(orgUnitsObservable
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(Schedulers.io())
+                            .subscribe(
+                                    orgUnitViewModels ->
+                                    {
+                                        for(String  oid : orgids){
+                                            orgnames.add(getOrgUnitName(oid));
+                                        }
+                                        editText.post(()->editText.setText(Utils.joinCollectionWithSeparator(orgnames," ")));
+                                    },
+                                    Timber::d
+                            )
+                    );
+
+                }else{
+                    for(String  oid : orgids){
+                        orgunitvalue+= getOrgUnitName(oid)+" ";
+                    }
+                    final String val = orgunitvalue;
+                    editText.post(()->editText.setText(val));
+                }
+
+//            editText.post(() -> editText.setText(getOrgUnitName(viewModel.value())));
+
         }
         editText.setEnabled(viewModel.editable());
 
@@ -111,6 +162,7 @@ public class OrgUnitHolder extends FormViewHolder {
                     orgUnitName = orgUnit.displayName();
             }
         }
+        Log.d(" ou ",orgUnitName+"");
         return orgUnitName;
     }
 

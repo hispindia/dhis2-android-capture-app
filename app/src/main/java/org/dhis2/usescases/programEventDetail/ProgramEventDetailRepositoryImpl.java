@@ -18,8 +18,10 @@ import org.hisp.dhis.android.core.event.EventStatus;
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnitModel;
 import org.hisp.dhis.android.core.program.ProgramModel;
 import org.hisp.dhis.android.core.program.ProgramStageModel;
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityAttributeValueModel;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -250,8 +252,18 @@ public class ProgramEventDetailRepositoryImpl implements ProgramEventDetailRepos
                 String value = cursor.getString(cursor.getColumnIndex("value"));
                 if(cursor.getString(cursor.getColumnIndex("optionSet"))!=null)
                     value = ValueUtils.optionSetCodeToDisplayName(briteDatabase,cursor.getString(cursor.getColumnIndex("optionSet")),value);
-                else if(cursor.getString(cursor.getColumnIndex("valueType")).equals(ValueType.ORGANISATION_UNIT.name()))
-                    value = ValueUtils.orgUnitUidToDisplayName(briteDatabase,value);
+                else if(cursor.getString(cursor.getColumnIndex("valueType")).equals(ValueType.ORGANISATION_UNIT.name())) {
+                    if (value.contains(";")) {
+                        String orgUnitName = "";
+                        List<String> orgUnitIds = Arrays.asList(value.split(";"));
+
+                        for (String orgid : orgUnitIds) {
+                            orgUnitName += ValueUtils.orgUnitUidToDisplayName(briteDatabase, orgid);
+                        }
+//                        value = ValueUtils.orgUnitUidToDisplayName(briteDatabase,value);
+                        value = orgUnitName;
+                    }
+                }
 
                 values.add(value);
                 cursor.moveToNext();
