@@ -1,4 +1,4 @@
-package org.dhis2.utils;
+package org.hisp.dhis.android.uphmis.utils;
 
 /**
  * QUADRAM. Created by ppajuelo on 15/01/2018.
@@ -38,8 +38,8 @@ public class Constants {
     public static final int TIME_MANUAL = 0;
 
     // DATA SYNC TIME RANGES
-    public static final int TIME_15M = 900;
-    public static final int TIME_HOURLY = 3600;
+    public static final int TIME_15M = 15*60;
+    public static final int TIME_HOURLY = 60*60;
 
 
     //EVENT_CREATION
@@ -56,6 +56,7 @@ public class Constants {
     public static final String CAT_COMB = "CAT_COMB";
     public static final String DATA_SET_SECTION = "DATA_SET_SECTION";
     public static final String PROGRAM_STAGE_UID = "PROGRAM_STAGE_UID";
+    public static final String EXTRA_FROM_LOGIN = "EXTRA_FROM_LOGIN";
 
     public static String LAST_DATA_SYNC = "last_data_sync";
     public static String LAST_DATA_SYNC_STATUS = "last_data_sync_status";
@@ -78,6 +79,11 @@ public class Constants {
     public static final String EVENT_PERIOD_TYPE = "EVENT_PERIOD_TYPE";
     public static final String ENROLLMENT_DATE_UID = "ENROLLMENT_DATE_UID";
     public static final String INCIDENT_DATE_UID = "INCIDENT_DATE_UID";
+
+
+    //Limit Data Entry to 1
+    public static final String TEI_NULL_CHECK = "NOTNULL";
+
 
 
     private Constants() {

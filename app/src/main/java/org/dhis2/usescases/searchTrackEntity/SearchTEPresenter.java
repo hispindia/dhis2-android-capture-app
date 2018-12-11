@@ -10,7 +10,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.squareup.sqlbrite2.BriteDatabase;
-
+import org.hisp.dhis.android.uphmis.utils.Constants;
 import org.hisp.dhis.android.uphmis.Bindings.Bindings;
 import org.hisp.dhis.android.uphmis.R;
 import org.hisp.dhis.android.uphmis.data.forms.FormActivity;
@@ -204,7 +204,7 @@ public class SearchTEPresenter implements SearchTEContractsModule.Presenter {
                                 this.currentPage = page;
                                 if (searchRepository.trackedEntityInstances(trackedEntity.uid(), selectedProgram, queryData, page).toFlowable(BackpressureStrategy.BUFFER)!=null)
                                 {
-                                    tei_status="not_null";
+                                    tei_status=Constants.TEI_NULL_CHECK;
                                 }
                                 return searchRepository.trackedEntityInstances(trackedEntity.uid(), selectedProgram, queryData, page).toFlowable(BackpressureStrategy.BUFFER);
                             })
@@ -268,7 +268,7 @@ public class SearchTEPresenter implements SearchTEContractsModule.Presenter {
                                 TrackedEntityInstanceModelBuilder teiBuilder = new TrackedEntityInstanceModelBuilder();
                                 if (trackedEntityInstances.size()>0)
                                 {
-                                    tei_status="not_null";
+                                    tei_status=Constants.TEI_NULL_CHECK;
                                 }
                                 for (TrackedEntityInstance tei : trackedEntityInstances) {
                                     if (view.fromRelationshipTEI() == null || !tei.uid().equals(view.fromRelationshipTEI())) { //If fetching for relationship, discard selected TEI
@@ -475,15 +475,6 @@ public class SearchTEPresenter implements SearchTEContractsModule.Presenter {
                   {
                       enroll(selectedProgram.uid(), null);
                   }
-                  else
-                  {
-
-//                      Toast.makeText(, "test", Toast.LENGTH_SHORT).show();
-//                      enroll(selectedProgram.uid(), null);
-                  }
-
-
-//
             } else
                 this.view.displayMessage(view.getContext().getString(R.string.search_program_not_selected));
         else {
