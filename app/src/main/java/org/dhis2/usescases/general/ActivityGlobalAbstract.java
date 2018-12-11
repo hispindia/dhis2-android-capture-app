@@ -1,10 +1,11 @@
-package org.dhis2.usescases.general;
+package org.hisp.dhis.android.uphmis.usescases.general;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -29,19 +30,19 @@ import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import org.dhis2.App;
-import org.dhis2.BuildConfig;
-import org.dhis2.R;
-import org.dhis2.usescases.login.LoginActivity;
-import org.dhis2.usescases.main.MainActivity;
-import org.dhis2.usescases.map.MapSelectorActivity;
-import org.dhis2.usescases.splash.SplashActivity;
-import org.dhis2.utils.ColorUtils;
-import org.dhis2.utils.Constants;
-import org.dhis2.utils.CustomViews.CoordinatesView;
-import org.dhis2.utils.CustomViews.CustomDialog;
-import org.dhis2.utils.HelpManager;
-import org.dhis2.utils.OnDialogClickListener;
+import org.hisp.App;
+import org.hisp.dhis.android.uphmis.BuildConfig;
+import org.hisp.dhis.android.uphmis.R;
+import org.hisp.dhis.android.uphmis.usescases.login.LoginActivity;
+import org.hisp.dhis.android.uphmis.usescases.main.MainActivity;
+import org.hisp.dhis.android.uphmis.usescases.map.MapSelectorActivity;
+import org.hisp.dhis.android.uphmis.usescases.splash.SplashActivity;
+import org.hisp.dhis.android.uphmis.utils.ColorUtils;
+import org.hisp.dhis.android.uphmis.utils.Constants;
+import org.hisp.dhis.android.uphmis.utils.CustomViews.CoordinatesView;
+import org.hisp.dhis.android.uphmis.utils.CustomViews.CustomDialog;
+import org.hisp.dhis.android.uphmis.utils.HelpManager;
+import org.hisp.dhis.android.uphmis.utils.OnDialogClickListener;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -97,8 +98,12 @@ public abstract class ActivityGlobalAbstract extends AppCompatActivity implement
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
 
-        if (!BuildConfig.DEBUG)
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
+        if (!getResources().getBoolean(R.bool.is_tablet))
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+
+        //@Sou enable screenshot
+//        if (!BuildConfig.DEBUG)
+//            getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         SharedPreferences prefs = getSharedPreferences();
         if (this instanceof MainActivity || this instanceof LoginActivity || this instanceof SplashActivity) {
             prefs.edit().remove(Constants.PROGRAM_THEME).apply();
@@ -205,7 +210,8 @@ public abstract class ActivityGlobalAbstract extends AppCompatActivity implement
     public void back() {
         finish();
     }
-
+    //@SOu enable screenshot
+//    WindowManager.LayoutParams.FLAG_SECURE
     @Override
     public void displayMessage(String message) {
         if (message == null)
@@ -266,7 +272,6 @@ public abstract class ActivityGlobalAbstract extends AppCompatActivity implement
             //TITLE
             final View titleView = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_title, null);
             ((TextView) titleView.findViewById(R.id.dialogTitle)).setText(title);
-            int colorPrimary = ColorUtils.getPrimaryColor(getActivity(), ColorUtils.ColorType.PRIMARY);
             alertDialog.setCustomTitle(titleView);
 
             //BODY
