@@ -1,4 +1,4 @@
-package org.dhis2.data.forms.section.viewmodels.date;
+package org.hisp.dhis.android.uphmis.data.forms.section.viewmodels.date;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -21,10 +21,8 @@ public class DatePickerDialogFragment extends DialogFragment {
     public static DatePickerDialogFragment create(boolean allowDatesInFuture) {
         Bundle arguments = new Bundle();
         arguments.putBoolean(ARG_ALLOW_DATES_IN_FUTURE, allowDatesInFuture);
-
         DatePickerDialogFragment fragment = new DatePickerDialogFragment();
         fragment.setArguments(arguments);
-
         return fragment;
     }
 
@@ -32,6 +30,9 @@ public class DatePickerDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@NonNull Bundle savedInstanceState) {
         Calendar calendar = Calendar.getInstance();
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, -6);
+        Date result_ = cal.getTime();
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 getContext(), (view, year, month, dayOfMonth) -> {
             Calendar chosenDate = Calendar.getInstance();
@@ -42,6 +43,10 @@ public class DatePickerDialogFragment extends DialogFragment {
         }, calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH));
+        //@SOu TODO for Report Date min-max 7 days
+        //for Enrollment remaining enrollmentButton/ic_add
+        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        datePickerDialog.getDatePicker().setMinDate(result_.getTime());
 
         if (!isAllowDatesInFuture()) {
             datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
