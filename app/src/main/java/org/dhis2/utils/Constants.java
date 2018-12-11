@@ -84,6 +84,9 @@ public class Constants {
     //Limit Data Entry to 1
     public static final String TEI_NULL_CHECK = "NOTNULL";
 
+    //data restriction as per username
+    public static final String USERNAME_CHECK = "NOTFOUND";
+    public static final String USERNAME_UID = "GCyx4hTzy3j";
 
 
     private Constants() {

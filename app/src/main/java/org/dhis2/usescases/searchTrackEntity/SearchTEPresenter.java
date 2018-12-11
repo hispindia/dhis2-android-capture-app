@@ -276,7 +276,7 @@ public class SearchTEPresenter implements SearchTEContractsModule.Presenter {
                                         TrackedEntityAttributeValueModelBuilder attrValueBuilder = new TrackedEntityAttributeValueModelBuilder(tei);
 
                                         for (TrackedEntityAttributeValue attrValue : tei.trackedEntityAttributeValues()) {
-                                            if(attrValue.trackedEntityAttribute().equals("GCyx4hTzy3j"))
+                                            if(attrValue.trackedEntityAttribute().equals(Constants.USERNAME_UID))
                                             {
                                                 if(attrValue.value().contains(userName))
                                                 {
@@ -285,7 +285,7 @@ public class SearchTEPresenter implements SearchTEContractsModule.Presenter {
                                                 }
                                                 else
                                                 {
-                                                    user_tei="test";
+                                                    user_tei=Constants.USERNAME_CHECK;
                                                 }
                                             }
 
