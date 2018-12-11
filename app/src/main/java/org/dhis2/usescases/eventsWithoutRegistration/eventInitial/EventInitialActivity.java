@@ -1,4 +1,4 @@
-package org.dhis2.usescases.eventsWithoutRegistration.eventInitial;
+package org.hisp.dhis.android.uphmis.usescases.eventsWithoutRegistration.eventInitial;
 
 import android.app.DatePickerDialog;
 import android.content.Context;
@@ -21,27 +21,30 @@ import android.widget.PopupMenu;
 import com.unnamed.b.atv.model.TreeNode;
 import com.unnamed.b.atv.view.AndroidTreeView;
 
-import org.dhis2.App;
-import org.dhis2.Bindings.Bindings;
-import org.dhis2.R;
-import org.dhis2.data.forms.FormActivity;
-import org.dhis2.data.forms.FormSectionViewModel;
-import org.dhis2.data.forms.FormViewArguments;
-import org.dhis2.data.forms.dataentry.fields.FieldViewModel;
-import org.dhis2.databinding.ActivityEventInitialBinding;
-import org.dhis2.usescases.general.ActivityGlobalAbstract;
-import org.dhis2.usescases.map.MapSelectorActivity;
-import org.dhis2.usescases.qrCodes.eventsworegistration.QrEventsWORegistrationActivity;
-import org.dhis2.utils.CatComboAdapter2;
-import org.dhis2.utils.Constants;
-import org.dhis2.utils.CustomViews.CustomDialog;
-import org.dhis2.utils.CustomViews.OrgUnitDialog;
-import org.dhis2.utils.CustomViews.PeriodDialog;
-import org.dhis2.utils.CustomViews.ProgressBarAnimation;
-import org.dhis2.utils.DateUtils;
-import org.dhis2.utils.DialogClickListener;
-import org.dhis2.utils.EventCreationType;
-import org.dhis2.utils.HelpManager;
+import org.hisp.App;
+import org.hisp.dhis.android.core.D2;
+import org.hisp.dhis.android.uphmis.Bindings.Bindings;
+import org.hisp.dhis.android.uphmis.R;
+import org.hisp.dhis.android.uphmis.data.forms.FormActivity;
+import org.hisp.dhis.android.uphmis.data.forms.FormSectionViewModel;
+import org.hisp.dhis.android.uphmis.data.forms.FormViewArguments;
+import org.hisp.dhis.android.uphmis.data.forms.dataentry.fields.FieldViewModel;
+import org.hisp.dhis.android.uphmis.data.metadata.MetadataRepository;
+import org.hisp.dhis.android.uphmis.databinding.ActivityEventInitialBinding;
+import org.hisp.dhis.android.uphmis.usescases.general.ActivityGlobalAbstract;
+import org.hisp.dhis.android.uphmis.usescases.map.MapSelectorActivity;
+import org.hisp.dhis.android.uphmis.usescases.qrCodes.eventsworegistration.QrEventsWORegistrationActivity;
+import org.hisp.dhis.android.uphmis.usescases.searchTrackEntity.SearchRepository;
+import org.hisp.dhis.android.uphmis.utils.CatComboAdapter2;
+import org.hisp.dhis.android.uphmis.utils.Constants;
+import org.hisp.dhis.android.uphmis.utils.CustomViews.CustomDialog;
+import org.hisp.dhis.android.uphmis.utils.CustomViews.OrgUnitDialog;
+import org.hisp.dhis.android.uphmis.utils.CustomViews.PeriodDialog;
+import org.hisp.dhis.android.uphmis.utils.CustomViews.ProgressBarAnimation;
+import org.hisp.dhis.android.uphmis.utils.DateUtils;
+import org.hisp.dhis.android.uphmis.utils.DialogClickListener;
+import org.hisp.dhis.android.uphmis.utils.EventCreationType;
+import org.hisp.dhis.android.uphmis.utils.HelpManager;
 import org.hisp.dhis.android.core.category.CategoryComboModel;
 import org.hisp.dhis.android.core.category.CategoryOptionComboModel;
 import org.hisp.dhis.android.core.event.EventModel;
@@ -57,24 +60,28 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
 import javax.inject.Inject;
 
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 import me.toptas.fancyshowcase.FancyShowCaseView;
-
+import timber.log.Timber;
 import static android.text.TextUtils.isEmpty;
-import static org.dhis2.utils.Constants.ENROLLMENT_UID;
-import static org.dhis2.utils.Constants.EVENT_CREATION_TYPE;
-import static org.dhis2.utils.Constants.EVENT_PERIOD_TYPE;
-import static org.dhis2.utils.Constants.ONE_TIME;
-import static org.dhis2.utils.Constants.ORG_UNIT;
-import static org.dhis2.utils.Constants.PERMANENT;
-import static org.dhis2.utils.Constants.PROGRAM_UID;
-import static org.dhis2.utils.Constants.RQ_PROGRAM_STAGE;
-import static org.dhis2.utils.Constants.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.android.uphmis.utils.Constants.ENROLLMENT_UID;
+import static org.hisp.dhis.android.uphmis.utils.Constants.EVENT_CREATION_TYPE;
+import static org.hisp.dhis.android.uphmis.utils.Constants.EVENT_PERIOD_TYPE;
+import static org.hisp.dhis.android.uphmis.utils.Constants.ONE_TIME;
+import static org.hisp.dhis.android.uphmis.utils.Constants.ORG_UNIT;
+import static org.hisp.dhis.android.uphmis.utils.Constants.PERMANENT;
+import static org.hisp.dhis.android.uphmis.utils.Constants.PROGRAM_UID;
+import static org.hisp.dhis.android.uphmis.utils.Constants.RQ_PROGRAM_STAGE;
+import static org.hisp.dhis.android.uphmis.utils.Constants.TRACKED_ENTITY_INSTANCE;
 
 
 /**
@@ -90,7 +97,7 @@ public class EventInitialActivity extends ActivityGlobalAbstract implements Even
     private EventModel eventModel;
 
     private ActivityEventInitialBinding binding;
-
+    private List<OrganisationUnitModel> orgUnits;
     private String selectedDateString;
     private Date selectedDate;
     private String selectedOrgUnit;
@@ -118,6 +125,8 @@ public class EventInitialActivity extends ActivityGlobalAbstract implements Even
     private ProgramModel program;
     private String savedLat, savedLon;
     private Boolean canWrite;
+    private ArrayList<String> sectionsToHide;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -226,7 +235,6 @@ public class EventInitialActivity extends ActivityGlobalAbstract implements Even
 
         if (binding.actionButton != null) {
             binding.actionButton.setOnClickListener(v -> {
-
                /* String formattedDate = null;
                 Date date = null;
                 try {
@@ -259,6 +267,7 @@ public class EventInitialActivity extends ActivityGlobalAbstract implements Even
                                 selectedLat, selectedLon);
                     } else {
                         presenter.createEvent(
+
                                 enrollmentUid,
                                 programStageModel.uid(),
                                 selectedDate,
@@ -377,12 +386,12 @@ public class EventInitialActivity extends ActivityGlobalAbstract implements Even
                     isCompleted(selectedOrgUnit) &&
                     isSelectedDateBetweenOpeningAndClosedDates() &&
                     selectedCatCombo != null && selectedCatOptionCombo != null &&
-                    ((eventCreationType != EventCreationType.REFERAL) || (eventCreationType != EventCreationType.REFERAL && tempCreate != null));
+                    ((eventCreationType != EventCreationType.REFERAL) || (eventCreationType == EventCreationType.REFERAL && tempCreate != null));
         else
             return isCompleted(selectedDateString) &&
                     isCompleted(selectedOrgUnit) &&
                     isSelectedDateBetweenOpeningAndClosedDates() &&
-                    ((eventCreationType != EventCreationType.REFERAL) || (eventCreationType != EventCreationType.REFERAL && tempCreate != null));
+                    ((eventCreationType != EventCreationType.REFERAL) || (eventCreationType == EventCreationType.REFERAL && tempCreate != null));
     }
 
     private boolean isEventOpen() {
@@ -448,6 +457,7 @@ public class EventInitialActivity extends ActivityGlobalAbstract implements Even
         });
 
         binding.date.setText(selectedDateString);
+        presenter.filterOrgUnits(DateUtils.uiDateFormat().format(selectedDate));
 
         if (program.captureCoordinates()) {
             binding.coordinatesLayout.setVisibility(View.VISIBLE);
@@ -456,8 +466,9 @@ public class EventInitialActivity extends ActivityGlobalAbstract implements Even
         }
 
         if (eventModel != null) {
-            if (DateUtils.getInstance().hasExpired(eventModel, program.expiryDays(), program.completeEventsExpiryDays(), program.expiryPeriodType()) ||
-                    eventModel.status() == EventStatus.COMPLETED) {
+            if (DateUtils.getInstance().isEventExpired(null, eventModel.completedDate(), program.completeEventsExpiryDays()) ||
+                    eventModel.status() == EventStatus.COMPLETED ||
+                    eventModel.status() == EventStatus.SKIPPED) {
                 binding.date.setEnabled(false);
                 binding.catCombo.setEnabled(false);
                 binding.lat.setEnabled(false);
@@ -600,6 +611,13 @@ public class EventInitialActivity extends ActivityGlobalAbstract implements Even
         binding.setProgramStage(programStage);
         if (periodType == null)
             periodType = programStage.periodType();
+
+        if (eventCreationType == EventCreationType.SCHEDULE)
+            binding.dateLayout.setHint(getString(R.string.due_date));
+        else if (programStage.executionDateLabel() != null)
+            binding.dateLayout.setHint(programStage.executionDateLabel());
+        else
+            binding.dateLayout.setHint(getString(R.string.event_date));
     }
 
     @Override
@@ -661,12 +679,21 @@ public class EventInitialActivity extends ActivityGlobalAbstract implements Even
 
     @Override
     public void showDateDialog(DatePickerDialog.OnDateSetListener listener) {
+
+        //@Sou Todo Event creation limited to 1 week
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, -6);
+        Date result_ = cal.getTime();
+
         Calendar calendar = Calendar.getInstance();
         DatePickerDialog datePickerDialog = new DatePickerDialog(this, listener, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
         /*if (programStageModel != null && programStageModel.hideDueDate())
             datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis() - 1000);
         else {*/
         // ONLY FUTURE DATES
+        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        datePickerDialog.getDatePicker().setMinDate(result_.getTime());
+
         if (eventCreationType == EventCreationType.SCHEDULE) {
             calendar.add(Calendar.DAY_OF_YEAR, 1);
             datePickerDialog.getDatePicker().setMinDate(calendar.getTimeInMillis());
@@ -747,8 +774,17 @@ public class EventInitialActivity extends ActivityGlobalAbstract implements Even
     }
 
     void swap(@NonNull List<FieldViewModel> updates, String sectionUid) {
-        int completedSectionFields = calculateCompletedFields(updates);
-        int totalSectionFields = updates.size();
+
+        List<FieldViewModel> realUpdates = new ArrayList<>();
+        if (sectionsToHide != null && !sectionsToHide.isEmpty()) {
+            for (FieldViewModel fieldViewModel : updates)
+                if (!sectionsToHide.contains(fieldViewModel.programStageSection()))
+                    realUpdates.add(fieldViewModel);
+        }else
+            realUpdates.addAll(updates);
+
+        int completedSectionFields = calculateCompletedFields(realUpdates);
+        int totalSectionFields = realUpdates.size();
         totalFields = totalFields + totalSectionFields;
         totalCompletedFields = totalCompletedFields + completedSectionFields;
         float completionPerone = (float) totalCompletedFields / (float) totalFields;
@@ -760,6 +796,15 @@ public class EventInitialActivity extends ActivityGlobalAbstract implements Even
             binding.progressGains.startAnimation(gainAnim);
         });
 
+    }
+
+    @Override
+    public void setHideSection(String sectionUid) {
+        if (sectionsToHide == null || sectionUid == null)
+            sectionsToHide = new ArrayList<>();
+
+        if (sectionUid != null && !sectionsToHide.contains(sectionUid))
+            sectionsToHide.add(sectionUid);
     }
 
     private int calculateCompletedFields(@NonNull List<FieldViewModel> updates) {
@@ -816,6 +861,12 @@ public class EventInitialActivity extends ActivityGlobalAbstract implements Even
 
     @Override
     public void showOrgUnitSelector(List<OrganisationUnitModel> orgUnits) {
+        Iterator<OrganisationUnitModel> iterator = orgUnits.iterator();
+        while(iterator.hasNext()){
+            OrganisationUnitModel orgUnit = iterator.next();
+            if (orgUnit.closedDate()!= null && selectedDate.after(orgUnit.closedDate()))
+                iterator.remove();
+        }
         orgUnitDialog = new OrgUnitDialog()
                 .setTitle(getString(R.string.org_unit))
                 .setMultiSelection(false)
