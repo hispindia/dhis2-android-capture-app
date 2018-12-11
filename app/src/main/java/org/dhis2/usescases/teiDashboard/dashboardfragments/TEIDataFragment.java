@@ -1,10 +1,11 @@
-package org.dhis2.usescases.teiDashboard.dashboardfragments;
+package org.hisp.dhis.android.uphmis.usescases.teiDashboard.dashboardfragments;
 
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
+import android.databinding.ObservableBoolean;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -14,21 +15,21 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import org.dhis2.R;
-import org.dhis2.databinding.FragmentTeiDataBinding;
-import org.dhis2.usescases.general.FragmentGlobalAbstract;
-import org.dhis2.usescases.programStageSelection.ProgramStageSelectionActivity;
-import org.dhis2.usescases.teiDashboard.DashboardProgramModel;
-import org.dhis2.usescases.teiDashboard.TeiDashboardContracts;
-import org.dhis2.usescases.teiDashboard.adapters.DashboardProgramAdapter;
-import org.dhis2.usescases.teiDashboard.adapters.EventAdapter;
-import org.dhis2.usescases.teiDashboard.mobile.TeiDashboardMobileActivity;
-import org.dhis2.utils.Constants;
-import org.dhis2.utils.CustomViews.CustomDialog;
-import org.dhis2.utils.CustomViews.PeriodDialog;
-import org.dhis2.utils.DateUtils;
-import org.dhis2.utils.DialogClickListener;
-import org.dhis2.utils.EventCreationType;
+import org.hisp.dhis.android.uphmis.R;
+import org.hisp.dhis.android.uphmis.databinding.FragmentTeiDataBinding;
+import org.hisp.dhis.android.uphmis.usescases.general.FragmentGlobalAbstract;
+import org.hisp.dhis.android.uphmis.usescases.programStageSelection.ProgramStageSelectionActivity;
+import org.hisp.dhis.android.uphmis.usescases.teiDashboard.DashboardProgramModel;
+import org.hisp.dhis.android.uphmis.usescases.teiDashboard.TeiDashboardContracts;
+import org.hisp.dhis.android.uphmis.usescases.teiDashboard.adapters.DashboardProgramAdapter;
+import org.hisp.dhis.android.uphmis.usescases.teiDashboard.adapters.EventAdapter;
+import org.hisp.dhis.android.uphmis.usescases.teiDashboard.mobile.TeiDashboardMobileActivity;
+import org.hisp.dhis.android.uphmis.utils.Constants;
+import org.hisp.dhis.android.uphmis.utils.CustomViews.CustomDialog;
+import org.hisp.dhis.android.uphmis.utils.CustomViews.PeriodDialog;
+import org.hisp.dhis.android.uphmis.utils.DateUtils;
+import org.hisp.dhis.android.uphmis.utils.DialogClickListener;
+import org.hisp.dhis.android.uphmis.utils.EventCreationType;
 import org.hisp.dhis.android.core.enrollment.EnrollmentStatus;
 import org.hisp.dhis.android.core.event.EventModel;
 import org.hisp.dhis.android.core.period.PeriodType;
@@ -42,11 +43,11 @@ import io.reactivex.Single;
 import io.reactivex.functions.Consumer;
 
 import static android.app.Activity.RESULT_OK;
-import static org.dhis2.utils.Constants.ENROLLMENT_UID;
-import static org.dhis2.utils.Constants.EVENT_CREATION_TYPE;
-import static org.dhis2.utils.Constants.ORG_UNIT;
-import static org.dhis2.utils.Constants.PROGRAM_UID;
-import static org.dhis2.utils.Constants.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.android.uphmis.utils.Constants.ENROLLMENT_UID;
+import static org.hisp.dhis.android.uphmis.utils.Constants.EVENT_CREATION_TYPE;
+import static org.hisp.dhis.android.uphmis.utils.Constants.ORG_UNIT;
+import static org.hisp.dhis.android.uphmis.utils.Constants.PROGRAM_UID;
+import static org.hisp.dhis.android.uphmis.utils.Constants.TRACKED_ENTITY_INSTANCE;
 
 /**
  * -Created by ppajuelo on 29/11/2017.
@@ -66,13 +67,11 @@ public class TEIDataFragment extends FragmentGlobalAbstract implements DialogCli
     static TEIDataFragment instance;
     TeiDashboardContracts.Presenter presenter;
 
-    private DashboardProgramModel dashboardProgramModel;
     private EventAdapter adapter;
-    private List<EventModel> events = new ArrayList<>();
     private CustomDialog dialog;
     private String lastModifiedEventUid;
     private ProgramStageModel programStageFromEvent;
-    private Context context;
+    private ObservableBoolean followUp = new ObservableBoolean(false);
 
     public static TEIDataFragment getInstance() {
         if (instance == null)
@@ -88,7 +87,6 @@ public class TEIDataFragment extends FragmentGlobalAbstract implements DialogCli
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        this.context = context;
         presenter = ((TeiDashboardMobileActivity) context).getPresenter();
     }
 
@@ -115,15 +113,17 @@ public class TEIDataFragment extends FragmentGlobalAbstract implements DialogCli
             bundle.putString(ENROLLMENT_UID, presenter.getDashBoardData().getCurrentEnrollment().uid());
 
             switch (integer) {
-                case R.id.referral:
-                    bundle.putString(EVENT_CREATION_TYPE, EventCreationType.REFERAL.name());
-                    break;
+
+                //ToDO @Sou entry option limited to add new
+//                case R.id.referral:
+//                    bundle.putString(EVENT_CREATION_TYPE, EventCreationType.REFERAL.name());
+//                    break;
                 case R.id.addnew:
                     bundle.putString(EVENT_CREATION_TYPE, EventCreationType.ADDNEW.name());
                     break;
-                case R.id.schedulenew:
-                    bundle.putString(EVENT_CREATION_TYPE, EventCreationType.SCHEDULE.name());
-                    break;
+//                case R.id.schedulenew:
+//                    bundle.putString(EVENT_CREATION_TYPE, EventCreationType.SCHEDULE.name());
+//                    break;
                 default:
                     break;
             }
@@ -135,25 +135,19 @@ public class TEIDataFragment extends FragmentGlobalAbstract implements DialogCli
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        setData(dashboardProgramModel);
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
         presenter = ((TeiDashboardMobileActivity) getActivity()).getPresenter();
+
         binding.setPresenter(presenter);
-        if (dashboardProgramModel != null)
-            setData(dashboardProgramModel);
+
+        setData(presenter.getDashBoardData());
     }
 
     public void setData(DashboardProgramModel nprogram) {
-        this.dashboardProgramModel = nprogram;
 
         if (nprogram != null && nprogram.getCurrentEnrollment() != null) {
-            this.events = new ArrayList<>();
+            List<EventModel> events = new ArrayList<>();
             adapter = new EventAdapter(presenter, nprogram.getProgramStages(), events, nprogram.getCurrentEnrollment());
             binding.teiRecycler.setLayoutManager(new LinearLayoutManager(getAbstracContext()));
             binding.teiRecycler.setAdapter(adapter);
@@ -162,16 +156,19 @@ public class TEIDataFragment extends FragmentGlobalAbstract implements DialogCli
             binding.setProgram(nprogram.getCurrentProgram());
             binding.setDashboardModel(nprogram);
             presenter.getTEIEvents(this);
+            followUp.set(nprogram.getCurrentEnrollment().followUp() != null ? nprogram.getCurrentEnrollment().followUp() : false);
+            binding.setFollowup(followUp);
 
         } else if (nprogram != null) {
             binding.fab.setVisibility(View.GONE);
             binding.teiRecycler.setLayoutManager(new LinearLayoutManager(getAbstracContext()));
             binding.teiRecycler.setAdapter(new DashboardProgramAdapter(presenter, nprogram));
-            binding.teiRecycler.addItemDecoration(new DividerItemDecoration(context, DividerItemDecoration.VERTICAL));
+            binding.teiRecycler.addItemDecoration(new DividerItemDecoration(getAbstracContext(), DividerItemDecoration.VERTICAL));
             binding.setTrackEntity(nprogram.getTei());
             binding.setEnrollment(null);
             binding.setProgram(null);
             binding.setDashboardModel(nprogram);
+            binding.setFollowup(followUp);
         }
 
         binding.executePendingBindings();
@@ -254,7 +251,7 @@ public class TEIDataFragment extends FragmentGlobalAbstract implements DialogCli
         };
     }
 
-    private void askCompleteProgram(){
+    private void askCompleteProgram() {
         dialog = new CustomDialog(
                 getContext(),
                 getString(R.string.event_completed_title),
@@ -285,13 +282,20 @@ public class TEIDataFragment extends FragmentGlobalAbstract implements DialogCli
                 else {
                     if (programStageFromEvent.periodType() == null || programStageFromEvent.periodType() == PeriodType.Daily) {
                         Calendar calendar = Calendar.getInstance();
-                        DatePickerDialog datePickerDialog = new DatePickerDialog(context, (view, year, month, dayOfMonth) -> {
+                        DatePickerDialog datePickerDialog = new DatePickerDialog(getAbstracContext(), (view, year, month, dayOfMonth) -> {
                             Calendar chosenDate = Calendar.getInstance();
                             chosenDate.set(year, month, dayOfMonth);
                             presenter.generateEventFromDate(lastModifiedEventUid, chosenDate);
                         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
                         if (programStageFromEvent != null && programStageFromEvent.hideDueDate())
+
+
+                        {
                             datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis() - 1000);
+
+                        }
+
+
                         else {
                             // ONLY FUTURE DATES
                             calendar.add(Calendar.DAY_OF_YEAR, 1);
@@ -322,4 +326,7 @@ public class TEIDataFragment extends FragmentGlobalAbstract implements DialogCli
             askCompleteProgram();
     }
 
+    public void switchFollowUp(boolean followUp) {
+        this.followUp.set(followUp);
+    }
 }
