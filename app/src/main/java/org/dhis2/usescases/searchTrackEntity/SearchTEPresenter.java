@@ -1,25 +1,28 @@
-package org.dhis2.usescases.searchTrackEntity;
+package org.hisp.dhis.android.uphmis.usescases.searchTrackEntity;
 
 import android.app.DatePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
-import org.dhis2.Bindings.Bindings;
-import org.dhis2.R;
-import org.dhis2.data.forms.FormActivity;
-import org.dhis2.data.forms.FormViewArguments;
-import org.dhis2.data.metadata.MetadataRepository;
-import org.dhis2.data.tuples.Pair;
-import org.dhis2.usescases.searchTrackEntity.adapters.SearchTeiModel;
-import org.dhis2.usescases.teiDashboard.mobile.TeiDashboardMobileActivity;
-import org.dhis2.utils.Constants;
-import org.dhis2.utils.CustomViews.OrgUnitDialog;
-import org.dhis2.utils.DateUtils;
-import org.dhis2.utils.NetworkUtils;
+import com.squareup.sqlbrite2.BriteDatabase;
+
+import org.hisp.dhis.android.uphmis.Bindings.Bindings;
+import org.hisp.dhis.android.uphmis.R;
+import org.hisp.dhis.android.uphmis.data.forms.FormActivity;
+import org.hisp.dhis.android.uphmis.data.forms.FormViewArguments;
+import org.hisp.dhis.android.uphmis.data.metadata.MetadataRepository;
+import org.hisp.dhis.android.uphmis.data.tuples.Pair;
+import org.hisp.dhis.android.uphmis.usescases.searchTrackEntity.adapters.SearchTeiModel;
+import org.hisp.dhis.android.uphmis.usescases.teiDashboard.mobile.TeiDashboardMobileActivity;
+import org.hisp.dhis.android.uphmis.utils.Constants;
+import org.hisp.dhis.android.uphmis.utils.CustomViews.OrgUnitDialog;
+import org.hisp.dhis.android.uphmis.utils.DateUtils;
+import org.hisp.dhis.android.uphmis.utils.NetworkUtils;
 import org.hisp.dhis.android.core.D2;
 import org.hisp.dhis.android.core.common.D2CallException;
 import org.hisp.dhis.android.core.data.api.OuMode;
@@ -58,28 +61,37 @@ import static android.text.TextUtils.isEmpty;
  * QUADRAM. Created by ppajuelo on 02/11/2017.
  */
 
+//ToDO @Sou User Restriction
+
 public class SearchTEPresenter implements SearchTEContractsModule.Presenter {
 
+    private static final String SELECT_USERNAME = "SELECT " +
+            "UserCredentials.username FROM UserCredentials";
     private static final int MAX_NO_SELECTED_PROGRAM_RESULTS = 5;
     private final MetadataRepository metadataRepository;
+    private String tei_status="";
+    private String userName="";
+    private String user_tei="";
     private final SearchRepository searchRepository;
     private final D2 d2;
     private SearchTEContractsModule.View view;
 
     private ProgramModel selectedProgram;
-
+    private final BriteDatabase briteDatabase;
     private CompositeDisposable compositeDisposable;
     private TrackedEntityTypeModel trackedEntity;
     private HashMap<String, String> queryData;
 
     private List<OrganisationUnitModel> orgUnits;
+    private List<TrackedEntityInstanceModel> teiModels__;
     private Integer currentPage;
     private Date selectedEnrollmentDate;
 
-    public SearchTEPresenter(SearchRepository searchRepository, MetadataRepository metadataRepository, D2 d2) {
+    public SearchTEPresenter(SearchRepository searchRepository, MetadataRepository metadataRepository, D2 d2, BriteDatabase briteDatabase) {
         Bindings.setMetadataRepository(metadataRepository);
         this.metadataRepository = metadataRepository;
         this.searchRepository = searchRepository;
+        this.briteDatabase=briteDatabase;
         this.d2 = d2;
         queryData = new HashMap<>();
     }
@@ -91,6 +103,11 @@ public class SearchTEPresenter implements SearchTEContractsModule.Presenter {
     public void init(SearchTEContractsModule.View view, String trackedEntityType, String initialProgram) {
         this.view = view;
         compositeDisposable = new CompositeDisposable();
+
+        Cursor cursor = briteDatabase.query(SELECT_USERNAME);
+        cursor.moveToFirst();
+        userName = cursor.getString(0);
+        cursor.close();
 
         compositeDisposable.add(
                 metadataRepository.getTrackedEntity(trackedEntityType)
@@ -155,6 +172,18 @@ public class SearchTEPresenter implements SearchTEContractsModule.Presenter {
                         Timber::d)
         );
 
+        compositeDisposable.add(
+                view.optionSetActions()
+                        .flatMap(
+                                data -> metadataRepository.searchOptions(data.val0(), data.val1()).toFlowable(BackpressureStrategy.LATEST)
+                        )
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                view::setListOptions,
+                                Timber::e
+                        ));
+
     }
 
     @Override
@@ -173,6 +202,10 @@ public class SearchTEPresenter implements SearchTEContractsModule.Presenter {
                             .startWith(0)
                             .flatMap(page -> {
                                 this.currentPage = page;
+                                if (searchRepository.trackedEntityInstances(trackedEntity.uid(), selectedProgram, queryData, page).toFlowable(BackpressureStrategy.BUFFER)!=null)
+                                {
+                                    tei_status="not_null";
+                                }
                                 return searchRepository.trackedEntityInstances(trackedEntity.uid(), selectedProgram, queryData, page).toFlowable(BackpressureStrategy.BUFFER);
                             })
                             .debounce(500, TimeUnit.MILLISECONDS, Schedulers.io())
@@ -190,7 +223,9 @@ public class SearchTEPresenter implements SearchTEContractsModule.Presenter {
                             .subscribe(view.swapTeiListData(), Timber::d)
             );
         else
+
             compositeDisposable.add(
+
                     view.onlinePage()
                             .filter(page -> selectedProgram != null)
                             .filter(page -> page > 0)
@@ -229,22 +264,53 @@ public class SearchTEPresenter implements SearchTEContractsModule.Presenter {
                             })
                             .map(trackedEntityInstances -> {
                                 List<SearchTeiModel> teiList = new ArrayList<>();
-                                TrackedEntityInstanceModelBuilder teiBuilder = new TrackedEntityInstanceModelBuilder();
 
+                                TrackedEntityInstanceModelBuilder teiBuilder = new TrackedEntityInstanceModelBuilder();
+                                if (trackedEntityInstances.size()>0)
+                                {
+                                    tei_status="not_null";
+                                }
                                 for (TrackedEntityInstance tei : trackedEntityInstances) {
                                     if (view.fromRelationshipTEI() == null || !tei.uid().equals(view.fromRelationshipTEI())) { //If fetching for relationship, discard selected TEI
                                         List<TrackedEntityAttributeValueModel> attributeModels = new ArrayList<>();
                                         TrackedEntityAttributeValueModelBuilder attrValueBuilder = new TrackedEntityAttributeValueModelBuilder(tei);
+
                                         for (TrackedEntityAttributeValue attrValue : tei.trackedEntityAttributeValues()) {
-                                            attributeModels.add(attrValueBuilder.buildModel(attrValue));
+                                            if(attrValue.trackedEntityAttribute().equals("GCyx4hTzy3j"))
+                                            {
+                                                if(attrValue.value().contains(userName))
+                                                {
+                                                    user_tei=userName;
+                                                    attributeModels.add(attrValueBuilder.buildModel(attrValue));
+                                                }
+                                                else
+                                                {
+                                                    user_tei="test";
+                                                }
+                                            }
+
+
                                         }
                                         SearchTeiModel teiModel = new SearchTeiModel(teiBuilder.buildModel(tei), attributeModels);
-                                        teiList.add(teiModel);
+
+                                        //@Sou ToDo limit user wise data
+                                        if(userName.contains(user_tei))
+                                        {
+                                            teiList.add(teiModel);
+                                        }
+
                                     }
                                 }
                                 return teiList;
                             })
                             .flatMap(list -> searchRepository.transformIntoModel(list, selectedProgram))
+                            .map(list->{
+                                List<SearchTeiModel> searchTeiModels = new ArrayList<>();
+                                for(SearchTeiModel searchTeiModel : list)
+                                    if(!searchTeiModel.getEnrollments().isEmpty())
+                                        searchTeiModels.add(searchTeiModel);
+                                return searchTeiModels;
+                            })
                             .flatMap(list -> {
                                 if (currentPage == 1)
                                     return searchRepository.trackedEntityInstancesToUpdate(trackedEntity.uid(), selectedProgram, queryData)
@@ -401,9 +467,23 @@ public class SearchTEPresenter implements SearchTEContractsModule.Presenter {
 
     @Override
     public void onEnrollClick(View view) {
+        //@Sou ToDO Limit dataEntry to 1 record only
         if (selectedProgram != null && selectedProgram.accessDataWrite() != null && selectedProgram.accessDataWrite())
             if (view.isEnabled()) {
-                enroll(selectedProgram.uid(), null);
+
+                  if (tei_status==""||tei_status==null)
+                  {
+                      enroll(selectedProgram.uid(), null);
+                  }
+                  else
+                  {
+
+//                      Toast.makeText(, "test", Toast.LENGTH_SHORT).show();
+//                      enroll(selectedProgram.uid(), null);
+                  }
+
+
+//
             } else
                 this.view.displayMessage(view.getContext().getString(R.string.search_program_not_selected));
         else {
@@ -477,10 +557,16 @@ public class SearchTEPresenter implements SearchTEContractsModule.Presenter {
         if (selectedProgram != null && !selectedProgram.selectEnrollmentDatesInFuture()) {
             dateDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
         }
+        //ToDO @Sou  Enrollment Date Fix for 7 Days
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, -6);
+        Date result_ = cal.getTime();
         dateDialog.setTitle(selectedProgram.enrollmentDateLabel());
         dateDialog.setButton(DialogInterface.BUTTON_NEGATIVE, view.getContext().getString(R.string.date_dialog_clear), (dialog, which) -> {
             dialog.dismiss();
         });
+        dateDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        dateDialog.getDatePicker().setMinDate(result_.getTime());
         dateDialog.show();
     }
 
