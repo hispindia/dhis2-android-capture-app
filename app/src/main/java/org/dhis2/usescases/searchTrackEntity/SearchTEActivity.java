@@ -1,11 +1,11 @@
-package org.dhis2.usescases.searchTrackEntity;
+package org.hisp.dhis.android.uphmis.usescases.searchTrackEntity;
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.databinding.BindingMethod;
@@ -28,24 +28,25 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.Spinner;
 
-import org.dhis2.App;
-import org.dhis2.BuildConfig;
-import org.dhis2.R;
-import org.dhis2.data.forms.dataentry.ProgramAdapter;
-import org.dhis2.data.forms.dataentry.fields.RowAction;
-import org.dhis2.data.metadata.MetadataRepository;
-import org.dhis2.data.tuples.Pair;
-import org.dhis2.databinding.ActivitySearchBinding;
-import org.dhis2.usescases.general.ActivityGlobalAbstract;
-import org.dhis2.usescases.searchTrackEntity.adapters.FormAdapter;
-import org.dhis2.usescases.searchTrackEntity.adapters.SearchRelationshipAdapter;
-import org.dhis2.usescases.searchTrackEntity.adapters.SearchTEAdapter;
-import org.dhis2.usescases.searchTrackEntity.adapters.SearchTeiModel;
-import org.dhis2.utils.ColorUtils;
-import org.dhis2.utils.Constants;
-import org.dhis2.utils.EndlessRecyclerViewScrollListener;
-import org.dhis2.utils.HelpManager;
-import org.dhis2.utils.NetworkUtils;
+import org.hisp.App;
+import org.hisp.dhis.android.uphmis.BuildConfig;
+import org.hisp.dhis.android.uphmis.R;
+import org.hisp.dhis.android.uphmis.data.forms.dataentry.ProgramAdapter;
+import org.hisp.dhis.android.uphmis.data.forms.dataentry.fields.RowAction;
+import org.hisp.dhis.android.uphmis.data.metadata.MetadataRepository;
+import org.hisp.dhis.android.uphmis.data.tuples.Pair;
+import org.hisp.dhis.android.uphmis.databinding.ActivitySearchBinding;
+import org.hisp.dhis.android.uphmis.usescases.general.ActivityGlobalAbstract;
+import org.hisp.dhis.android.uphmis.usescases.searchTrackEntity.adapters.FormAdapter;
+import org.hisp.dhis.android.uphmis.usescases.searchTrackEntity.adapters.SearchRelationshipAdapter;
+import org.hisp.dhis.android.uphmis.usescases.searchTrackEntity.adapters.SearchTEAdapter;
+import org.hisp.dhis.android.uphmis.usescases.searchTrackEntity.adapters.SearchTeiModel;
+import org.hisp.dhis.android.uphmis.utils.ColorUtils;
+import org.hisp.dhis.android.uphmis.utils.Constants;
+import org.hisp.dhis.android.uphmis.utils.CustomViews.OptionSetDialog;
+import org.hisp.dhis.android.uphmis.utils.EndlessRecyclerViewScrollListener;
+import org.hisp.dhis.android.uphmis.utils.HelpManager;
+import org.hisp.dhis.android.uphmis.utils.NetworkUtils;
 import org.hisp.dhis.android.core.program.ProgramModel;
 import org.hisp.dhis.android.core.trackedentity.TrackedEntityAttributeModel;
 
@@ -104,11 +105,6 @@ public class SearchTEActivity extends ActivityGlobalAbstract implements SearchTE
         ((App) getApplicationContext()).userComponent().plus(new SearchTEModule()).inject(this);
 
         super.onCreate(savedInstanceState);
-
-        if (!getResources().getBoolean(R.bool.is_tablet))
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
-        else
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_search);
         binding.setPresenter(presenter);
@@ -182,12 +178,17 @@ public class SearchTEActivity extends ActivityGlobalAbstract implements SearchTE
 
         //Form has been set.
         FormAdapter formAdapter = (FormAdapter) binding.formRecycler.getAdapter();
-        formAdapter.setList(trackedEntityAttributeModels, program, queryData);
+        //@Sou ToDO changes for No Search Form
+//        formAdapter.setList(trackedEntityAttributeModels, program, queryData);
     }
 
     @NonNull
     public Flowable<RowAction> rowActionss() {
         return ((FormAdapter) binding.formRecycler.getAdapter()).asFlowableRA();
+    }
+
+    public Flowable<Pair<String, String>> optionSetActions(){
+        return ((FormAdapter) binding.formRecycler.getAdapter()).asFlowableOption();
     }
 
     @Override
@@ -316,6 +317,7 @@ public class SearchTEActivity extends ActivityGlobalAbstract implements SearchTE
             // silently fail...
         }
         binding.programSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @SuppressLint("RestrictedApi")
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long id) {
                 if (pos > 0) {
@@ -399,5 +401,10 @@ public class SearchTEActivity extends ActivityGlobalAbstract implements SearchTE
     @Override
     public String fromRelationshipTEI() {
         return fromRelationshipTeiUid;
+    }
+
+    @Override
+    public void setListOptions(List<String> options) {
+        OptionSetDialog.newInstance().setOptions(options);
     }
 }
