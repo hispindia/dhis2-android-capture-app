@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merger version="3"><dataSet config="main"><source path="/Users/xelvias/Workings/hisp/android/intpart/captureapp/dhis2-android-capture-app/dhis2-rule-engine/src/main/assets"/><source path="/Users/xelvias/Workings/hisp/android/intpart/captureapp/dhis2-android-capture-app/dhis2-rule-engine/build/generated/assets/shaders/debug"/></dataSet><dataSet config="debug"><source path="/Users/xelvias/Workings/hisp/android/intpart/captureapp/dhis2-android-capture-app/dhis2-rule-engine/src/debug/assets"/></dataSet></merger>
