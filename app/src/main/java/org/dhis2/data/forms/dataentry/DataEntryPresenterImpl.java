@@ -1,12 +1,17 @@
 package org.dhis2.data.forms.dataentry;
 
+import android.annotation.SuppressLint;
+import android.database.Cursor;
 import android.support.annotation.NonNull;
 import android.util.Log;
+
+import com.squareup.sqlbrite2.BriteDatabase;
 
 import org.dhis2.data.forms.dataentry.fields.FieldViewModel;
 import org.dhis2.data.forms.dataentry.fields.edittext.EditTextViewModel;
 import org.dhis2.data.metadata.MetadataRepository;
 import org.dhis2.data.schedulers.SchedulerProvider;
+import org.dhis2.data.user.UserRepository;
 import org.dhis2.utils.CodeGenerator;
 import org.dhis2.utils.Result;
 import org.hisp.dhis.android.core.common.ValueType;
@@ -31,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
+
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
@@ -41,6 +48,18 @@ import timber.log.Timber;
 
 @SuppressWarnings("PMD")
 final class DataEntryPresenterImpl implements DataEntryPresenter {
+
+    public static String HOUSE_NO_HM = "YFjB0zhySP6";
+    public static String HOUSE_NO_H = "ZQMF7taSAw8";
+
+    public static String TYPE_OF_HOUSE_ID = "dCer94znEuY";
+    public static String NAME_ID = "xalnzkNfD77";
+    public static String SERIES_ID = "UqhbFTbVeSD";
+    public static String FAMILY_MEMBER_UNIQUE_ID = "Dnm1mq6iq2d";
+
+
+    public static String FAMILY_UNIQUE_ID = "uHv60gjn2gp";
+    public static String HEAD_OF_FAMILY_NAME = "FML9pARILz5";
 
     @NonNull
     private final CodeGenerator codeGenerator;
@@ -64,12 +83,17 @@ final class DataEntryPresenterImpl implements DataEntryPresenter {
     private DataEntryView dataEntryView;
     private HashMap<String, FieldViewModel> currentFieldViewModels;
 
+    private UserRepository userRepository;
+    private BriteDatabase briteDatabase;
+
+    String orgunitCode = "";
+
     DataEntryPresenterImpl(@NonNull CodeGenerator codeGenerator,
                            @NonNull DataEntryStore dataEntryStore,
                            @NonNull DataEntryRepository dataEntryRepository,
                            @NonNull RuleEngineRepository ruleEngineRepository,
                            @NonNull SchedulerProvider schedulerProvider,
-                           @NonNull MetadataRepository metadataRepository) {
+                           @NonNull MetadataRepository metadataRepository, @NonNull UserRepository userRepository, @NonNull BriteDatabase briteDatabase) {
         this.codeGenerator = codeGenerator;
         this.dataEntryStore = dataEntryStore;
         this.dataEntryRepository = dataEntryRepository;
@@ -77,8 +101,11 @@ final class DataEntryPresenterImpl implements DataEntryPresenter {
         this.schedulerProvider = schedulerProvider;
         this.disposable = new CompositeDisposable();
         this.metadataRepository = metadataRepository;
+        this.userRepository = userRepository;
+        this.briteDatabase = briteDatabase;
     }
 
+    @SuppressLint("RxSubscribeOnError")
     @Override
     public void onAttach(@NonNull DataEntryView dataEntryView) {
         this.dataEntryView = dataEntryView;
@@ -121,6 +148,18 @@ final class DataEntryPresenterImpl implements DataEntryPresenter {
                                 dataEntryView::setListOptions,
                                 Timber::e
                         ));
+
+        disposable.add(userRepository.myOrgUnits()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(organisationUnitModels -> {
+//                    if(organisationUnitModels.size()>0) this.orgunitCode = getOrgUnitCode(organisationUnitModels.get(0).uid());
+
+                    //till we edit hte sdk to save the code use name instead
+
+                    if(organisationUnitModels.size()>0) this.orgunitCode = organisationUnitModels.get(0).shortName();
+
+                }));
     }
 
     private void save(String uid, String value, Boolean isAttribute) {
@@ -176,7 +215,104 @@ final class DataEntryPresenterImpl implements DataEntryPresenter {
         return map;
     }
 
+    @Nonnull
+    private String getOrgUnitCode(String orgUnitUid) {
+        String ouCode = "";
+        Cursor cursor = briteDatabase.query("SELECT code FROM OrganisationUnit WHERE uid = ? LIMIT 1", orgUnitUid);
+        if (cursor != null && cursor.moveToFirst() && cursor.getString(0) != null) {
+            ouCode = cursor.getString(0);
+            cursor.close();
+        }
+        return ouCode;
+    }
+
     private void applyRuleEffects(Map<String, FieldViewModel> fieldViewModels, Result<RuleEffect> calcResult) {
+
+
+
+        //for household program
+        //Facility/Houseno/Type of house/Head of family
+        ///ryR4a3NGUvr/MKJov93FcdU/lBQjxyHY7VI/Zn7txDI3LPe
+        //ZQMF7taSAw8/dCer94znEuY/
+
+//        String delm = "/";
+//        String familyuniqueid = orgunitCode;
+//        String familymemberuniqueid= orgunitCode;
+//
+//        if(fieldViewModels.get("ZQMF7taSAw8")!=null && fieldViewModels.get("ZQMF7taSAw8").value() != null ){//houseno
+//            familyuniqueid+=delm+fieldViewModels.get("ZQMF7taSAw8").value();
+//            familymemberuniqueid+=delm+fieldViewModels.get("ZQMF7taSAw8").value();
+//        }
+//        if(fieldViewModels.get("dCer94znEuY")!=null && fieldViewModels.get("dCer94znEuY").value() != null){//typeofhouse
+//            familyuniqueid+=delm+fieldViewModels.get("dCer94znEuY").value();
+//            familymemberuniqueid+=delm+fieldViewModels.get("dCer94znEuY").value();
+//        }
+//        if(fieldViewModels.get("FML9pARILz5")!=null && fieldViewModels.get("FML9pARILz5").value() != null ){//name
+//            familyuniqueid+=delm+fieldViewModels.get("FML9pARILz5").value();
+//            familymemberuniqueid+=delm+fieldViewModels.get("FML9pARILz5").value();
+//        }
+////        if(fieldViewModels.get("Zn7txDI3LPe")!=null)familyuniqueid+=delm+fieldViewModels.get("Zn7txDI3LPe").value();
+//
+//
+//        if(fieldViewModels.get("uHv60gjn2gp")!=null){
+//            if(fieldViewModels.get("uHv60gjn2gp").value() ==null || !fieldViewModels.get("uHv60gjn2gp").value().equals(familyuniqueid)) {
+//                fieldViewModels.put("uHv60gjn2gp", fieldViewModels.get("uHv60gjn2gp").withValue(familyuniqueid));
+//                save("uHv60gjn2gp",familyuniqueid,true);
+//            }
+//        }
+        //household family unique id ends
+
+
+        //HOUSEHOLDEMEMBER PROGRAM AUTOGENERATE
+        String delm = "/";
+        String familyuniqueid = orgunitCode;
+        String familymemberuniqueid= orgunitCode;
+
+        if(fieldViewModels.get(HOUSE_NO_HM)!=null && fieldViewModels.get(HOUSE_NO_HM).value() != null ){//houseno
+            familyuniqueid+=delm+fieldViewModels.get(HOUSE_NO_HM).value();
+            familymemberuniqueid+=delm+fieldViewModels.get(HOUSE_NO_HM).value();
+        }
+        if(fieldViewModels.get(HOUSE_NO_H)!=null && fieldViewModels.get(HOUSE_NO_H).value() != null ){//houseno
+            familyuniqueid+=delm+fieldViewModels.get(HOUSE_NO_H).value();
+            familymemberuniqueid+=delm+fieldViewModels.get(HOUSE_NO_H).value();
+        }
+        if(fieldViewModels.get(TYPE_OF_HOUSE_ID)!=null && fieldViewModels.get(TYPE_OF_HOUSE_ID).value() != null){//typeofhouse
+            familyuniqueid+=fieldViewModels.get(TYPE_OF_HOUSE_ID).value();
+            familymemberuniqueid+=fieldViewModels.get(TYPE_OF_HOUSE_ID).value();
+        }
+        if(fieldViewModels.get(HEAD_OF_FAMILY_NAME)!=null && fieldViewModels.get(HEAD_OF_FAMILY_NAME).value() != null){//headoffamily
+            familyuniqueid+=delm+fieldViewModels.get(HEAD_OF_FAMILY_NAME).value();
+//            familymemberuniqueid+=fieldViewModels.get(TYPE_OF_HOUSE_ID).value();
+        }
+
+        if(fieldViewModels.get(NAME_ID)!=null && fieldViewModels.get(NAME_ID).value() != null ){//name
+//            familyuniqueid+=delm+fieldViewModels.get(NAME_ID).value();
+            familymemberuniqueid+=delm+fieldViewModels.get(NAME_ID).value();
+        }
+        if(fieldViewModels.get(SERIES_ID)!=null && fieldViewModels.get(SERIES_ID).value() != null ){//name
+//            familyuniqueid+=delm+fieldViewModels.get("FML9pARILz5").value();
+            familymemberuniqueid+=delm+fieldViewModels.get(SERIES_ID).value();
+        }
+//        if(fieldViewModels.get("Zn7txDI3LPe")!=null)familyuniqueid+=delm+fieldViewModels.get("Zn7txDI3LPe").value();
+
+
+        if(fieldViewModels.get(FAMILY_MEMBER_UNIQUE_ID)!=null){
+            if(fieldViewModels.get(FAMILY_MEMBER_UNIQUE_ID).value() ==null || !fieldViewModels.get(FAMILY_MEMBER_UNIQUE_ID).value().equals(familymemberuniqueid)) {
+                fieldViewModels.put(FAMILY_MEMBER_UNIQUE_ID, fieldViewModels.get(FAMILY_MEMBER_UNIQUE_ID).withValue(familymemberuniqueid));
+                save(FAMILY_MEMBER_UNIQUE_ID,familymemberuniqueid,true);
+            }
+        }
+        if(fieldViewModels.get(FAMILY_UNIQUE_ID)!=null){
+            if(fieldViewModels.get(FAMILY_UNIQUE_ID).value() ==null || !fieldViewModels.get(FAMILY_UNIQUE_ID).value().equals(familyuniqueid)) {
+                fieldViewModels.put(FAMILY_UNIQUE_ID, fieldViewModels.get(FAMILY_UNIQUE_ID).withValue(familyuniqueid));
+                save(FAMILY_UNIQUE_ID,familyuniqueid,true);
+            }
+        }
+
+
+
+
+
 
         for (RuleEffect ruleEffect : calcResult.items()) {
             RuleAction ruleAction = ruleEffect.ruleAction();

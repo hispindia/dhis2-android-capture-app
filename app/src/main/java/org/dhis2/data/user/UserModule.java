@@ -13,7 +13,7 @@ public class UserModule {
 
     @Provides
     @PerUser
-    UserRepository userRepository(BriteDatabase briteDatabase) {
+    public UserRepository userRepository(BriteDatabase briteDatabase) {
         return new UserRepositoryImpl(briteDatabase);
     }
 

@@ -10,6 +10,7 @@ import org.dhis2.data.forms.dataentry.fields.FieldViewModelFactory;
 import org.dhis2.data.forms.dataentry.fields.FieldViewModelFactoryImpl;
 import org.dhis2.data.metadata.MetadataRepository;
 import org.dhis2.data.schedulers.SchedulerProvider;
+import org.dhis2.data.user.UserRepository;
 import org.dhis2.utils.CodeGenerator;
 import com.squareup.sqlbrite2.BriteDatabase;
 
@@ -68,9 +69,9 @@ public class DataEntryModule {
             @NonNull DataEntryStore dataEntryStore,
             @NonNull DataEntryRepository dataEntryRepository,
             @NonNull RuleEngineRepository ruleEngineRepository,
-            @NonNull MetadataRepository metadataRepository) {
+            @NonNull MetadataRepository metadataRepository, @NonNull UserRepository userRepository,@NonNull BriteDatabase briteDatabase) {
         return new DataEntryPresenterImpl(codeGenerator, dataEntryStore,
-                dataEntryRepository, ruleEngineRepository, schedulerProvider, metadataRepository);
+                dataEntryRepository, ruleEngineRepository, schedulerProvider, metadataRepository,userRepository,briteDatabase);
     }
 
     @Provides
