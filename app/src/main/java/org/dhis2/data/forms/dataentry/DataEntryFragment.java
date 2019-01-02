@@ -18,6 +18,7 @@ import org.dhis2.R;
 import org.dhis2.data.forms.FormFragment;
 import org.dhis2.data.forms.dataentry.fields.FieldViewModel;
 import org.dhis2.data.forms.dataentry.fields.RowAction;
+import org.dhis2.data.metadata.MetadataRepository;
 import org.dhis2.data.tuples.Pair;
 import org.dhis2.usescases.general.ActivityGlobalAbstract;
 import org.dhis2.usescases.general.FragmentGlobalAbstract;
@@ -145,6 +146,7 @@ public final class DataEntryFragment extends FragmentGlobalAbstract implements D
         dataEntryAdapter = new DataEntryAdapter(LayoutInflater.from(getActivity()),
                 getChildFragmentManager(), arguments,
                 dataEntryPresenter.getOrgUnits(),
+                dataEntryPresenter.getTeis(),dataEntryPresenter.getMetadataRepository(),
                 new ObservableBoolean(true));
 //        dataEntryAdapter.setHasStableIds(true);
 

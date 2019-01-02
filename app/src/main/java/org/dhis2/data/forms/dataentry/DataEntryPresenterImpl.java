@@ -16,6 +16,9 @@ import org.dhis2.utils.CodeGenerator;
 import org.dhis2.utils.Result;
 import org.hisp.dhis.android.core.common.ValueType;
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnitModel;
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityAttributeValueModel;
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityInstanceModel;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.rules.models.RuleActionCreateEvent;
@@ -43,23 +46,32 @@ import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
 @SuppressWarnings("PMD")
-final class DataEntryPresenterImpl implements DataEntryPresenter {
+final public class DataEntryPresenterImpl implements DataEntryPresenter {
 
-    public static String HOUSE_NO_HM = "YFjB0zhySP6";
-    public static String HOUSE_NO_H = "ZQMF7taSAw8";
+    public static final String HOUSEHOLD_PROGRAM = "BgTTdBNKHwc";
+    public static final String HOUSE_NO_HM = "YFjB0zhySP6";
+    public static final String HOUSE_NO_H = "ZQMF7taSAw8";
 
-    public static String TYPE_OF_HOUSE_ID = "dCer94znEuY";
-    public static String NAME_ID = "xalnzkNfD77";
-    public static String SERIES_ID = "UqhbFTbVeSD";
-    public static String FAMILY_MEMBER_UNIQUE_ID = "Dnm1mq6iq2d";
+    public static final String TYPE_OF_HOUSE_ID = "dCer94znEuY";
+    public static final String NAME_ID = "xalnzkNfD77";
+    public static final String SERIES_ID = "UqhbFTbVeSD";
+    public static final String FAMILY_MEMBER_UNIQUE_ID = "Dnm1mq6iq2d";
 
 
-    public static String FAMILY_UNIQUE_ID = "uHv60gjn2gp";
-    public static String HEAD_OF_FAMILY_NAME = "FML9pARILz5";
+    public static final String FAMILY_UNIQUE_ID = "uHv60gjn2gp";
+    public static final String HEAD_OF_FAMILY_NAME = "FML9pARILz5";
+
+
+    public static final String TRACKER_ASSOSCIATE_ID = "MdXK0DeWgMJ";
+    public static final String ANM_NAME = "yDCO4KM4WVA";
+    public static final String LOCALITYNAME = "MV4wWoZBrJS";
+
+
 
     @NonNull
     private final CodeGenerator codeGenerator;
@@ -108,6 +120,7 @@ final class DataEntryPresenterImpl implements DataEntryPresenter {
     @SuppressLint("RxSubscribeOnError")
     @Override
     public void onAttach(@NonNull DataEntryView dataEntryView) {
+
         this.dataEntryView = dataEntryView;
         Observable<List<FieldViewModel>> fieldsFlowable = dataEntryRepository.list();
         Flowable<Result<RuleEffect>> ruleEffectFlowable = ruleEngineRepository.calculate()
@@ -160,6 +173,8 @@ final class DataEntryPresenterImpl implements DataEntryPresenter {
                     if(organisationUnitModels.size()>0) this.orgunitCode = organisationUnitModels.get(0).shortName();
 
                 }));
+        
+        
     }
 
     private void save(String uid, String value, Boolean isAttribute) {
@@ -187,6 +202,11 @@ final class DataEntryPresenterImpl implements DataEntryPresenter {
         return dataEntryRepository.getOrgUnits();
     }
 
+    
+    @NonNull
+    public Observable<List<TrackedEntityInstanceModel>> getTeis(){
+        return metadataRepository.getTrackedEntityInstances(HOUSEHOLD_PROGRAM);
+    }
     @NonNull
     private List<FieldViewModel> applyEffects(
             @NonNull List<FieldViewModel> viewModels,
@@ -208,6 +228,7 @@ final class DataEntryPresenterImpl implements DataEntryPresenter {
 
     @NonNull
     private static Map<String, FieldViewModel> toMap(@NonNull List<FieldViewModel> fieldViewModels) {
+
         Map<String, FieldViewModel> map = new LinkedHashMap<>();
         for (FieldViewModel fieldViewModel : fieldViewModels) {
             map.put(fieldViewModel.uid(), fieldViewModel);
@@ -226,14 +247,56 @@ final class DataEntryPresenterImpl implements DataEntryPresenter {
         return ouCode;
     }
 
+    @SuppressLint("RxSubscribeOnError")
     private void applyRuleEffects(Map<String, FieldViewModel> fieldViewModels, Result<RuleEffect> calcResult) {
+        CompositeDisposable savedisposable = new CompositeDisposable();
+        if(fieldViewModels.get(TRACKER_ASSOSCIATE_ID)!=null && fieldViewModels.get(TRACKER_ASSOSCIATE_ID).value()!=null){
+            Observable<List<TrackedEntityAttributeValueModel>> teiAttributeValues = metadataRepository.getTEIAttributeValues(HOUSEHOLD_PROGRAM, fieldViewModels.get(TRACKER_ASSOSCIATE_ID).value());
+            savedisposable.add(teiAttributeValues
+                    .subscribeOn(Schedulers.io())
+                    .subscribe((attributevalues) -> {
+                        for(TrackedEntityAttributeValueModel model :attributevalues){
+                            String val = model.value();
+                            if(val==null) val = "";
+                            switch (model.trackedEntityAttribute()){
 
+                                case TYPE_OF_HOUSE_ID:
+                                    if(fieldViewModels.get(TYPE_OF_HOUSE_ID)!=null && (fieldViewModels.get(TYPE_OF_HOUSE_ID)==null || !fieldViewModels.get(TYPE_OF_HOUSE_ID).value().equals(val))){
+                                        fieldViewModels.put(TYPE_OF_HOUSE_ID,fieldViewModels.get(TYPE_OF_HOUSE_ID).withValue(val));
+                                        save(TYPE_OF_HOUSE_ID,val,true);
+                                    }
+                                    break;
 
+                                case ANM_NAME:
+                                    if(fieldViewModels.get(ANM_NAME)!=null && (fieldViewModels.get(ANM_NAME).value()==null || !fieldViewModels.get(ANM_NAME).value().equals(val))){
+                                        fieldViewModels.put(ANM_NAME,fieldViewModels.get(ANM_NAME).withValue(val));
+                                        save(ANM_NAME,val,true);
+                                    }
+                                    break;
 
-        //for household program
-        //Facility/Houseno/Type of house/Head of family
-        ///ryR4a3NGUvr/MKJov93FcdU/lBQjxyHY7VI/Zn7txDI3LPe
-        //ZQMF7taSAw8/dCer94znEuY/
+                                case LOCALITYNAME:
+                                    if(fieldViewModels.get(LOCALITYNAME)!=null && (fieldViewModels.get(LOCALITYNAME)==null || !fieldViewModels.get(LOCALITYNAME).value().equals(val))){
+                                        fieldViewModels.put(LOCALITYNAME,fieldViewModels.get(LOCALITYNAME).withValue(val));
+                                        save(LOCALITYNAME,val,true);
+                                    }
+                                    break;
+
+                                case HOUSE_NO_H:
+                                    if(fieldViewModels.get(HOUSE_NO_HM)!=null && (fieldViewModels.get(HOUSE_NO_HM).value()==null && !fieldViewModels.get(HOUSE_NO_HM).value().equals(val))){
+                                        fieldViewModels.put(HOUSE_NO_HM,fieldViewModels.get(HOUSE_NO_HM).withValue(val));
+                                        save(HOUSE_NO_HM,val,true);
+                                    }
+                                    break;
+                            }
+                        }
+                    },Timber::e,savedisposable::clear));
+
+        }
+
+            //for household program
+            //Facility/Houseno/Type of house/Head of family
+            ///ryR4a3NGUvr/MKJov93FcdU/lBQjxyHY7VI/Zn7txDI3LPe
+            //ZQMF7taSAw8/dCer94znEuY/
 
 //        String delm = "/";
 //        String familyuniqueid = orgunitCode;
@@ -260,54 +323,57 @@ final class DataEntryPresenterImpl implements DataEntryPresenter {
 //                save("uHv60gjn2gp",familyuniqueid,true);
 //            }
 //        }
-        //household family unique id ends
+            //household family unique id ends
 
 
-        //HOUSEHOLDEMEMBER PROGRAM AUTOGENERATE
-        String delm = "/";
-        String familyuniqueid = orgunitCode;
-        String familymemberuniqueid= orgunitCode;
+            //HOUSEHOLDEMEMBER PROGRAM AUTOGENERATE
+            String delm = "/";
+            String familyuniqueid = orgunitCode;
+            String familymemberuniqueid= orgunitCode;
 
-        if(fieldViewModels.get(HOUSE_NO_HM)!=null && fieldViewModels.get(HOUSE_NO_HM).value() != null ){//houseno
-            familyuniqueid+=delm+fieldViewModels.get(HOUSE_NO_HM).value();
-            familymemberuniqueid+=delm+fieldViewModels.get(HOUSE_NO_HM).value();
-        }
-        if(fieldViewModels.get(HOUSE_NO_H)!=null && fieldViewModels.get(HOUSE_NO_H).value() != null ){//houseno
-            familyuniqueid+=delm+fieldViewModels.get(HOUSE_NO_H).value();
-            familymemberuniqueid+=delm+fieldViewModels.get(HOUSE_NO_H).value();
-        }
-        if(fieldViewModels.get(TYPE_OF_HOUSE_ID)!=null && fieldViewModels.get(TYPE_OF_HOUSE_ID).value() != null){//typeofhouse
-            familyuniqueid+=fieldViewModels.get(TYPE_OF_HOUSE_ID).value();
-            familymemberuniqueid+=fieldViewModels.get(TYPE_OF_HOUSE_ID).value();
-        }
-        if(fieldViewModels.get(HEAD_OF_FAMILY_NAME)!=null && fieldViewModels.get(HEAD_OF_FAMILY_NAME).value() != null){//headoffamily
-            familyuniqueid+=delm+fieldViewModels.get(HEAD_OF_FAMILY_NAME).value();
+            if(fieldViewModels.get(HOUSE_NO_HM)!=null && fieldViewModels.get(HOUSE_NO_HM).value() != null ){//houseno
+                familyuniqueid+=delm+fieldViewModels.get(HOUSE_NO_HM).value();
+                familymemberuniqueid+=delm+fieldViewModels.get(HOUSE_NO_HM).value();
+            }
+            if(fieldViewModels.get(HOUSE_NO_H)!=null && fieldViewModels.get(HOUSE_NO_H).value() != null ){//houseno
+                familyuniqueid+=delm+fieldViewModels.get(HOUSE_NO_H).value();
+                familymemberuniqueid+=delm+fieldViewModels.get(HOUSE_NO_H).value();
+            }
+            if(fieldViewModels.get(TYPE_OF_HOUSE_ID)!=null && fieldViewModels.get(TYPE_OF_HOUSE_ID).value() != null){//typeofhouse
+                familyuniqueid+=fieldViewModels.get(TYPE_OF_HOUSE_ID).value();
+                familymemberuniqueid+=fieldViewModels.get(TYPE_OF_HOUSE_ID).value();
+            }
+            if(fieldViewModels.get(HEAD_OF_FAMILY_NAME)!=null && fieldViewModels.get(HEAD_OF_FAMILY_NAME).value() != null){//headoffamily
+                familyuniqueid+=delm+fieldViewModels.get(HEAD_OF_FAMILY_NAME).value();
 //            familymemberuniqueid+=fieldViewModels.get(TYPE_OF_HOUSE_ID).value();
-        }
+            }
 
-        if(fieldViewModels.get(NAME_ID)!=null && fieldViewModels.get(NAME_ID).value() != null ){//name
+            if(fieldViewModels.get(NAME_ID)!=null && fieldViewModels.get(NAME_ID).value() != null ){//name
 //            familyuniqueid+=delm+fieldViewModels.get(NAME_ID).value();
-            familymemberuniqueid+=delm+fieldViewModels.get(NAME_ID).value();
-        }
-        if(fieldViewModels.get(SERIES_ID)!=null && fieldViewModels.get(SERIES_ID).value() != null ){//name
+                familymemberuniqueid+=delm+fieldViewModels.get(NAME_ID).value();
+            }
+            if(fieldViewModels.get(SERIES_ID)!=null && fieldViewModels.get(SERIES_ID).value() != null ){//name
 //            familyuniqueid+=delm+fieldViewModels.get("FML9pARILz5").value();
-            familymemberuniqueid+=delm+fieldViewModels.get(SERIES_ID).value();
-        }
+                familymemberuniqueid+=delm+fieldViewModels.get(SERIES_ID).value();
+            }
 //        if(fieldViewModels.get("Zn7txDI3LPe")!=null)familyuniqueid+=delm+fieldViewModels.get("Zn7txDI3LPe").value();
 
 
-        if(fieldViewModels.get(FAMILY_MEMBER_UNIQUE_ID)!=null){
-            if(fieldViewModels.get(FAMILY_MEMBER_UNIQUE_ID).value() ==null || !fieldViewModels.get(FAMILY_MEMBER_UNIQUE_ID).value().equals(familymemberuniqueid)) {
-                fieldViewModels.put(FAMILY_MEMBER_UNIQUE_ID, fieldViewModels.get(FAMILY_MEMBER_UNIQUE_ID).withValue(familymemberuniqueid));
-                save(FAMILY_MEMBER_UNIQUE_ID,familymemberuniqueid,true);
+            if(fieldViewModels.get(FAMILY_MEMBER_UNIQUE_ID)!=null){
+                if(fieldViewModels.get(FAMILY_MEMBER_UNIQUE_ID).value() ==null || !fieldViewModels.get(FAMILY_MEMBER_UNIQUE_ID).value().equals(familymemberuniqueid)) {
+                    fieldViewModels.put(FAMILY_MEMBER_UNIQUE_ID, fieldViewModels.get(FAMILY_MEMBER_UNIQUE_ID).withValue(familymemberuniqueid));
+                    save(FAMILY_MEMBER_UNIQUE_ID,familymemberuniqueid,true);
+                }
             }
-        }
-        if(fieldViewModels.get(FAMILY_UNIQUE_ID)!=null){
-            if(fieldViewModels.get(FAMILY_UNIQUE_ID).value() ==null || !fieldViewModels.get(FAMILY_UNIQUE_ID).value().equals(familyuniqueid)) {
-                fieldViewModels.put(FAMILY_UNIQUE_ID, fieldViewModels.get(FAMILY_UNIQUE_ID).withValue(familyuniqueid));
-                save(FAMILY_UNIQUE_ID,familyuniqueid,true);
+            if(fieldViewModels.get(FAMILY_UNIQUE_ID)!=null){
+                if(fieldViewModels.get(FAMILY_UNIQUE_ID).value() ==null || !fieldViewModels.get(FAMILY_UNIQUE_ID).value().equals(familyuniqueid)) {
+                    fieldViewModels.put(FAMILY_UNIQUE_ID, fieldViewModels.get(FAMILY_UNIQUE_ID).withValue(familyuniqueid));
+                    save(FAMILY_UNIQUE_ID,familyuniqueid,true);
+                }
             }
-        }
+
+
+
 
 
 
@@ -401,5 +467,9 @@ final class DataEntryPresenterImpl implements DataEntryPresenter {
             dataEntryView.removeSection(null);
 
         }
+    }
+
+    public MetadataRepository getMetadataRepository(){
+        return metadataRepository;
     }
 }

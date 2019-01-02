@@ -85,6 +85,7 @@ public class EventCaptureFormFragment extends FragmentGlobalAbstract {
         dataEntryAdapter = new DataEntryAdapter(LayoutInflater.from(getActivity()),
                 getChildFragmentManager(), arguments,
                 activity.getPresenter().getOrgUnits(),
+                activity.getPresenter().getTeis(),activity.getPresenter().getMetadataRepository(),
                 new ObservableBoolean(true));
 
         RecyclerView.LayoutManager layoutManager;

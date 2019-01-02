@@ -13,6 +13,8 @@ import org.dhis2.R;
 import org.dhis2.data.forms.dataentry.fields.FieldViewModel;
 import org.dhis2.data.forms.dataentry.fields.Row;
 import org.dhis2.data.forms.dataentry.fields.RowAction;
+import org.dhis2.data.forms.dataentry.fields.TrackerAssociate.TrackedEntityInstanceViewModel;
+import org.dhis2.data.forms.dataentry.fields.TrackerAssociate.TrackerAssosiateRow;
 import org.dhis2.data.forms.dataentry.fields.age.AgeRow;
 import org.dhis2.data.forms.dataentry.fields.age.AgeViewModel;
 import org.dhis2.data.forms.dataentry.fields.coordinate.CoordinateRow;
@@ -64,6 +66,7 @@ public class FormAdapter extends RecyclerView.Adapter {
     private final int AGEVIEW = 8;
     private final int YES_NO = 9;
     private final int ORG_UNIT = 10;
+    private final int TRACKER_ASSOSIATE = 13;
     private int programData = 0;
     private List<TrackedEntityAttributeModel> attributeList;
     private ProgramModel programModel;
@@ -96,6 +99,7 @@ public class FormAdapter extends RecyclerView.Adapter {
         rows.add(AGEVIEW, new AgeRow(layoutInflater, processor, false));
         rows.add(YES_NO, new RadioButtonRow(layoutInflater, processor, false));
         rows.add(ORG_UNIT, new OrgUnitRow(fm, layoutInflater, processor, false, orgUnits));
+//        rows.add(TRACKER_ASSOSIATE,new TrackerAssosiateRow(fm,layoutInflater,processor,false));
     }
 
     @Override
@@ -152,6 +156,11 @@ public class FormAdapter extends RecyclerView.Adapter {
                 case ORG_UNIT:
                     viewModel = OrgUnitViewModel.create(attr.uid(), label, false, queryData.get(attr.uid()), null, true,attr.displayDescription());
                     break;
+
+//                case TRACKER_ASSOSIATE:
+//                    viewModel = TrackedEntityInstanceViewModel.create(attr.uid(),label,false,queryData.get(attr.uid()),null,true,attr.displayDescription());
+//                    break;
+
                 default:
                     Crashlytics.log("Unsupported viewType " +
                             "source type: " + holder.getItemViewType());
@@ -219,7 +228,8 @@ public class FormAdapter extends RecyclerView.Adapter {
                     return YES_NO;
                 case ORGANISATION_UNIT:
                     return ORG_UNIT;
-                case TRACKER_ASSOCIATE:
+//                case TRACKER_ASSOCIATE:
+//                    return TRACKER_ASSOSIATE;
                 default:
                     return EDITTEXT;
             }

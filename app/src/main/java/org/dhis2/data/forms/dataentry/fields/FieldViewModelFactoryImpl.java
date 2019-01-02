@@ -3,6 +3,7 @@ package org.dhis2.data.forms.dataentry.fields;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import org.dhis2.data.forms.dataentry.fields.TrackerAssociate.TrackedEntityInstanceViewModel;
 import org.dhis2.data.forms.dataentry.fields.age.AgeViewModel;
 import org.dhis2.data.forms.dataentry.fields.coordinate.CoordinateViewModel;
 import org.dhis2.data.forms.dataentry.fields.datetime.DateTimeViewModel;
@@ -110,9 +111,11 @@ public final class FieldViewModelFactoryImpl implements FieldViewModelFactory {
                 return RadioButtonViewModel.fromRawValue(id, label, type, mandatory, value, section, editable, description);
             case ORGANISATION_UNIT:
                 return OrgUnitViewModel.create(id, label, mandatory, value, section, editable, description);
+            case TRACKER_ASSOCIATE:
+                return TrackedEntityInstanceViewModel.create(id,label,mandatory,value,section,editable,description);
             case FILE_RESOURCE:
             case IMAGE:
-            case TRACKER_ASSOCIATE:
+
             case USERNAME:
                 return UnsupportedViewModel.create(id, label, mandatory, value, section, editable, description);
             default:

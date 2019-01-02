@@ -258,10 +258,17 @@ public class MetadataRepositoryImpl implements MetadataRepository {
     @Override
     public Observable<List<TrackedEntityInstanceModel>> getTrackedEntityInstances(String programUid) {
         String id = programUid == null ? "" : programUid;
-        String PROGRAM_TRACKED_ENTITY_INSTANCE_QUERY = "SELECT * FROM " + TrackedEntityInstanceModel.TABLE
+        String PROGRAM_TRACKED_ENTITY_INSTANCE_QUERY = "SELECT "
+                +TrackedEntityInstanceModel.TABLE+".*"
+                +" FROM " + TrackedEntityInstanceModel.TABLE
                 + " JOIN " + TrackedEntityTypeModel.TABLE + " ON " + TrackedEntityTypeModel.TABLE + "." + TrackedEntityTypeModel.Columns.UID + " = " + TrackedEntityInstanceModel.TABLE + "." + TrackedEntityInstanceModel.Columns.TRACKED_ENTITY_TYPE
                 + " JOIN " + ProgramModel.TABLE + " ON " + TrackedEntityTypeModel.TABLE + "." + TrackedEntityTypeModel.Columns.UID + " = " + ProgramModel.TABLE + "." + ProgramModel.Columns.TRACKED_ENTITY_TYPE
                 + " WHERE " + ProgramModel.TABLE + "." + ProgramModel.Columns.UID + " = '" + id + "'";
+//
+//        String PROGRAM_TRACKED_ENTITY_INSTANCE_QUERY = "SELECT * FROM " + TrackedEntityInstanceModel.TABLE
+//                + " JOIN " + TrackedEntityTypeModel.TABLE + " ON " + TrackedEntityTypeModel.TABLE + "." + TrackedEntityTypeModel.Columns.UID + " = " + TrackedEntityInstanceModel.TABLE + "." + TrackedEntityInstanceModel.Columns.TRACKED_ENTITY_TYPE
+//                + " JOIN " + ProgramModel.TABLE + " ON " + TrackedEntityTypeModel.TABLE + "." + TrackedEntityTypeModel.Columns.UID + " = " + ProgramModel.TABLE + "." + ProgramModel.Columns.TRACKED_ENTITY_TYPE
+//                + " WHERE " + ProgramModel.TABLE + "." + ProgramModel.Columns.UID + " = '" + id + "'";
 
         final Set<String> PROGRAM_TRACKED_ENTITY_INSTANCE_TABLES = new HashSet<>(Arrays.asList(TrackedEntityInstanceModel.TABLE, TrackedEntityTypeModel.TABLE, ProgramModel.TABLE));
 

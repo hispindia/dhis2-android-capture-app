@@ -12,6 +12,8 @@ import android.view.ViewGroup;
 import org.dhis2.data.forms.dataentry.fields.FieldViewModel;
 import org.dhis2.data.forms.dataentry.fields.Row;
 import org.dhis2.data.forms.dataentry.fields.RowAction;
+import org.dhis2.data.forms.dataentry.fields.TrackerAssociate.TrackedEntityInstanceViewModel;
+import org.dhis2.data.forms.dataentry.fields.TrackerAssociate.TrackerAssosiateRow;
 import org.dhis2.data.forms.dataentry.fields.age.AgeRow;
 import org.dhis2.data.forms.dataentry.fields.age.AgeViewModel;
 import org.dhis2.data.forms.dataentry.fields.coordinate.CoordinateRow;
@@ -32,9 +34,11 @@ import org.dhis2.data.forms.dataentry.fields.spinner.SpinnerRow;
 import org.dhis2.data.forms.dataentry.fields.spinner.SpinnerViewModel;
 import org.dhis2.data.forms.dataentry.fields.unsupported.UnsupportedRow;
 import org.dhis2.data.forms.dataentry.fields.unsupported.UnsupportedViewModel;
+import org.dhis2.data.metadata.MetadataRepository;
 import org.dhis2.data.tuples.Pair;
 import org.hisp.dhis.android.core.common.ValueType;
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnitModel;
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityInstanceModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +61,7 @@ public final class DataEntryAdapter extends Adapter {
     private static final int ORG_UNIT = 10;
     private static final int IMAGE = 11;
     private static final int UNSUPPORTED = 12;
+    private static final int TRACKER_ASSOSIATE = 13;
 
 
     @NonNull
@@ -81,6 +86,8 @@ public final class DataEntryAdapter extends Adapter {
                             @NonNull FragmentManager fragmentManager,
                             @NonNull DataEntryArguments dataEntryArguments,
                             @NonNull Observable<List<OrganisationUnitModel>> orgUnits,
+                            @NonNull Observable<List<TrackedEntityInstanceModel>> teis,
+                            @NonNull MetadataRepository metadataRepository,
                             ObservableBoolean isEditable) { //TODO: Add isEditable to all fields and test if can be changed on the fly
         setHasStableIds(true);
         rows = new ArrayList<>();
@@ -104,7 +111,7 @@ public final class DataEntryAdapter extends Adapter {
         rows.add(ORG_UNIT, new OrgUnitRow(fragmentManager, layoutInflater, processor, currentPosition, true, orgUnits, dataEntryArguments.renderType()));
         rows.add(IMAGE, new ImageRow(layoutInflater, processor, currentPosition, true, dataEntryArguments.renderType()));
         rows.add(UNSUPPORTED, new UnsupportedRow(layoutInflater, processor, currentPosition, true, dataEntryArguments.renderType()));
-
+        rows.add(TRACKER_ASSOSIATE,new TrackerAssosiateRow(fragmentManager,layoutInflater,processor,currentPosition,true,dataEntryArguments.renderType(),teis,metadataRepository));
     }
 
     @NonNull
@@ -155,7 +162,9 @@ public final class DataEntryAdapter extends Adapter {
             return ORG_UNIT;
         } else if (viewModel instanceof ImageViewModel) {
             return IMAGE;
-        } else if (viewModel instanceof UnsupportedViewModel) {
+        } else if (viewModel instanceof TrackedEntityInstanceViewModel) {
+            return TRACKER_ASSOSIATE;
+        }else if(viewModel instanceof UnsupportedViewModel) {
             return UNSUPPORTED;
         } else {
             throw new IllegalStateException("Unsupported view model type: "

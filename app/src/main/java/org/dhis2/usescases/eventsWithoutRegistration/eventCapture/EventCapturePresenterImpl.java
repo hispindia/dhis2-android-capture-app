@@ -2,9 +2,11 @@ package org.dhis2.usescases.eventsWithoutRegistration.eventCapture;
 
 import org.dhis2.data.forms.FormSectionViewModel;
 import org.dhis2.data.forms.dataentry.fields.FieldViewModel;
+import org.dhis2.data.metadata.MetadataRepository;
 import org.dhis2.data.tuples.Quartet;
 import org.dhis2.usescases.eventsWithoutRegistration.eventCapture.EventCaptureFragment.EventCaptureFormFragment;
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnitModel;
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityInstanceModel;
 
 import java.util.HashMap;
 import java.util.List;
@@ -112,6 +114,14 @@ public class EventCapturePresenterImpl implements EventCaptureContract.Presenter
     public Observable<List<OrganisationUnitModel>> getOrgUnits() {
         return null;
     }
+
+    @Override
+    public Observable<List<TrackedEntityInstanceModel>> getTeis(){
+        return null;
+    }
+
+    @Override
+    public MetadataRepository getMetadataRepository(){return null;}
 
 
     @Override
