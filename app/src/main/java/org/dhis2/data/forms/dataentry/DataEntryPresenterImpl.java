@@ -1,19 +1,21 @@
-package org.dhis2.data.forms.dataentry;
+package org.hisp.dhis.android.uphmis.data.forms.dataentry;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import org.dhis2.data.forms.dataentry.fields.FieldViewModel;
-import org.dhis2.data.forms.dataentry.fields.edittext.EditTextViewModel;
-import org.dhis2.data.schedulers.SchedulerProvider;
-import org.dhis2.utils.CodeGenerator;
-import org.dhis2.utils.Result;
+import org.hisp.dhis.android.uphmis.R;
+import org.hisp.dhis.android.uphmis.data.forms.dataentry.fields.FieldViewModel;
+import org.hisp.dhis.android.uphmis.data.forms.dataentry.fields.edittext.EditTextViewModel;
+import org.hisp.dhis.android.uphmis.data.metadata.MetadataRepository;
+import org.hisp.dhis.android.uphmis.data.schedulers.SchedulerProvider;
+import org.hisp.dhis.android.uphmis.utils.CodeGenerator;
+import org.hisp.dhis.android.uphmis.utils.Constants;
+import org.hisp.dhis.android.uphmis.utils.Result;
 import org.hisp.dhis.android.core.common.ValueType;
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnitModel;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.rules.models.RuleActionCreateEvent;
-import org.hisp.dhis.rules.models.RuleActionDisplayKeyValuePair;
 import org.hisp.dhis.rules.models.RuleActionDisplayText;
 import org.hisp.dhis.rules.models.RuleActionErrorOnCompletion;
 import org.hisp.dhis.rules.models.RuleActionHideField;
@@ -25,13 +27,16 @@ import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
 import org.hisp.dhis.rules.models.RuleEffect;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
@@ -55,32 +60,36 @@ final class DataEntryPresenterImpl implements DataEntryPresenter {
     private final SchedulerProvider schedulerProvider;
 
     @NonNull
+    private final MetadataRepository metadataRepository;
+    @NonNull
     private final CompositeDisposable disposable;
     private DataEntryView dataEntryView;
-
+    private HashMap<String, FieldViewModel> currentFieldViewModels;
     DataEntryPresenterImpl(@NonNull CodeGenerator codeGenerator,
                            @NonNull DataEntryStore dataEntryStore,
                            @NonNull DataEntryRepository dataEntryRepository,
                            @NonNull RuleEngineRepository ruleEngineRepository,
-                           @NonNull SchedulerProvider schedulerProvider) {
+                           @NonNull SchedulerProvider schedulerProvider,
+                           @NonNull MetadataRepository metadataRepository) {
         this.codeGenerator = codeGenerator;
         this.dataEntryStore = dataEntryStore;
         this.dataEntryRepository = dataEntryRepository;
         this.ruleEngineRepository = ruleEngineRepository;
         this.schedulerProvider = schedulerProvider;
         this.disposable = new CompositeDisposable();
+        this.metadataRepository = metadataRepository;
     }
 
     @Override
     public void onAttach(@NonNull DataEntryView dataEntryView) {
         this.dataEntryView = dataEntryView;
-        Flowable<List<FieldViewModel>> fieldsFlowable = dataEntryRepository.list();
+        Observable<List<FieldViewModel>> fieldsFlowable = dataEntryRepository.list();
         Flowable<Result<RuleEffect>> ruleEffectFlowable = ruleEngineRepository.calculate()
-                .subscribeOn(schedulerProvider.computation());
+                .subscribeOn(schedulerProvider.computation()).onErrorReturn(throwable -> Result.failure(new Exception(throwable)));
 
         // Combining results of two repositories into a single stream.
         Flowable<List<FieldViewModel>> viewModelsFlowable = Flowable.zip(
-                fieldsFlowable, ruleEffectFlowable, this::applyEffects);
+                fieldsFlowable.toFlowable(BackpressureStrategy.LATEST), ruleEffectFlowable, this::applyEffects);
 
         disposable.add(viewModelsFlowable
                 .subscribeOn(schedulerProvider.io())//check if computation does better than io
@@ -90,30 +99,49 @@ final class DataEntryPresenterImpl implements DataEntryPresenter {
                 ));
 
         disposable.add(dataEntryView.rowActions().debounce(500, TimeUnit.MILLISECONDS) //TODO: Check debounce time
-                .subscribeOn(schedulerProvider.ui())
-                .observeOn(schedulerProvider.io())
+                .subscribeOn(schedulerProvider.io())
+                .observeOn(schedulerProvider.ui())
                 .switchMap(action ->
-                        {
-                            Timber.d("dataEntryRepository.save(uid=[%s], value=[%s])",
-                                    action.id(), action.value());
-                            return dataEntryStore.save(action.id(), action.value());
-                        }
-                ).subscribe(result -> Timber.d(result.toString()),
+                        dataEntryStore.save(action.id(), action.value()).
+                                map(result -> {
+                                    if (result == 5)
+                                        dataEntryStore.save(action.id(), null);
+                                    return result;
+                                })
+                ).subscribe(result -> {
+                            if (result == -5)
+                                dataEntryView.showMessage(R.string.unique_warning);
+                            else
+                                Timber.d(result.toString());
+                        },
                         Timber::d)
         );
+
+        disposable.add(
+                dataEntryView.optionSetActions()
+                        .flatMap(
+                                data -> metadataRepository.searchOptions(data.val0(), data.val1(),data.val2()).toFlowable(BackpressureStrategy.LATEST)
+                        )
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                dataEntryView::setListOptions,
+                                Timber::e
+                        ));
     }
 
     private void save(String uid, String value) {
         CompositeDisposable saveDisposable = new CompositeDisposable();
-        saveDisposable.add(
-                dataEntryStore.save(uid, value)
-                        .subscribeOn(Schedulers.computation())
-                        .observeOn(Schedulers.io())
-                        .subscribe(
-                                data -> Log.d("SAVED_DATA", "DONE"),
-                                Timber::e,
-                                saveDisposable::clear
-                        ));
+        if (!uid.isEmpty())
+            saveDisposable.add(
+                    dataEntryStore.save(uid, value)
+                            .subscribeOn(Schedulers.computation())
+                            .observeOn(Schedulers.io())
+                            .subscribe(
+                                    data -> Log.d("SAVED_DATA", "DONE"),
+                                    Timber::e,
+                                    saveDisposable::clear
+                            ));
     }
 
     @Override
@@ -139,6 +167,10 @@ final class DataEntryPresenterImpl implements DataEntryPresenter {
         Map<String, FieldViewModel> fieldViewModels = toMap(viewModels);
         applyRuleEffects(fieldViewModels, calcResult);
 
+        if (this.currentFieldViewModels == null)
+            this.currentFieldViewModels = new HashMap<>();
+        this.currentFieldViewModels.putAll(fieldViewModels);
+
         return new ArrayList<>(fieldViewModels.values());
     }
 
@@ -152,6 +184,13 @@ final class DataEntryPresenterImpl implements DataEntryPresenter {
     }
 
     private void applyRuleEffects(Map<String, FieldViewModel> fieldViewModels, Result<RuleEffect> calcResult) {
+
+        if(fieldViewModels.get(Constants.APPROVAL_DE)!=null){
+
+                fieldViewModels.get(Constants.APPROVAL_DE).editable().equals(false);
+
+        }
+
         for (RuleEffect ruleEffect : calcResult.items()) {
             RuleAction ruleAction = ruleEffect.ruleAction();
             if (ruleAction instanceof RuleActionShowWarning) {
@@ -177,17 +216,28 @@ final class DataEntryPresenterImpl implements DataEntryPresenter {
                 fieldViewModels.remove(hideField.field());
                 dataEntryStore.save(hideField.field(), null);
             } else if (ruleAction instanceof RuleActionDisplayText) {
-                String uid = codeGenerator.generate();
                 RuleActionDisplayText displayText = (RuleActionDisplayText) ruleAction;
+                String uid = displayText.content();
+
                 EditTextViewModel textViewModel = EditTextViewModel.create(uid,
-                        displayText.content(), false, ruleEffect.data(), "Information", 1, ValueType.TEXT, null, false, null);
-                fieldViewModels.put(uid, textViewModel);
-            } else if (ruleAction instanceof RuleActionDisplayKeyValuePair) {
+                        displayText.content(), false, ruleEffect.data(), "Information", 1, ValueType.TEXT, null, false, null, null);
+
+                if (this.currentFieldViewModels == null ||
+                        !this.currentFieldViewModels.containsKey(uid)) {
+                    fieldViewModels.put(uid, textViewModel);
+                } else if (this.currentFieldViewModels.containsKey(uid) &&
+                        !currentFieldViewModels.get(uid).value().equals(textViewModel.value())) {
+                    fieldViewModels.put(uid, textViewModel);
+                } else {
+
+                }
+
+            /*} else if (ruleAction instanceof RuleActionDisplayKeyValuePair) { TODO: 18/10/2018 disabled for now
                 String uid = codeGenerator.generate();
                 RuleActionDisplayKeyValuePair displayKeyValuePair = (RuleActionDisplayKeyValuePair) ruleAction;
                 EditTextViewModel textViewModel = EditTextViewModel.create(uid,
                         displayKeyValuePair.content(), false, ruleEffect.data(), "Information", 1, ValueType.TEXT, null, false, null);
-                fieldViewModels.put(uid, textViewModel);
+                fieldViewModels.put(uid, textViewModel);*/
 
             } else if (ruleAction instanceof RuleActionHideSection) {
                 RuleActionHideSection hideSection = (RuleActionHideSection) ruleAction;
