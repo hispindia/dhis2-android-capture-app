@@ -91,6 +91,12 @@ final class EditTextCustomHolder extends FormViewHolder {
                     editText.setLines(1);
                     editText.setEllipsize(TextUtils.TruncateAt.END);
                     break;
+                    //Support for long text
+                case LONG_TEXT:
+                   editText.setInputType(InputType.TYPE_TEXT_VARIATION_LONG_MESSAGE);
+                   editText.setLines(1);
+                   editText.setEllipsize(TextUtils.TruncateAt.END);
+                   break;
                 case LETTER:
                     editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
                     editText.setFilters(new InputFilter[]{
