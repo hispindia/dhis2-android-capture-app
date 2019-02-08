@@ -67,7 +67,7 @@ final public class DataEntryPresenterImpl implements DataEntryPresenter {
     public static final String HEAD_OF_FAMILY_NAME = "FML9pARILz5";
 
 
-    public static final String TRACKER_ASSOSCIATE_ID = "MdXK0DeWgMJ";
+    public static final String TRACKER_ASSOSCIATE_ID = "YFjB0zhySP6";
     public static final String ANM_NAME = "yDCO4KM4WVA";
     public static final String LOCALITYNAME = "MV4wWoZBrJS";
 
@@ -261,7 +261,7 @@ final public class DataEntryPresenterImpl implements DataEntryPresenter {
                             switch (model.trackedEntityAttribute()){
 
                                 case TYPE_OF_HOUSE_ID:
-                                    if(fieldViewModels.get(TYPE_OF_HOUSE_ID)!=null && (fieldViewModels.get(TYPE_OF_HOUSE_ID)==null || !fieldViewModels.get(TYPE_OF_HOUSE_ID).value().equals(val))){
+                                    if(fieldViewModels.get(TYPE_OF_HOUSE_ID)!=null && (fieldViewModels.get(TYPE_OF_HOUSE_ID).value()==null || !fieldViewModels.get(TYPE_OF_HOUSE_ID).value().equals(val))){
                                         fieldViewModels.put(TYPE_OF_HOUSE_ID,fieldViewModels.get(TYPE_OF_HOUSE_ID).withValue(val));
                                         save(TYPE_OF_HOUSE_ID,val,true);
                                     }
@@ -275,16 +275,16 @@ final public class DataEntryPresenterImpl implements DataEntryPresenter {
                                     break;
 
                                 case LOCALITYNAME:
-                                    if(fieldViewModels.get(LOCALITYNAME)!=null && (fieldViewModels.get(LOCALITYNAME)==null || !fieldViewModels.get(LOCALITYNAME).value().equals(val))){
+                                    if(fieldViewModels.get(LOCALITYNAME)!=null && (fieldViewModels.get(LOCALITYNAME).value()==null || !fieldViewModels.get(LOCALITYNAME).value().equals(val))){
                                         fieldViewModels.put(LOCALITYNAME,fieldViewModels.get(LOCALITYNAME).withValue(val));
                                         save(LOCALITYNAME,val,true);
                                     }
                                     break;
 
                                 case HOUSE_NO_H:
-                                    if(fieldViewModels.get(HOUSE_NO_HM)!=null && (fieldViewModels.get(HOUSE_NO_HM).value()==null && !fieldViewModels.get(HOUSE_NO_HM).value().equals(val))){
-                                        fieldViewModels.put(HOUSE_NO_HM,fieldViewModels.get(HOUSE_NO_HM).withValue(val));
-                                        save(HOUSE_NO_HM,val,true);
+                                    if(fieldViewModels.get(HOUSE_NO_H)!=null && (fieldViewModels.get(HOUSE_NO_H).value()==null && !fieldViewModels.get(HOUSE_NO_H).value().equals(val))){
+                                        fieldViewModels.put(HOUSE_NO_HM,fieldViewModels.get(HOUSE_NO_H).withValue(val));
+                                        save(HOUSE_NO_H,val,true);
                                     }
                                     break;
                             }
