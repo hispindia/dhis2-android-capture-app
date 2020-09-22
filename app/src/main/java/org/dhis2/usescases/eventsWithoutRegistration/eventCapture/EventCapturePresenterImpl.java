@@ -2,6 +2,7 @@ package org.dhis2.usescases.eventsWithoutRegistration.eventCapture;
 
 import android.annotation.SuppressLint;
 import android.os.Handler;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,8 +29,14 @@ import org.dhis2.utils.DhisTextUtils;
 import org.dhis2.utils.Result;
 import org.dhis2.utils.RulesActionCallbacks;
 import org.dhis2.utils.RulesUtilsProvider;
+import org.hisp.dhis.android.core.D2;
+import org.hisp.dhis.android.core.D2Manager;
 import org.hisp.dhis.android.core.common.Unit;
+import org.hisp.dhis.android.core.enrollment.Enrollment;
+import org.hisp.dhis.android.core.event.Event;
 import org.hisp.dhis.android.core.event.EventStatus;
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityAttributeValue;
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityDataValue;
 import org.hisp.dhis.rules.models.RuleActionShowError;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.jetbrains.annotations.NotNull;
@@ -93,6 +100,14 @@ public class EventCapturePresenterImpl implements EventCaptureContract.Presenter
     private int calculationLoop = 0;
     private final int MAX_LOOP_CALCULATIONS = 5;
 
+    private String ART_STATUS = ""; //ZXX1hcFLOxX
+    private String ART_INIT_DATE = ""; //TtJ3hy42rNM
+    private String ART_CENTRE = ""; //i7eQQh3L4Xx
+    private String ART_REGIMEN = ""; //DDN8wJhPzrR
+    private String ART_CODE = ""; //ivWJW2euZFH
+    private String HIV_CONFIRMATION = ""; //EeeRU3YmPjg
+    private String HIV_STATUS = ""; //p19c4ST5LeF
+    private String SPOUSE_ART_STATUS = ""; //bMeAudy7eSs
 
     public EventCapturePresenterImpl(EventCaptureContract.View view, String eventUid,
                                      EventCaptureContract.EventCaptureRepository eventCaptureRepository,
@@ -207,32 +222,125 @@ public class EventCapturePresenterImpl implements EventCaptureContract.Presenter
         );
 
         fieldFlowable = getFieldFlowable();
+        //@SOu event fetch set details
+        D2 d2 = D2Manager.getD2();
+        Event event_details = d2.eventModule().events().byUid().eq(eventUid).blockingGet().get(0);
+        Enrollment enrollment_ = d2.enrollmentModule().enrollments().byUid().eq(event_details.enrollment()).blockingGet().get(0);
+        String tei_ = enrollment_.trackedEntityInstance();
+        int event_count = d2.eventModule().events().byEnrollmentUid().eq(enrollment_.uid()).byProgramStageUid().eq("ONmKYoLQW95").blockingCount();
+        Log.d("event_count--", String.valueOf(event_count));
 
+        if (event_details.program().equals("ifSz8dMpEez")) {
+            if (d2.eventModule().events().byEnrollmentUid().eq(enrollment_.uid()).byProgramStageUid().eq("ONmKYoLQW95").blockingCount() == 1) {
+                Log.d("event-count-------", "111111");
+
+                String code_child = "";
+                String mother_tei = "";
+                Enrollment mother_enroll = null;
+                String mother_art = "";
+                Enrollment enrollment = d2.enrollmentModule().enrollments().byUid().eq(event_details.enrollment()).blockingGet().get(0);
+                String tei = enrollment.trackedEntityInstance();
+                TrackedEntityAttributeValue teav = d2.trackedEntityModule().trackedEntityAttributeValues().byTrackedEntityInstance().eq(tei).byTrackedEntityAttribute().eq("xAfV1UKjA9P").blockingGet().get(0);
+                if (teav.value().contains("/B-")) {
+                    code_child = teav.value().substring(0, teav.value().length() - 4);
+                } else {
+                    code_child = teav.value();
+                }
+
+                List<TrackedEntityAttributeValue> teav_match = d2.trackedEntityModule().trackedEntityAttributeValues().byValue().eq(code_child).blockingGet();
+                for (int i = 0; i < teav_match.size(); i++) {
+                    if (teav_match.get(i).trackedEntityInstance().equals(tei)) {
+
+                    } else {
+                        mother_tei = teav_match.get(i).trackedEntityInstance();
+                        mother_enroll = d2.enrollmentModule().enrollments().byTrackedEntityInstance().eq(mother_tei).blockingGet().get(0);
+                        Log.d("mother_tei----", mother_tei);
+//                                                                    Log.d("mother_enroll----", mother_enroll);
+                    }
+                }
+
+                if (mother_tei != null && mother_enroll != null) {
+                    List<Event> mother_event = d2.eventModule().events().byEnrollmentUid().eq(mother_enroll.uid()).blockingGet();
+                    for (int q = 0; q < mother_event.size(); q++) {
+                        List<TrackedEntityDataValue> tedv_mother_dv = d2.trackedEntityModule().trackedEntityDataValues().byEvent().eq(mother_event.get(q).uid()).blockingGet();
+                        for (int w = 0; w < tedv_mother_dv.size(); w++) {
+                            if (tedv_mother_dv.get(w).dataElement().equals("ZXX1hcFLOxX")) {
+                                ART_STATUS = tedv_mother_dv.get(w).value();
+                            } else if (tedv_mother_dv.get(w).dataElement().equals("TtJ3hy42rNM")) {
+                                ART_INIT_DATE = tedv_mother_dv.get(w).value();
+                            } else if (tedv_mother_dv.get(w).dataElement().equals("i7eQQh3L4Xx")) {
+                                ART_CENTRE = tedv_mother_dv.get(w).value();
+                            } else if (tedv_mother_dv.get(w).dataElement().equals("DDN8wJhPzrR")) {
+                                ART_REGIMEN = tedv_mother_dv.get(w).value();
+                            } else if (tedv_mother_dv.get(w).dataElement().equals("ivWJW2euZFH")) {
+                                ART_CODE = tedv_mother_dv.get(w).value();
+                            } else if (tedv_mother_dv.get(w).dataElement().equals("EeeRU3YmPjg")) {
+                                HIV_CONFIRMATION = tedv_mother_dv.get(w).value();
+                            } else if (tedv_mother_dv.get(w).dataElement().equals("p19c4ST5LeF")) {
+                                HIV_STATUS = tedv_mother_dv.get(w).value();
+                            } else if (tedv_mother_dv.get(w).dataElement().equals("bMeAudy7eSs")) {
+                                SPOUSE_ART_STATUS = tedv_mother_dv.get(w).value();
+                            }
+
+                        }
+                    }
+                }
+
+//                                                            for (int j = 0; j < mother_event.size(); j++) {
+//
+//                                                            }
+//                                                            List<TrackedEntityDataValue> tedv_mother = d2.trackedEntityModule().trackedEntityDataValues().byEvent().eq(mother_event.get(0).uid()).blockingGet();
+
+            }
+        }
         compositeDisposable.add(
                 eventCaptureRepository.eventSections()
                         .flatMap(sectionList ->
                                 sectionProcessor.startWith(sectionList.get(0).sectionUid())
                                         .switchMap(section -> fieldFlowable
                                                 .map(fields -> {
+
                                                     totalFields = 0;
                                                     unsupportedFields = 0;
+
                                                     HashMap<String, List<FieldViewModel>> fieldMap = new HashMap<>();
                                                     List<String> optionSets = new ArrayList<>();
                                                     for (FieldViewModel fieldViewModel : fields) {
+                                                        if (event_details.program().equals("ifSz8dMpEez")) {
+                                                            if (d2.eventModule().events().byEnrollmentUid().eq(enrollment_.uid()).byProgramStageUid().eq("ONmKYoLQW95").blockingCount() == 1) {
+                                                                if (fieldViewModel.uid().equals("WvrOMIyEG8U")) {
+//
+                                                                    //@Sou do all the changes here
+                                                                    valueStore.save("ZXX1hcFLOxX", ART_STATUS);
+                                                                    valueStore.save("TtJ3hy42rNM", ART_INIT_DATE);
+                                                                    valueStore.save("i7eQQh3L4Xx", ART_CENTRE);
+                                                                    valueStore.save("DDN8wJhPzrR", ART_REGIMEN);
+                                                                    valueStore.save("ivWJW2euZFH", ART_CODE);
+                                                                    valueStore.save("EeeRU3YmPjg", HIV_CONFIRMATION);
+                                                                    valueStore.save("p19c4ST5LeF", HIV_STATUS);
+                                                                    valueStore.save("bMeAudy7eSs", SPOUSE_ART_STATUS);
+
+                                                                }
+                                                            }
+
+                                                        }
+
                                                         String fieldSection = getFieldSection(fieldViewModel);
-                                                        if(!fieldSection.isEmpty() || sectionList.size() == 1) {
+                                                        if (!fieldSection.isEmpty() || sectionList.size() == 1) {
                                                             if (!fieldMap.containsKey(fieldSection)) {
                                                                 fieldMap.put(fieldSection, new ArrayList<>());
                                                             }
                                                             fieldMap.get(fieldSection).add(fieldViewModel);
 
-                                                            if (fieldViewModel.optionSet() == null || !(fieldViewModel instanceof ImageViewModel)) {
-                                                                totalFields++;
-                                                            } else if (!optionSets.contains(fieldViewModel.optionSet())) {
-                                                                optionSets.add(fieldViewModel.optionSet());
-                                                                totalFields++;
+                                                            if (!(fieldViewModel instanceof DisplayViewModel)) {
+                                                                if (fieldViewModel.optionSet() == null || !(fieldViewModel instanceof ImageViewModel)) {
+                                                                    totalFields++;
+                                                                } else if (!optionSets.contains(fieldViewModel.optionSet())) {
+                                                                    optionSets.add(fieldViewModel.optionSet());
+                                                                    totalFields++;
+                                                                }
                                                             }
-                                                            if (fieldViewModel instanceof UnsupportedViewModel || fieldViewModel instanceof DisplayViewModel)
+                                                            if (fieldViewModel instanceof UnsupportedViewModel)
                                                                 unsupportedFields++;
                                                         }
                                                     }
@@ -296,7 +404,7 @@ public class EventCapturePresenterImpl implements EventCaptureContract.Presenter
                                                         }
                                                     }
 
-                                                    if(!eventSectionModels.get(0).sectionName().equals("NO_SECTION")) {
+                                                    if (!eventSectionModels.get(0).sectionName().equals("NO_SECTION")) {
                                                         finalFieldList.add(SectionViewModel.createClosingSection());
                                                     }
 
@@ -313,7 +421,7 @@ public class EventCapturePresenterImpl implements EventCaptureContract.Presenter
                                         calculationLoop++;
                                         nextCalculation(true);
                                     } else {
-                                        if (calculationLoop == 5) {
+                                        if (calculationLoop == 15) {
                                             view.showLoopWarning();
                                         }
                                         calculationLoop = 0;
@@ -593,6 +701,7 @@ public class EventCapturePresenterImpl implements EventCaptureContract.Presenter
                                     if (addNew)
                                         view.restartDataEntry();
                                     else
+                                        //@SOu pass tei to open dashboard
                                         view.finishDataEntry();
                                 },
                                 Timber::e
