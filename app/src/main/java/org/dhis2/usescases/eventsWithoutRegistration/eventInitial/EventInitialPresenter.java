@@ -21,11 +21,14 @@ import org.dhis2.utils.DhisTextUtils;
 import org.dhis2.utils.EventCreationType;
 import org.dhis2.utils.Result;
 import org.dhis2.utils.analytics.AnalyticsHelper;
+import org.hisp.dhis.android.core.D2;
+import org.hisp.dhis.android.core.D2Manager;
 import org.hisp.dhis.android.core.arch.helpers.UidsHelper;
 import org.hisp.dhis.android.core.category.CategoryCombo;
 import org.hisp.dhis.android.core.category.CategoryOption;
 import org.hisp.dhis.android.core.category.CategoryOptionCombo;
 import org.hisp.dhis.android.core.common.Geometry;
+import org.hisp.dhis.android.core.maintenance.D2Error;
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnit;
 import org.hisp.dhis.android.core.program.Program;
 import org.hisp.dhis.rules.models.RuleAction;
@@ -78,6 +81,8 @@ public class EventInitialPresenter implements EventInitialContract.Presenter {
 
     private String programId;
 
+    D2 d2 = D2Manager.getD2();
+
     public EventInitialPresenter(@NonNull EventInitialContract.View view,
                                  @NonNull EventSummaryRepository eventSummaryRepository,
                                  @NonNull EventInitialRepository eventInitialRepository,
@@ -97,7 +102,8 @@ public class EventInitialPresenter implements EventInitialContract.Presenter {
     public void init(String programId,
                      String eventId,
                      String orgInitId,
-                     String programStageId) {
+                     String programStageId,
+                     String ev_type) {
         this.eventId = eventId;
         this.programId = programId;
         this.programStageId = programStageId;
@@ -136,7 +142,17 @@ public class EventInitialPresenter implements EventInitialContract.Presenter {
                                     .subscribeOn(schedulerProvider.io()).observeOn(schedulerProvider.ui())
                                     .subscribe(trioFlowable -> {
                                         this.program = trioFlowable.val0();
-                                        this.orgUnits = trioFlowable.val2();
+                                        //@Sou show level 6 orgunits hierarchy while refering
+                                        if (ev_type=="ref")
+                                        {
+                                            this.orgUnits = d2.organisationUnitModule().organisationUnits().byLevel().eq(6).blockingGet();
+                                        }
+                                        else
+                                        {
+                                            this.orgUnits = trioFlowable.val2();
+                                        }
+
+//                                        this.orgUnits = trioFlowable.val2();
                                         view.setProgram(trioFlowable.val0());
                                         getCatOptionCombos(trioFlowable.val1(), null);
                                     }, Timber::d));
@@ -253,8 +269,10 @@ public class EventInitialPresenter implements EventInitialContract.Presenter {
 
     @Override
     public void scheduleEventPermanent(String enrollmentUid, String trackedEntityInstanceUid, String programStageModel,
-                                       Date dueDate, String orgUnitUid, String categoryOptionComboUid, String categoryOptionsUid, Geometry geometry) {
+                                       Date dueDate, String orgUnitUid, String categoryOptionComboUid, String categoryOptionsUid, Geometry geometry) throws D2Error {
         if (program != null) {
+
+            d2.enrollmentModule().enrollments().uid(enrollmentUid).setOrganisationUnitUid(orgUnitUid);
             preferences.setValue(Preference.CURRENT_ORG_UNIT, orgUnitUid);
             compositeDisposable.add(eventInitialRepository
                     .scheduleEvent(enrollmentUid, null, program.uid(), programStageModel, dueDate,

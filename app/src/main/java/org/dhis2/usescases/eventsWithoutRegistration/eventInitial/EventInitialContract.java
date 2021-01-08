@@ -16,6 +16,7 @@ import org.hisp.dhis.android.core.category.CategoryOptionCombo;
 import org.hisp.dhis.android.core.common.Geometry;
 import org.hisp.dhis.android.core.common.ObjectStyle;
 import org.hisp.dhis.android.core.event.Event;
+import org.hisp.dhis.android.core.maintenance.D2Error;
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnit;
 import org.hisp.dhis.android.core.program.Program;
 import org.hisp.dhis.android.core.program.ProgramStage;
@@ -78,7 +79,7 @@ public class EventInitialContract {
     }
 
     public interface Presenter extends AbstractActivityContracts.Presenter {
-        void init(String programId, String eventId, String orgUnitId, String programStageId);
+        void init(String programId, String eventId, String orgUnitId, String programStageId,String ev_type);
 
         void getProgramStage(String programStageUid);
 
@@ -90,7 +91,7 @@ public class EventInitialContract {
 
         void scheduleEventPermanent(String enrollmentUid, String trackedEntityInstanceUid, String programStageModel, Date dueDate, String orgUnitUid,
                                     String categoryOptionComboUid, String categoryOptionsUid,
-                                    Geometry geometry);
+                                    Geometry geometry) throws D2Error;
 
         void scheduleEvent(String enrollmentUid, String programStageModel, Date dueDate, String orgUnitUid,
                            String catOption, String catOptionCombo,

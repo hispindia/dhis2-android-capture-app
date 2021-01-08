@@ -195,7 +195,15 @@ public class EventInitialActivity extends ActivityGlobalAbstract implements Even
 
         initActionButton();
         binding.actionButton.setEnabled(true);
-        presenter.init(programUid, eventUid, selectedOrgUnit, programStageUid);
+        //@Sou to check for referal select
+        if(eventCreationType==EventCreationType.REFERAL)
+        {
+            presenter.init(programUid, eventUid, selectedOrgUnit, programStageUid,"ref");
+        }
+        else
+        {
+            presenter.init(programUid, eventUid, selectedOrgUnit, programStageUid,"");
+        }
     }
 
     private void initActionButton() {
