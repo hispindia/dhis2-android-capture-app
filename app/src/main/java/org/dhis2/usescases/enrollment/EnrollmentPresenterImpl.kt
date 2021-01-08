@@ -46,6 +46,17 @@ import org.hisp.dhis.rules.models.RuleEffect
 import timber.log.Timber
 
 private const val TAG = "EnrollmentPresenter"
+var LAST_NAME: String? = "gVGIL7DJp4b"
+var DOB_ID: String? = "fOVzjBOZdvQ"
+var SEX: String? = "TN7r3ws7IG9"
+var SERVICE_NUMBER: String? = "Fu4LhjNsJZL"
+var CLIENT_CODE: String? = "drKkLxaGFwv"
+var last_value: String? = ""
+var dob_value: String? = ""
+var sex_value: String? = ""
+var servie_value: String? = ""
+var client_value: String? = ""
+
 
 class EnrollmentPresenterImpl(
     val view: EnrollmentView,
@@ -200,7 +211,73 @@ class EnrollmentPresenterImpl(
                                 )
                             )
                         }
-                        else -> valueStore.save(rowAction.id(), rowAction.value())
+
+
+                        else ->
+                            if (rowAction.id() == LAST_NAME && getProgram().uid().equals("L78QzNqadTV")) {
+                                last_value = rowAction.value()
+
+                                if(sex_value!!.length>0&& last_value!!.length>0&& dob_value!!.length>0&& servie_value!!.length>0)
+                                {
+                                    valueStore.save(CLIENT_CODE.toString(), last_value!!.substring(0,2)!!.toUpperCase()  +   dob_value!!.substring(2,4) +sex_value  + servie_value )
+                                }
+                                valueStore.save(rowAction.id(), rowAction.value())
+
+
+                            }
+                            else if (rowAction.id() == DOB_ID && getProgram().uid().equals("L78QzNqadTV")) {
+                                dob_value = rowAction.value()
+
+                                if(dob_value!!.length>0&& sex_value!!.length>0&& last_value!!.length>0&&servie_value!!.length>0)
+                                {
+
+                                    valueStore.save(CLIENT_CODE.toString(), last_value!!.substring(0,2)!!.toUpperCase()  +   dob_value!!.substring(2,4) +sex_value  + servie_value )
+
+                                }
+                                valueStore.save(rowAction.id(), rowAction.value())
+
+
+                            }
+                            else if (rowAction.id() == SEX && getProgram().uid().equals("L78QzNqadTV")) {
+                                sex_value = rowAction.value()
+                                if(sex_value.equals("Female"))
+                                {
+                                    sex_value="1";
+                                }
+                                else if(sex_value.equals("Male"))
+                                {
+                                    sex_value="2";
+                                }
+                                else if(sex_value.equals("Others"))
+                                {
+                                    sex_value="3";
+                                }
+                                if(dob_value!!.length>0&& sex_value!!.length>0&& last_value!!.length>0&&servie_value!!.length>0)
+                                {
+
+                                    valueStore.save(CLIENT_CODE.toString(), last_value!!.substring(0,2)!!.toUpperCase()  +   dob_value!!.substring(2,4) +sex_value  + servie_value )
+
+                                }
+                                valueStore.save(rowAction.id(), rowAction.value())
+
+
+                            }
+                            else if (rowAction.id() == SERVICE_NUMBER && getProgram().uid().equals("L78QzNqadTV")) {
+                                servie_value = rowAction.value()
+
+                                if(dob_value!!.length>0&& sex_value!!.length>0&& last_value!!.length>0&&servie_value!!.length>0)
+                                {
+                                    valueStore.save(CLIENT_CODE.toString(), last_value!!.substring(0,2)!!.toUpperCase()  +   dob_value!!.substring(2,4) +sex_value  + servie_value )
+
+                                }
+                                valueStore.save(rowAction.id(), rowAction.value())
+
+
+                            }
+
+                            else {
+                                valueStore.save(rowAction.id(), rowAction.value())
+                            }
                     }
                 }
                 .subscribeOn(schedulerProvider.io())

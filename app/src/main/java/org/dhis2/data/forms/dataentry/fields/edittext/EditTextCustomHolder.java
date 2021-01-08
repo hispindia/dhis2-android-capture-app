@@ -106,33 +106,75 @@ public class EditTextCustomHolder extends FormViewHolder {
         this.editTextModel = (EditTextViewModel) model;
         fieldUid = model.uid();
 
-        binding.customEdittext.setValueType(editTextModel.valueType());
+        if(fieldUid.equals("drKkLxaGFwv"))
+        {
+            binding.customEdittext.setValueType(editTextModel.valueType());
 
-        binding.customEdittext.setObjectStyle(model.objectStyle());
-        if (model.objectStyle() != null) {
-            objectStyle = model.objectStyle();
+            binding.customEdittext.setObjectStyle(model.objectStyle());
+            if (model.objectStyle() != null) {
+                objectStyle = model.objectStyle();
+            }
+            label = new StringBuilder(model.label());
+            binding.customEdittext.setLabel(model.label(), model.mandatory());
+            binding.customEdittext.setHint(editTextModel.hint());
+            descriptionText = model.description();
+            binding.customEdittext.setDescription(descriptionText);
+
+            binding.customEdittext.setText(ValueExtensionsKt.withValueTypeCheck(editTextModel.value(), editTextModel.valueType()));
+
+            binding.customEdittext.setWarning(model.warning(), model.error());
+
+            if (!isSearchMode && model.value() != null && !model.value().isEmpty()
+                    && editTextModel.fieldMask() != null && !model.value().matches(editTextModel.fieldMask()))
+                binding.customEdittext.setWarning(binding.getRoot().getContext().getString(R.string.wrong_pattern), "");
+
+            if (isSearchMode)
+            {
+                //@Sou disable field
+                binding.customEdittext.setEditable(model.editable());
+            }
+            else
+            {
+                binding.customEdittext.setEditable(false);
+            }
+
+            setRenderingType(editTextModel.fieldRendering());
+
+            initFieldFocus();
+
+            setLongClick();
         }
-        label = new StringBuilder(model.label());
-        binding.customEdittext.setLabel(model.label(), model.mandatory());
-        binding.customEdittext.setHint(editTextModel.hint());
-        descriptionText = model.description();
-        binding.customEdittext.setDescription(descriptionText);
 
-        binding.customEdittext.setText(ValueExtensionsKt.withValueTypeCheck(editTextModel.value(), editTextModel.valueType()));
+        else
+        {
+            binding.customEdittext.setValueType(editTextModel.valueType());
 
-        binding.customEdittext.setWarning(model.warning(), model.error());
+            binding.customEdittext.setObjectStyle(model.objectStyle());
+            if (model.objectStyle() != null) {
+                objectStyle = model.objectStyle();
+            }
+            label = new StringBuilder(model.label());
+            binding.customEdittext.setLabel(model.label(), model.mandatory());
+            binding.customEdittext.setHint(editTextModel.hint());
+            descriptionText = model.description();
+            binding.customEdittext.setDescription(descriptionText);
 
-        if (!isSearchMode && model.value() != null && !model.value().isEmpty()
-                && editTextModel.fieldMask() != null && !model.value().matches(editTextModel.fieldMask()))
-            binding.customEdittext.setWarning(binding.getRoot().getContext().getString(R.string.wrong_pattern), "");
+            binding.customEdittext.setText(ValueExtensionsKt.withValueTypeCheck(editTextModel.value(), editTextModel.valueType()));
 
-        binding.customEdittext.setEditable(model.editable());
+            binding.customEdittext.setWarning(model.warning(), model.error());
 
-        setRenderingType(editTextModel.fieldRendering());
+            if (!isSearchMode && model.value() != null && !model.value().isEmpty()
+                    && editTextModel.fieldMask() != null && !model.value().matches(editTextModel.fieldMask()))
+                binding.customEdittext.setWarning(binding.getRoot().getContext().getString(R.string.wrong_pattern), "");
 
-        initFieldFocus();
+            binding.customEdittext.setEditable(model.editable());
 
-        setLongClick();
+            setRenderingType(editTextModel.fieldRendering());
+
+            initFieldFocus();
+
+            setLongClick();
+        }
     }
 
     private void checkAutocompleteRendering() {
