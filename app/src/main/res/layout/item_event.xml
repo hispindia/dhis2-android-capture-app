@@ -5,7 +5,7 @@
 
     <data>
 
-        <import type="org.dhis2.utils.DateUtils" />
+        <import type="org.dhis2hiv.utils.DateUtils" />
 
         <variable
             name="event"

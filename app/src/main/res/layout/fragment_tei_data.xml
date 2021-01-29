@@ -19,11 +19,11 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.teiDashboard.dashboardfragments.teidata.TEIDataContracts.Presenter" />
+            type="org.dhis2hiv.usescases.teiDashboard.dashboardfragments.teidata.TEIDataContracts.Presenter" />
 
         <variable
             name="dashboardModel"
-            type="org.dhis2.usescases.teiDashboard.DashboardProgramModel" />
+            type="org.dhis2hiv.usescases.teiDashboard.DashboardProgramModel" />
 
         <variable
             name="program"

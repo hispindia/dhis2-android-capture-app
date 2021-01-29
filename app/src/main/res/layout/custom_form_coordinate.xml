@@ -6,7 +6,7 @@
 
         <variable
             name="mapListener"
-            type="org.dhis2.usescases.coodinates.CoordinatesView.OnMapPositionClick" />
+            type="org.dhis2hiv.usescases.coodinates.CoordinatesView.OnMapPositionClick" />
 
     </data>
 
@@ -28,7 +28,7 @@
         app:layout_constraintBottom_toBottomOf="parent"/>
 
 
-    <org.dhis2.usescases.coodinates.CoordinatesView
+    <org.dhis2hiv.usescases.coodinates.CoordinatesView
         android:id="@+id/formCoordinates"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

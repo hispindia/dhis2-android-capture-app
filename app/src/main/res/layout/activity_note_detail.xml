@@ -17,13 +17,13 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.notes.noteDetail.NoteDetailPresenter" />
+            type="org.dhis2hiv.usescases.notes.noteDetail.NoteDetailPresenter" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="org.dhis2.usescases.notes.noteDetail.NoteDetailActivity">
+        tools:context="org.dhis2hiv.usescases.notes.noteDetail.NoteDetailActivity">
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/startGuideline"

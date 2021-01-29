@@ -5,7 +5,7 @@
 
     <data>
 
-        <import type="org.dhis2.R" />
+        <import type="org.dhis2hiv.R" />
 
         <import type="android.view.View" />
 
@@ -21,7 +21,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.eventsWithoutRegistration.eventInitial.EventInitialContract.Presenter" />
+            type="org.dhis2hiv.usescases.eventsWithoutRegistration.eventInitial.EventInitialContract.Presenter" />
     </data>
 
     <LinearLayout
@@ -64,7 +64,7 @@
                 app:layout_constraintStart_toEndOf="@id/menu"
                 tools:text="TITLE\ntest\n234" />
 
-            <org.dhis2.utils.customviews.CircularCompletionView
+            <org.dhis2hiv.utils.customviews.CircularCompletionView
                 android:id="@+id/completion"
                 android:layout_width="60dp"
                 android:layout_height="0dp"
@@ -231,7 +231,7 @@
                             android:layout_height="wrap_content"
                             android:orientation="vertical" />
 
-                        <org.dhis2.usescases.coodinates.CoordinatesView
+                        <org.dhis2hiv.usescases.coodinates.CoordinatesView
                             android:id="@+id/geometry"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

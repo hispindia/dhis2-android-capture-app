@@ -9,7 +9,7 @@
 
         <variable
             name="reservedValue"
-            type="org.dhis2.usescases.reservedValue.ReservedValueModel" />
+            type="org.dhis2hiv.usescases.reservedValue.ReservedValueModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

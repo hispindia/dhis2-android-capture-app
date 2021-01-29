@@ -8,7 +8,7 @@
 
         <variable
             name="currentFilter"
-            type="androidx.databinding.ObservableField&lt;org.dhis2.utils.filters.Filters&gt;" />
+            type="androidx.databinding.ObservableField&lt;org.dhis2hiv.utils.filters.Filters&gt;" />
 
         <variable
             name="filterCount"
@@ -16,11 +16,11 @@
 
         <variable
             name="filterType"
-            type="org.dhis2.utils.filters.Filters" />
+            type="org.dhis2hiv.utils.filters.Filters" />
 
         <variable
             name="currentSortItem"
-            type="androidx.databinding.ObservableField&lt;org.dhis2.utils.filters.sorting.SortingItem&gt;" />
+            type="androidx.databinding.ObservableField&lt;org.dhis2hiv.utils.filters.sorting.SortingItem&gt;" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

@@ -6,7 +6,7 @@
 
         <import type="android.view.View" />
 
-        <import type="org.dhis2.R" />
+        <import type="org.dhis2hiv.R" />
 
         <variable
             name="name"
@@ -14,7 +14,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.datasets.datasetDetail.DataSetDetailPresenter" />
+            type="org.dhis2hiv.usescases.datasets.datasetDetail.DataSetDetailPresenter" />
 
         <variable
             name="totalFilters"

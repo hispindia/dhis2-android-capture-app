@@ -1,10 +1,10 @@
 ext {
     versions = [
-            sdk   : 28,
+            sdk   : 29,
             tools : "29.0.2",
             minSdk: 19,
             vCode: 92,
-            vName: "2.3.1"
+            vName: "hiv_2.3.1"
     ]
 
     libraries = [

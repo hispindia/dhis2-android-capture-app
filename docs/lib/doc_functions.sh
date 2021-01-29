@@ -198,7 +198,7 @@ make_html() {
     done
     echo "compiling ${name}.md to html in $TMPBASE/$lang/"
     chapters="${name}_custom_bookinfo.md ${name}_bookinfo.md ${name}.md"
-    css="./resources/css/dhis2.css"
+    css="./resources/css/dhis2hiv.css"
     template="./resources/templates/dhis2_template.html"
     thanks=""
     if [ -f "./resources/i18n/thanks/${name}_${lang}.html" ]; then

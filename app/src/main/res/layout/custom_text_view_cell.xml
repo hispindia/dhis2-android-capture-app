@@ -17,7 +17,7 @@
 
         <variable
             name="tableScale"
-            type="androidx.databinding.ObservableField&lt;org.dhis2.usescases.datasets.dataSetTable.dataSetSection.DataSetTableAdapter.TableScale&gt;" />
+            type="androidx.databinding.ObservableField&lt;org.dhis2hiv.usescases.datasets.dataSetTable.dataSetSection.DataSetTableAdapter.TableScale&gt;" />
 
     </data>
 

@@ -5,13 +5,13 @@
 
     <data>
 
-        <import type="org.dhis2.R" />
+        <import type="org.dhis2hiv.R" />
 
-        <import type="org.dhis2.usescases.settings.SettingItem" />
+        <import type="org.dhis2hiv.usescases.settings.SettingItem" />
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.settings.SyncManagerContracts.Presenter" />
+            type="org.dhis2hiv.usescases.settings.SyncManagerContracts.Presenter" />
 
         <variable
             name="dataSyncMessage"

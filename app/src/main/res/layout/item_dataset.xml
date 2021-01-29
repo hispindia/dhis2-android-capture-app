@@ -9,11 +9,11 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.datasets.datasetDetail.DataSetDetailPresenter" />
+            type="org.dhis2hiv.usescases.datasets.datasetDetail.DataSetDetailPresenter" />
 
         <variable
             name="dataset"
-            type="org.dhis2.usescases.datasets.datasetDetail.DataSetDetailModel" />
+            type="org.dhis2hiv.usescases.datasets.datasetDetail.DataSetDetailModel" />
     </data>
 
     <com.google.android.material.card.MaterialCardView

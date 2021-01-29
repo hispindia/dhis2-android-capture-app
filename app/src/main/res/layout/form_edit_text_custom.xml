@@ -19,7 +19,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
-        <org.dhis2.utils.customviews.CustomTextView
+        <org.dhis2hiv.utils.customviews.CustomTextView
             android:id="@+id/custom_edittext"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

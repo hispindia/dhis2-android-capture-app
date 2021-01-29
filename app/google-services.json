@@ -84,7 +84,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:82834045260:android:9f732326b0b9e7c6",
         "android_client_info": {
-          "package_name": "com.dhis2.debug"
+          "package_name": "com.dhis2hiv.debug"
         }
       },
       "oauth_client": [
@@ -92,7 +92,7 @@
           "client_id": "82834045260-gmppg0u4uuuith1fteqj3ff97u8vum89.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.dhis2.debug",
+            "package_name": "com.dhis2hiv.debug",
             "certificate_hash": "bd61679cdfeda8fc4e4f70bb52693c02b0798005"
           }
         },

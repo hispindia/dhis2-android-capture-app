@@ -4,19 +4,19 @@
 
     <data>
 
-        <import type="org.dhis2.R" />
+        <import type="org.dhis2hiv.R" />
 
         <variable
             name="dataSetModel"
-            type="org.dhis2.usescases.datasets.datasetInitial.DataSetInitialModel" />
+            type="org.dhis2hiv.usescases.datasets.datasetInitial.DataSetInitialModel" />
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.datasets.datasetInitial.DataSetInitialContract.Presenter" />
+            type="org.dhis2hiv.usescases.datasets.datasetInitial.DataSetInitialContract.Presenter" />
 
         <variable
             name="action"
-            type="org.dhis2.usescases.datasets.datasetInitial.DataSetInitialContract.Action" />
+            type="org.dhis2hiv.usescases.datasets.datasetInitial.DataSetInitialContract.Action" />
 
     </data>
 

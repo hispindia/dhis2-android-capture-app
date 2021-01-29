@@ -10,7 +10,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.reservedValue.ReservedValuePresenter" />
+            type="org.dhis2hiv.usescases.reservedValue.ReservedValuePresenter" />
     </data>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

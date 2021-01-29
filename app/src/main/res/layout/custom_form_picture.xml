@@ -19,7 +19,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <org.dhis2.utils.customviews.PictureView
+        <org.dhis2hiv.utils.customviews.PictureView
             android:id="@+id/formPictures"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

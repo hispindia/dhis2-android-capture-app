@@ -38,7 +38,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
-        <org.dhis2.utils.customviews.DateTimeView
+        <org.dhis2hiv.utils.customviews.DateTimeView
             android:id="@+id/dateTimeView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

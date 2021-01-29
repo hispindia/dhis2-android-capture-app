@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="org.dhis2">
+    package="org.dhis2hiv">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
@@ -16,7 +16,7 @@
         android:required="false" />
 
     <application
-        android:name=".App"
+        android:name="org.dhis2hiv.App"
         android:allowBackup="false"
         android:icon="@drawable/hivn"
         android:label="@string/app_name"
@@ -29,7 +29,7 @@
             android:required="false" />
 
         <activity
-            android:name=".usescases.splash.SplashActivity"
+            android:name="org.dhis2hiv.usescases.splash.SplashActivity"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -48,25 +48,25 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".usescases.login.LoginActivity"
+            android:name="org.dhis2hiv.usescases.login.LoginActivity"
             android:windowSoftInputMode="adjustPan" />
-        <activity android:name=".usescases.main.MainActivity" />
-        <activity android:name=".usescases.programEventDetail.ProgramEventDetailActivity" />
+        <activity android:name="org.dhis2hiv.usescases.main.MainActivity" />
+        <activity android:name="org.dhis2hiv.usescases.programEventDetail.ProgramEventDetailActivity" />
         <activity
-            android:name=".usescases.searchTrackEntity.SearchTEActivity"
+            android:name="org.dhis2hiv.usescases.searchTrackEntity.SearchTEActivity"
             android:configChanges="keyboardHidden|screenSize" />
-        <activity android:name=".usescases.teiDashboard.TeiDashboardMobileActivity" />
-        <activity android:name=".usescases.qrScanner.ScanActivity" />
-        <activity android:name=".usescases.teiDashboard.teiProgramList.TeiProgramListActivity" />
-        <activity android:name="org.dhis2.uicomponents.map.views.MapSelectorActivity" />
-        <activity android:name=".usescases.programStageSelection.ProgramStageSelectionActivity" />
-        <activity android:name=".utils.WebViewActivity" />
+        <activity android:name="org.dhis2hiv.usescases.teiDashboard.TeiDashboardMobileActivity" />
+        <activity android:name="org.dhis2hiv.usescases.qrScanner.ScanActivity" />
+        <activity android:name="org.dhis2hiv.usescases.teiDashboard.teiProgramList.TeiProgramListActivity" />
+        <activity android:name="org.dhis2hiv.uicomponents.map.views.MapSelectorActivity" />
+        <activity android:name="org.dhis2hiv.usescases.programStageSelection.ProgramStageSelectionActivity" />
+        <activity android:name="org.dhis2hiv.utils.WebViewActivity" />
         <activity
-            android:name=".usescases.eventsWithoutRegistration.eventInitial.EventInitialActivity"
+            android:name="org.dhis2hiv.usescases.eventsWithoutRegistration.eventInitial.EventInitialActivity"
             android:windowSoftInputMode="stateHidden" />
         <!--<activity android:name=".usescases.teiDashboard.TeiDashboardActivity" />-->
-        <activity android:name=".usescases.qrCodes.QrActivity" />
-        <activity android:name=".usescases.qrCodes.eventsworegistration.QrEventsWORegistrationActivity" />
+        <activity android:name="org.dhis2hiv.usescases.qrCodes.QrActivity" />
+        <activity android:name="org.dhis2hiv.usescases.qrCodes.eventsworegistration.QrEventsWORegistrationActivity" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -75,13 +75,13 @@
             android:name="io.fabric.ApiKey"
             android:value="a5caa46009119f5e584e4964c30a922095b1075c" />
 
-        <activity android:name=".usescases.datasets.datasetDetail.DataSetDetailActivity" />
-        <activity android:name=".usescases.datasets.datasetInitial.DataSetInitialActivity" />
+        <activity android:name="org.dhis2hiv.usescases.datasets.datasetDetail.DataSetDetailActivity" />
+        <activity android:name="org.dhis2hiv.usescases.datasets.datasetInitial.DataSetInitialActivity" />
         <activity
-            android:name=".usescases.datasets.dataSetTable.DataSetTableActivity"
+            android:name="org.dhis2hiv.usescases.datasets.dataSetTable.DataSetTableActivity"
             android:configChanges="keyboardHidden|orientation|screenSize" />
 
-        <receiver android:name=".widgets.DhisCustomLauncher">
+        <receiver android:name="org.dhis2hiv.widgets.DhisCustomLauncher">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -91,16 +91,16 @@
                 android:resource="@xml/dhis_custom_launcher_info" />
         </receiver>
 
-        <activity android:name=".usescases.reservedValue.ReservedValueActivity" />
+        <activity android:name="org.dhis2hiv.usescases.reservedValue.ReservedValueActivity" />
         <activity
-            android:name=".usescases.eventsWithoutRegistration.eventCapture.EventCaptureActivity"
+            android:name="org.dhis2hiv.usescases.eventsWithoutRegistration.eventCapture.EventCaptureActivity"
             android:configChanges="keyboardHidden|orientation|screenSize" />
-        <activity android:name=".usescases.sync.SyncActivity" />
-        <activity android:name=".usescases.development.DevelopmentActivity" />
+        <activity android:name="org.dhis2hiv.usescases.sync.SyncActivity" />
+        <activity android:name="org.dhis2hiv.usescases.development.DevelopmentActivity" />
 
-        <service android:name=".usescases.sms.SmsSendingService" />
-        <activity android:name=".usescases.teiDashboard.nfcdata.NfcDataWriteActivity" />
-        <activity android:name=".usescases.about.PolicyView" />
+        <service android:name="org.dhis2hiv.usescases.sms.SmsSendingService" />
+        <activity android:name="org.dhis2hiv.usescases.teiDashboard.nfcdata.NfcDataWriteActivity" />
+        <activity android:name="org.dhis2hiv.usescases.about.PolicyView" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -112,19 +112,19 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <activity android:name=".usescases.orgunitselector.OUTreeActivity" />
+        <activity android:name="org.dhis2hiv.usescases.orgunitselector.OUTreeActivity" />
         <activity
-            android:name=".usescases.enrollment.EnrollmentActivity"
+            android:name="org.dhis2hiv.usescases.enrollment.EnrollmentActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:windowSoftInputMode="adjustPan|stateHidden" />
-        <activity android:name=".usescases.events.ScheduledEventActivity" />
+        <activity android:name="org.dhis2hiv.usescases.events.ScheduledEventActivity" />
 
-        <activity android:name=".usescases.notes.noteDetail.NoteDetailActivity"
+        <activity android:name="org.dhis2hiv.usescases.notes.noteDetail.NoteDetailActivity"
             android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".usescases.settingsprogram.SettingsProgramActivity" />
+        <activity android:name="org.dhis2hiv.usescases.settingsprogram.SettingsProgramActivity" />
 
         <service
-            android:name=".data.notifications.DhisFirebaseMessagingService"
+            android:name="org.dhis2hiv.data.notifications.DhisFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

@@ -13,7 +13,7 @@
 
         <variable
             name="currentSortItem"
-            type="androidx.databinding.ObservableField&lt;org.dhis2.utils.filters.sorting.SortingItem&gt;" />
+            type="androidx.databinding.ObservableField&lt;org.dhis2hiv.utils.filters.sorting.SortingItem&gt;" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

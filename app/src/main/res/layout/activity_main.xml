@@ -5,7 +5,7 @@
 
     <data>
 
-        <import type="org.dhis2.R" />
+        <import type="org.dhis2hiv.R" />
         <import type="android.view.View" />
 
         <variable
@@ -18,7 +18,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.main.MainPresenter" />
+            type="org.dhis2hiv.usescases.main.MainPresenter" />
 
         <variable
             name="currentFragment"

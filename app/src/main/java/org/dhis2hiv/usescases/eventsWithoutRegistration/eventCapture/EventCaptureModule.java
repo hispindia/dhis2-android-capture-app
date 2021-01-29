@@ -1,0 +1,95 @@
+package org.dhis2hiv.usescases.eventsWithoutRegistration.eventCapture;
+
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+
+import org.dhis2hiv.Bindings.ValueTypeExtensionsKt;
+import org.dhis2hiv.R;
+import org.dhis2hiv.data.dagger.PerActivity;
+import org.dhis2hiv.data.dhislogic.DhisEventUtils;
+import org.dhis2hiv.data.forms.EventRepository;
+import org.dhis2hiv.data.forms.FormRepository;
+import org.dhis2hiv.data.forms.RulesRepository;
+import org.dhis2hiv.data.forms.dataentry.DataEntryStore;
+import org.dhis2hiv.data.forms.dataentry.ValueStore;
+import org.dhis2hiv.data.forms.dataentry.ValueStoreImpl;
+import org.dhis2hiv.data.forms.dataentry.fields.FieldViewModelFactory;
+import org.dhis2hiv.data.forms.dataentry.fields.FieldViewModelFactoryImpl;
+import org.dhis2hiv.data.prefs.PreferenceProvider;
+import org.dhis2hiv.data.schedulers.SchedulerProvider;
+import org.dhis2hiv.utils.RulesUtilsProvider;
+import org.hisp.dhis.android.core.D2;
+import org.hisp.dhis.rules.RuleExpressionEvaluator;
+
+import dagger.Module;
+import dagger.Provides;
+
+@PerActivity
+@Module
+public class EventCaptureModule {
+
+
+    private final String eventUid;
+    private final EventCaptureContract.View view;
+
+    public EventCaptureModule(EventCaptureContract.View view, String eventUid) {
+        this.view = view;
+        this.eventUid = eventUid;
+    }
+
+    @Provides
+    @PerActivity
+    EventCaptureContract.Presenter providePresenter(@NonNull EventCaptureContract.EventCaptureRepository eventCaptureRepository,
+                                                    @NonNull RulesUtilsProvider ruleUtils,
+                                                    @NonNull ValueStore valueStore,
+                                                    SchedulerProvider schedulerProvider,
+                                                    PreferenceProvider preferences,
+                                                    GetNextVisibleSection getNextVisibleSection,
+                                                    EventFieldMapper fieldMapper) {
+        return new EventCapturePresenterImpl(view, eventUid, eventCaptureRepository, ruleUtils, valueStore, schedulerProvider,
+                preferences, getNextVisibleSection, fieldMapper);
+    }
+
+    @Provides
+    @PerActivity
+    EventFieldMapper provideFieldMapper(Context context){
+        return new EventFieldMapper(context.getString(R.string.field_is_mandatory));
+    }
+
+    @Provides
+    @PerActivity
+    EventCaptureContract.EventCaptureRepository provideRepository(Context context,
+                                                                  FormRepository formRepository,
+                                                                  D2 d2,
+                                                                  DhisEventUtils eventUtils) {
+        FieldViewModelFactory fieldFactory = new FieldViewModelFactoryImpl(ValueTypeExtensionsKt.valueTypeHintMap(context));
+        return new EventCaptureRepositoryImpl(fieldFactory, formRepository, eventUid, d2, eventUtils);
+    }
+
+    @Provides
+    @PerActivity
+    RulesRepository rulesRepository(@NonNull D2 d2) {
+        return new RulesRepository(d2);
+    }
+
+    @Provides
+    @PerActivity
+    FormRepository formRepository(@NonNull RuleExpressionEvaluator evaluator,
+                                  @NonNull RulesRepository rulesRepository,
+                                  @NonNull D2 d2) {
+        return new EventRepository(evaluator, rulesRepository, eventUid, d2);
+    }
+
+    @Provides
+    @PerActivity
+    ValueStore valueStore(@NonNull D2 d2) {
+        return new ValueStoreImpl(d2, eventUid, DataEntryStore.EntryMode.DE);
+    }
+
+    @Provides
+    @PerActivity
+    GetNextVisibleSection getNextVisibleSection() {
+        return new GetNextVisibleSection();
+    }
+}

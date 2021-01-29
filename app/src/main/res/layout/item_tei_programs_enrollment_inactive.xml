@@ -8,11 +8,11 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.teiDashboard.teiProgramList.TeiProgramListContract.Presenter" />
+            type="org.dhis2hiv.usescases.teiDashboard.teiProgramList.TeiProgramListContract.Presenter" />
 
         <variable
             name="enrollment"
-            type="org.dhis2.usescases.teiDashboard.teiProgramList.EnrollmentViewModel" />
+            type="org.dhis2hiv.usescases.teiDashboard.teiProgramList.EnrollmentViewModel" />
     </data>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

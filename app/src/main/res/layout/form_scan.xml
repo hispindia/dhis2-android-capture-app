@@ -21,7 +21,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
-    <org.dhis2.utils.customviews.ScanTextView
+    <org.dhis2hiv.utils.customviews.ScanTextView
         android:id="@+id/scanTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

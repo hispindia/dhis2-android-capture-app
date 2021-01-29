@@ -18,7 +18,7 @@ the DHIS2 server when you have network coverage.
 
 You can easily install the Data Capture for DHIS2 app by logging into
 the Google play store and searching for "[Data Capture for
-DHIS2](https://play.google.com/store/apps/details?id=org.dhis2.mobile)"
+DHIS2](https://play.google.com/store/apps/details?id=dhis2hiv.mobile)"
 
 ## Logging in
 

@@ -9,7 +9,7 @@
 
         <variable
             name="jiraViewModel"
-            type="org.dhis2.usescases.jira.JiraViewModel" />
+            type="org.dhis2hiv.usescases.jira.JiraViewModel" />
 
     </data>
 
