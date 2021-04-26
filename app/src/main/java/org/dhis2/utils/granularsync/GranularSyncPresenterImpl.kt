@@ -34,6 +34,7 @@ import androidx.work.WorkInfo
 import io.reactivex.Completable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.functions.BiFunction
 import io.reactivex.observers.DisposableCompletableObserver
 import io.reactivex.schedulers.Schedulers
 import java.util.Collections
@@ -42,6 +43,8 @@ import org.dhis2.data.schedulers.SchedulerProvider
 import org.dhis2.data.service.workManager.WorkManagerController
 import org.dhis2.data.service.workManager.WorkerItem
 import org.dhis2.data.service.workManager.WorkerType
+import org.dhis2.usescases.settings.models.ErrorModelMapper
+import org.dhis2.usescases.settings.models.ErrorViewModel
 import org.dhis2.usescases.sms.SmsSendingService
 import org.dhis2.utils.Constants.ATTRIBUTE_OPTION_COMBO
 import org.dhis2.utils.Constants.CATEGORY_OPTION_COMBO
@@ -58,6 +61,7 @@ import org.hisp.dhis.android.core.D2
 import org.hisp.dhis.android.core.arch.helpers.UidsHelper
 import org.hisp.dhis.android.core.common.BaseIdentifiableObject
 import org.hisp.dhis.android.core.common.State
+import org.hisp.dhis.android.core.imports.TrackerImportConflict
 import org.hisp.dhis.android.core.program.ProgramType
 import org.hisp.dhis.android.core.sms.domain.interactor.SmsSubmitCase
 import org.hisp.dhis.android.core.sms.domain.repository.SmsRepository
@@ -72,7 +76,8 @@ class GranularSyncPresenterImpl(
     private val dvOrgUnit: String?,
     private val dvAttrCombo: String?,
     private val dvPeriodId: String?,
-    private val workManagerController: WorkManagerController
+    private val workManagerController: WorkManagerController,
+    private val errorMapper: ErrorModelMapper
 ) : GranularSyncContracts.Presenter {
 
     private var disposable: CompositeDisposable = CompositeDisposable()
@@ -95,39 +100,24 @@ class GranularSyncPresenterImpl(
         )
 
         disposable.add(
-            getState()
-                .subscribeOn(schedulerProvider.io())
+            Single.zip(
+                getState(),
+                getConflicts(conflictType),
+                BiFunction { state: State, conflicts: MutableList<TrackerImportConflict> ->
+                    Pair(state, conflicts)
+                }
+            ).subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.ui())
                 .subscribe(
-                    { view.setState(it) },
+                    { stateAndConflicts ->
+                        view.setState(
+                            stateAndConflicts.first,
+                            stateAndConflicts.second
+                        )
+                    },
                     { view.closeDialog() }
                 )
         )
-
-        if (conflictType == TEI || conflictType == EVENT) {
-            disposable.add(
-                Single.just(conflictType)
-                    .flatMap {
-                        if (it == TEI) {
-                            d2
-                                .importModule()
-                                .trackerImportConflicts()
-                                .byTrackedEntityInstanceUid().eq(recordUid).get()
-                        } else {
-                            d2
-                                .importModule()
-                                .trackerImportConflicts()
-                                .byEventUid().eq(recordUid).get()
-                        }
-                    }
-                    .subscribeOn(schedulerProvider.io())
-                    .observeOn(schedulerProvider.ui())
-                    .subscribe(
-                        { if (it.isNotEmpty()) view.prepareConflictAdapter(it) },
-                        { view.closeDialog() }
-                    )
-            )
-        }
     }
 
     override fun isSMSEnabled(isTrackerSync: Boolean): Boolean {
@@ -228,7 +218,11 @@ class GranularSyncPresenterImpl(
                 .subscribe(
                     { count ->
                         reportState(SmsSendingService.State.CONVERTED, 0, count!!)
-                        reportState(SmsSendingService.State.WAITING_COUNT_CONFIRMATION, 0, count)
+                        reportState(
+                            SmsSendingService.State.WAITING_COUNT_CONFIRMATION,
+                            0,
+                            count
+                        )
                     },
                     { this.reportError(it) }
                 )
@@ -242,7 +236,12 @@ class GranularSyncPresenterImpl(
         disposable.add(
             smsSender.send().doOnNext { state ->
                 if (!isLastSendingStateTheSame(state.sent, state.total)) {
-                    reportState(SmsSendingService.State.SENDING, state.sent, state.total)
+                    reportState(
+                        if (state.sent == 0) SmsSendingService.State.STARTED
+                        else SmsSendingService.State.SENDING,
+                        state.sent,
+                        state.total
+                    )
                 }
             }.ignoreElements().doOnComplete {
                 reportState(
@@ -373,6 +372,20 @@ class GranularSyncPresenterImpl(
         }
     }
 
+    fun getConflicts(
+        conflictType: SyncStatusDialog.ConflictType
+    ): Single<MutableList<TrackerImportConflict>> {
+        return when (conflictType) {
+            TEI ->
+                d2.importModule().trackerImportConflicts()
+                    .byTrackedEntityInstanceUid().eq(recordUid).get()
+            EVENT ->
+                d2.importModule().trackerImportConflicts()
+                    .byEventUid().eq(recordUid).get()
+            else -> Single.just(mutableListOf())
+        }
+    }
+
     fun getStateFromTrackerProgram(programUid: String): State {
         val teiRepository =
             d2.trackedEntityModule().trackedEntityInstances().byProgramUids(
@@ -476,5 +489,28 @@ class GranularSyncPresenterImpl(
     }
 
     override fun displayMessage(message: String?) {
+    }
+
+    override fun syncErrors(): List<ErrorViewModel> {
+        return arrayListOf<ErrorViewModel>().apply {
+            addAll(
+                errorMapper.mapD2Error(
+                    d2.maintenanceModule().d2Errors().blockingGet()
+                )
+            )
+            addAll(
+                errorMapper.mapConflict(
+                    d2.importModule().trackerImportConflicts().blockingGet()
+                )
+            )
+            addAll(
+                errorMapper.mapFKViolation(
+                    d2.maintenanceModule().foreignKeyViolations().blockingGet()
+                )
+            )
+            sortByDescending {
+                it.creationDate?.time
+            }
+        }
     }
 }

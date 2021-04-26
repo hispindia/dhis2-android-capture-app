@@ -1,7 +1,6 @@
 package org.dhis2;
 
 import android.content.Context;
-import android.os.Build;
 import android.os.Looper;
 
 import androidx.annotation.NonNull;
@@ -14,13 +13,7 @@ import androidx.lifecycle.ProcessLifecycleOwner;
 import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
-import com.crashlytics.android.Crashlytics;
-import com.facebook.stetho.Stetho;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
-import com.google.android.gms.security.ProviderInstaller;
-import com.mapbox.mapboxsdk.Mapbox;
-
+import org.dhis2.data.appinspector.AppInspector;
 import org.dhis2.data.dagger.PerActivity;
 import org.dhis2.data.dagger.PerServer;
 import org.dhis2.data.dagger.PerUser;
@@ -34,17 +27,19 @@ import org.dhis2.data.server.UserManager;
 import org.dhis2.data.service.workManager.WorkManagerModule;
 import org.dhis2.data.user.UserComponent;
 import org.dhis2.data.user.UserModule;
+import org.dhis2.uicomponents.map.MapController;
 import org.dhis2.usescases.login.LoginComponent;
 import org.dhis2.usescases.login.LoginContracts;
 import org.dhis2.usescases.login.LoginModule;
 import org.dhis2.usescases.teiDashboard.TeiDashboardComponent;
 import org.dhis2.usescases.teiDashboard.TeiDashboardModule;
-import org.dhis2.utils.UtilsModule;
 import org.dhis2.utils.analytics.AnalyticsModule;
+import org.dhis2.utils.reporting.CrashReportModule;
 import org.dhis2.utils.session.PinModule;
 import org.dhis2.utils.session.SessionComponent;
 import org.dhis2.utils.timber.DebugTree;
 import org.dhis2.utils.timber.ReleaseTree;
+import org.hisp.dhis.android.core.D2;
 import org.hisp.dhis.android.core.D2Manager;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,7 +48,8 @@ import java.net.SocketException;
 
 import javax.inject.Singleton;
 
-import io.fabric.sdk.android.Fabric;
+import cat.ereza.customactivityoncrash.config.CaocConfig;
+import io.ona.kujaku.KujakuLibrary;
 import io.reactivex.Scheduler;
 import io.reactivex.android.plugins.RxAndroidPlugins;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -61,16 +57,10 @@ import io.reactivex.exceptions.UndeliverableException;
 import io.reactivex.plugins.RxJavaPlugins;
 import timber.log.Timber;
 
-/**
- * QUADRAM. Created by ppajuelo on 27/09/2017.
- */
-
 public class App extends MultiDexApplication implements Components, LifecycleObserver {
     static {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
     }
-
-    protected static final String DATABASE_NAME = "dhis.db";
 
     @NonNull
     @Singleton
@@ -97,36 +87,33 @@ public class App extends MultiDexApplication implements Components, LifecycleObs
 
     private boolean fromBackGround = false;
     private boolean recreated;
+    private AppInspector appInspector;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Timber.plant(BuildConfig.DEBUG ? new DebugTree() : new ReleaseTree());
+
         ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
 
-        if (BuildConfig.DEBUG)
-            Stetho.initializeWithDefaults(this);
+        appInspector = new AppInspector(this).init();
 
-        Mapbox.getInstance(this, BuildConfig.MAPBOX_ACCESS_TOKEN);
-
-        Fabric.with(this, new Crashlytics());
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
-            upgradeSecurityProviderSync();
+        MapController.Companion.init(this, BuildConfig.MAPBOX_ACCESS_TOKEN);
 
         setUpAppComponent();
+        Timber.plant(BuildConfig.DEBUG ? new DebugTree() : new ReleaseTree(appComponent.injectCrashReportController()));
+
+        KujakuLibrary.setEnableMapDownloadResume(false);
+        KujakuLibrary.init(this);
+
         setUpServerComponent();
         setUpRxPlugin();
+        initCustomCrashActivity();
     }
 
-    private void upgradeSecurityProviderSync() {
-        try {
-            ProviderInstaller.installIfNeeded(this);
-            Timber.e("New security provider installed.");
-        } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
-            e.printStackTrace();
-            Timber.e("New security provider install failed.");
-        }
+    private void initCustomCrashActivity() {
+        CaocConfig.Builder.create()
+                .errorDrawable(R.drawable.ic_dhis)
+                .apply();
     }
 
     @Override
@@ -141,8 +128,8 @@ public class App extends MultiDexApplication implements Components, LifecycleObs
     }
 
     protected void setUpServerComponent() {
-        boolean isLogged = D2Manager.blockingInstantiateD2(ServerModule.getD2Configuration(this)).userModule().isLogged().blockingGet();
-
+        D2 d2Configuration = D2Manager.blockingInstantiateD2(ServerModule.getD2Configuration(this));
+        boolean isLogged = d2Configuration.userModule().isLogged().blockingGet();
         serverComponent = appComponent.plus(new ServerModule());
 
         if (isLogged)
@@ -168,8 +155,8 @@ public class App extends MultiDexApplication implements Components, LifecycleObs
                 .schedulerModule(new SchedulerModule(new SchedulersProviderImpl()))
                 .analyticsModule(new AnalyticsModule())
                 .preferenceModule(new PreferenceModule())
-                .utilModule(new UtilsModule())
-                .workManagerController(new WorkManagerModule());
+                .workManagerController(new WorkManagerModule())
+                .crashReportModule(new CrashReportModule());
     }
 
     @NonNull
@@ -245,7 +232,6 @@ public class App extends MultiDexApplication implements Components, LifecycleObs
         userComponent = null;
     }
 
-
     ////////////////////////////////////////////////////////////////////////
     // Dashboard component
     ////////////////////////////////////////////////////////////////////////
@@ -291,6 +277,10 @@ public class App extends MultiDexApplication implements Components, LifecycleObs
         fromBackGround = true;
     }
 
+    public void disableBackGroundFlag() {
+        fromBackGround = false;
+    }
+
     public boolean isSessionBlocked() {
         boolean shouldShowPinDialog = fromBackGround && appComponent().preferenceProvider().getBoolean(Preference.SESSION_LOCKED, false);
         fromBackGround = false;
@@ -310,14 +300,18 @@ public class App extends MultiDexApplication implements Components, LifecycleObs
             if ((e instanceof NullPointerException) || (e instanceof IllegalArgumentException)) {
                 Timber.d("Error in app");
                 Thread.currentThread().getUncaughtExceptionHandler()
-                        .uncaughtException(Thread.currentThread(),e);
+                        .uncaughtException(Thread.currentThread(), e);
             }
             if (e instanceof IllegalStateException) {
                 Timber.d("Error in RxJava");
                 Thread.currentThread().getUncaughtExceptionHandler()
-                        .uncaughtException(Thread.currentThread(),e);
+                        .uncaughtException(Thread.currentThread(), e);
             }
             Timber.d(e);
         });
+    }
+
+    public AppInspector getAppInspector() {
+        return appInspector;
     }
 }

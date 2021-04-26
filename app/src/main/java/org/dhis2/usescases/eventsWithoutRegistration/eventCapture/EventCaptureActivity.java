@@ -4,63 +4,57 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.DatePicker;
-import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.databinding.DataBindingUtil;
+import androidx.viewpager.widget.ViewPager;
 
-import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.tabs.TabLayout;
 
 import org.dhis2.Bindings.ExtensionsKt;
+import org.dhis2.Bindings.ViewExtensionsKt;
 import org.dhis2.R;
 import org.dhis2.data.forms.dataentry.fields.FieldViewModel;
 import org.dhis2.databinding.ActivityEventCaptureBinding;
 import org.dhis2.databinding.WidgetDatepickerBinding;
 import org.dhis2.usescases.eventsWithoutRegistration.eventInitial.EventInitialActivity;
 import org.dhis2.usescases.general.ActivityGlobalAbstract;
-import org.dhis2.utils.ColorUtils;
+import org.dhis2.utils.AppMenuHelper;
 import org.dhis2.utils.Constants;
 import org.dhis2.utils.DateUtils;
 import org.dhis2.utils.DialogClickListener;
 import org.dhis2.utils.EventMode;
 import org.dhis2.utils.FileResourcesUtil;
+import org.dhis2.utils.ImageUtils;
 import org.dhis2.utils.customviews.CustomDialog;
 import org.dhis2.utils.customviews.FormBottomDialog;
 import org.hisp.dhis.android.core.arch.helpers.FileResourceDirectoryHelper;
 
 import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Calendar;
 import java.util.Map;
 
 import javax.inject.Inject;
 
-import timber.log.Timber;
+import kotlin.Unit;
 
 import static org.dhis2.utils.Constants.PROGRAM_UID;
 import static org.dhis2.utils.analytics.AnalyticsConstants.CLICK;
 import static org.dhis2.utils.analytics.AnalyticsConstants.DELETE_EVENT;
 import static org.dhis2.utils.analytics.AnalyticsConstants.SHOW_HELP;
 
-/**
- * QUADRAM. Created by ppajuelo on 19/11/2018.
- */
 public class EventCaptureActivity extends ActivityGlobalAbstract implements EventCaptureContract.View {
 
     private static final int RQ_GO_BACK = 1202;
+    private static final int NOTES_TAB_POSITION = 1;
 
     private ActivityEventCaptureBinding binding;
     @Inject
@@ -69,6 +63,8 @@ public class EventCaptureActivity extends ActivityGlobalAbstract implements Even
     private Boolean isEventCompleted = false;
     private EventMode eventMode;
     public EventCaptureComponent eventCaptureComponent;
+    public String programUid;
+    public String eventUid;
 
     public static Bundle getActivityBundle(@NonNull String eventUid, @NonNull String programUid, @NonNull EventMode eventMode) {
         Bundle bundle = new Bundle();
@@ -89,17 +85,41 @@ public class EventCaptureActivity extends ActivityGlobalAbstract implements Even
         binding = DataBindingUtil.setContentView(this, R.layout.activity_event_capture);
         binding.setPresenter(presenter);
         eventMode = (EventMode) getIntent().getSerializableExtra(Constants.EVENT_MODE);
+        setUpViewPagerAdapter();
+        setUpNavigationBar();
+        presenter.initNoteCounter();
+        presenter.init();
+    }
 
-        binding.eventTabLayout.setupWithViewPager(binding.eventViewPager);
-        binding.eventTabLayout.setTabMode(TabLayout.MODE_FIXED);
+    private void setUpViewPagerAdapter() {
+        binding.eventViewPager.setUserInputEnabled(false);
         binding.eventViewPager.setAdapter(new EventCapturePagerAdapter(
-                getSupportFragmentManager(),
-                getContext(),
+                this,
                 getIntent().getStringExtra(PROGRAM_UID),
                 getIntent().getStringExtra(Constants.EVENT_UID)
         ));
-        presenter.initNoteCounter();
-        presenter.init();
+        ViewExtensionsKt.clipWithRoundedCorners(binding.eventViewPager, ExtensionsKt.getDp(16));
+    }
+
+    private void setUpNavigationBar() {
+        binding.navigationBar.setOnNavigationItemSelectedListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.navigation_details:
+                    goToInitialScreen();
+                    break;
+                case R.id.navigation_data_entry:
+                    binding.eventViewPager.setCurrentItem(0);
+                    break;
+                case R.id.navigation_analytics:
+                    binding.eventViewPager.setCurrentItem(1);
+                    break;
+                case R.id.navigation_notes:
+                default:
+                    binding.eventViewPager.setCurrentItem(2);
+                    break;
+            }
+            return true;
+        });
     }
 
     @Override
@@ -118,15 +138,23 @@ public class EventCaptureActivity extends ActivityGlobalAbstract implements Even
     @Override
     public void goBack() {
         hideKeyboard();
-        attemptFinish();
+        finishEditMode();
     }
 
     @Override
     public void onBackPressed() {
         if (!ExtensionsKt.isKeyboardOpened(this)) {
-            attemptFinish();
+            finishEditMode();
         } else {
             hideKeyboard();
+        }
+    }
+
+    private void finishEditMode() {
+        if (binding.navigationBar.isHidden()) {
+            showNavigationBar();
+        } else {
+            attemptFinish();
         }
     }
 
@@ -169,17 +197,13 @@ public class EventCaptureActivity extends ActivityGlobalAbstract implements Even
                 break;
             case Constants.CAMERA_REQUEST:
                 if (resultCode == RESULT_OK) {
-                    File file = new File(FileResourceDirectoryHelper.getFileResourceDirectory(this), "tempFile.png");
+                    File imageFile = new File(FileResourceDirectoryHelper.getFileResourceDirectory(this), "tempFile.png");
+                    File file = new ImageUtils().rotateImage(this, imageFile);
                     if (file.exists()) {
                         presenter.saveImage(uuid, file.getPath());
                     } else
                         presenter.saveImage(uuid, null);
                     presenter.nextCalculation(true);
-                }
-                break;
-            case Constants.RQ_QR_SCANNER:
-                if (resultCode == RESULT_OK) {
-                    scanTextView.updateScanResult(data.getStringExtra(Constants.EXTRA_DATA));
                 }
                 break;
         }
@@ -189,11 +213,14 @@ public class EventCaptureActivity extends ActivityGlobalAbstract implements Even
     public void updatePercentage(float primaryValue, float secondaryValue) {
         binding.completion.setCompletionPercentage(primaryValue);
         binding.completion.setSecondaryPercentage(secondaryValue);
+        if (!presenter.getCompletionPercentageVisibility()) {
+            binding.completion.setVisibility(View.GONE);
+        }
     }
 
     @Override
     public void showCompleteActions(boolean canComplete, String completeMessage, Map<String, String> errors, Map<String, FieldViewModel> emptyMandatoryFields) {
-        if (binding.eventTabLayout.getSelectedTabPosition() == 0) {
+        if (binding.navigationBar.getSelectedItemId() == R.id.navigation_data_entry) {
             FormBottomDialog.getInstance()
                     .setAccessDataWrite(presenter.canWrite())
                     .setIsEnrollmentOpen(presenter.isEnrollmentOpen())
@@ -382,42 +409,27 @@ public class EventCaptureActivity extends ActivityGlobalAbstract implements Even
 
     @Override
     public void showMoreOptions(View view) {
-        PopupMenu popupMenu = new PopupMenu(this, view, Gravity.BOTTOM);
-        try {
-            Field[] fields = popupMenu.getClass().getDeclaredFields();
-            for (Field field : fields) {
-                if ("mPopup".equals(field.getName())) {
-                    field.setAccessible(true);
-                    Object menuPopupHelper = field.get(popupMenu);
-                    Class<?> classPopupHelper = Class.forName(menuPopupHelper.getClass().getName());
-                    Method setForceIcons = classPopupHelper.getMethod("setForceShowIcon", boolean.class);
-                    setForceIcons.invoke(menuPopupHelper, true);
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            Timber.e(e);
-        }
-        popupMenu.getMenuInflater().inflate(R.menu.event_menu, popupMenu.getMenu());
-        popupMenu.setOnMenuItemClickListener(item -> {
-            switch (item.getItemId()) {
-                case R.id.showHelp:
-                    analyticsHelper().setEvent(SHOW_HELP, CLICK, SHOW_HELP);
-                    showTutorial(false);
-                    break;
-                case R.id.menu_delete:
-                    confirmDeleteEvent();
-                    break;
-                case R.id.menu_overview:
-                    goToInitialScreen();
-                    break;
-                default:
-                    break;
-            }
-            return false;
-        });
-        popupMenu.getMenu().getItem(1).setVisible(presenter.canWrite() && presenter.isEnrollmentOpen());
-        popupMenu.show();
+        new AppMenuHelper.Builder().menu(this, R.menu.event_menu).anchor(view)
+                .onMenuInflated(popupMenu -> {
+                    popupMenu.getMenu().getItem(0).setVisible(presenter.canWrite() && presenter.isEnrollmentOpen());
+                    return Unit.INSTANCE;
+                })
+                .onMenuItemClicked(itemId -> {
+                    switch (itemId) {
+                        case R.id.showHelp:
+                            analyticsHelper().setEvent(SHOW_HELP, CLICK, SHOW_HELP);
+                            showTutorial(false);
+                            break;
+                        case R.id.menu_delete:
+                            confirmDeleteEvent();
+                            break;
+                        default:
+                            break;
+                    }
+                    return false;
+                })
+                .build()
+                .show();
     }
 
     @Override
@@ -470,12 +482,7 @@ public class EventCaptureActivity extends ActivityGlobalAbstract implements Even
 
     @Override
     public void updateNoteBadge(int numberOfNotes) {
-        BadgeDrawable badge = binding.eventTabLayout.getTabAt(binding.eventTabLayout.getTabCount() - 1).getOrCreateBadge();
-        badge.setVisible(numberOfNotes > 0);
-        badge.setBackgroundColor(Color.WHITE);
-        badge.setBadgeTextColor(ColorUtils.getPrimaryColor(getContext(), ColorUtils.ColorType.PRIMARY));
-        badge.setNumber(numberOfNotes);
-        badge.setMaxCharacterCount(3);
+        binding.navigationBar.updateBadge(R.id.navigation_notes, numberOfNotes);
     }
 
     @Override
@@ -487,5 +494,33 @@ public class EventCaptureActivity extends ActivityGlobalAbstract implements Even
                 })
                 .setCancelable(false)
                 .show();
+    }
+
+    @Override
+    public void showProgress() {
+        runOnUiThread(() -> {
+            binding.toolbarProgress.setVisibility(View.VISIBLE);
+            binding.toolbarProgress.show();
+        });
+
+    }
+
+    @Override
+    public void hideProgress() {
+        runOnUiThread(() -> {
+            binding.toolbarProgress.hide();
+            binding.toolbarProgress.setVisibility(View.GONE);
+        });
+
+    }
+
+    @Override
+    public void showNavigationBar() {
+        binding.navigationBar.show();
+    }
+
+    @Override
+    public void hideNavigationBar() {
+        binding.navigationBar.hide();
     }
 }

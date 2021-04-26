@@ -2,17 +2,24 @@ package org.dhis2.usescases.login
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextPaint
 import android.text.TextUtils.isEmpty
 import android.text.TextWatcher
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
 import android.util.Patterns
 import android.view.View
 import android.view.WindowManager
 import android.webkit.URLUtil
 import android.widget.ArrayAdapter
-import androidx.appcompat.app.AlertDialog
+import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -28,12 +35,16 @@ import okhttp3.HttpUrl
 import org.dhis2.App
 import org.dhis2.Bindings.app
 import org.dhis2.Bindings.buildInfo
+import org.dhis2.Bindings.closeKeyboard
 import org.dhis2.Bindings.onRightDrawableClicked
 import org.dhis2.R
 import org.dhis2.data.server.UserManager
 import org.dhis2.data.tuples.Trio
 import org.dhis2.databinding.ActivityLoginBinding
+import org.dhis2.usescases.about.PolicyView
 import org.dhis2.usescases.general.ActivityGlobalAbstract
+import org.dhis2.usescases.login.auth.AuthServiceModel
+import org.dhis2.usescases.login.auth.OpenIdProviders
 import org.dhis2.usescases.main.MainActivity
 import org.dhis2.usescases.qrScanner.ScanActivity
 import org.dhis2.usescases.sync.SyncActivity
@@ -50,7 +61,10 @@ import org.dhis2.utils.analytics.CLICK
 import org.dhis2.utils.analytics.FORGOT_CODE
 import org.dhis2.utils.session.PIN_DIALOG_TAG
 import org.dhis2.utils.session.PinDialog
+import org.hisp.dhis.android.core.user.openid.IntentWithRequestCode
 import timber.log.Timber
+
+const val EXTRA_SKIP_SYNC = "SKIP_SYNC"
 
 class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
 
@@ -60,14 +74,23 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
     @Inject
     lateinit var presenter: LoginPresenter
 
-    private var users: MutableList<String>? = null
-    private var urls: MutableList<String>? = null
+    @Inject
+    lateinit var openIdProviders: OpenIdProviders
 
     private var isPinScreenVisible = false
     private var qrUrl: String? = null
 
     private var testingCredentials: List<TestingCredential> = ArrayList()
     var userManager: UserManager? = null
+    private var skipSync = false
+
+    companion object {
+        fun bundle(skipSync: Boolean = false): Bundle {
+            return Bundle().apply {
+                putBoolean(EXTRA_SKIP_SYNC, skipSync)
+            }
+        }
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,6 +108,7 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
         loginComponent.inject(this)
 
         super.onCreate(savedInstanceState)
+        skipSync = intent.getBooleanExtra(EXTRA_SKIP_SYNC, false)
         loginViewModel = ViewModelProviders.of(this).get(LoginViewModel::class.java)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_login)
 
@@ -100,18 +124,25 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
         loginViewModel.isTestingEnvironment.observe(
             this,
             Observer<Trio<String, String, String>> { testingEnvironment ->
+                binding.root.closeKeyboard()
                 binding.serverUrlEdit.setText(testingEnvironment.val0())
                 binding.userNameEdit.setText(testingEnvironment.val1())
                 binding.userPassEdit.setText(testingEnvironment.val2())
             }
         )
 
+        openIdProviders.loadOpenIdProvider {
+            showLoginOptions(it.takeIf { it.hasConfiguration() })
+        }
+
         binding.serverUrlEdit.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
                 if (checkUrl(binding.serverUrlEdit.text.toString())) {
                     binding.accountRecovery.visibility = View.VISIBLE
+                    binding.loginOpenId.isEnabled = true
                 } else {
                     binding.accountRecovery.visibility = View.GONE
+                    binding.loginOpenId.isEnabled = false
                 }
             }
 
@@ -128,10 +159,16 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
 
         binding.clearPassButton.setOnClickListener { binding.userPassEdit.text = null }
         binding.clearUserNameButton.setOnClickListener { binding.userNameEdit.text = null }
+        binding.clearUrl.setOnClickListener { binding.serverUrlEdit.text = null }
 
         setTestingCredentials()
         setAutocompleteAdapters()
         setUpLoginInfo()
+
+        presenter.apply {
+            init(userManager)
+            checkServerInfoAndShowBiometricButton()
+        }
     }
 
     private fun checkUrl(urlString: String): Boolean {
@@ -167,15 +204,6 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        presenter.apply {
-            init(userManager)
-            checkServerInfoAndShowBiometricButton()
-        }
-        NetworkUtils.isGooglePlayServicesAvailable(this)
-    }
-
     override fun onPause() {
         presenter.onDestroy()
         super.onPause()
@@ -187,7 +215,7 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
     }
 
     override fun goToNextScreen() {
-        if (isNetworkAvailable()) {
+        if (isNetworkAvailable() && !skipSync) {
             startActivity(SyncActivity::class.java, null, true, true, null)
         } else {
             startActivity(MainActivity::class.java, null, true, true, null)
@@ -208,8 +236,9 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
     }
 
     override fun showUnlockButton() {
-        binding.unlockLayout.visibility = View.VISIBLE
-        onUnlockClick(binding.unlockLayout)
+        binding.unlock.visibility = View.VISIBLE
+        binding.logout.visibility = View.GONE
+        onUnlockClick(binding.unlock)
     }
 
     override fun renderError(throwable: Throwable) {
@@ -224,7 +253,7 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
     }
 
     override fun setLoginVisibility(isVisible: Boolean) {
-        binding.login.visibility = if (isVisible) View.VISIBLE else View.GONE
+        binding.login.isEnabled = isVisible
     }
 
     override fun showLoginProgress(showLogin: Boolean) {
@@ -253,26 +282,44 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
     }
 
     override fun showCrashlyticsDialog() {
-        showInfoDialog(
-            getString(R.string.send_user_name_title), getString(R.string.send_user_name_mesage),
-            getString(R.string.action_agree), getString(R.string.cancel),
-            object : OnDialogClickListener {
-                override fun onPossitiveClick(alertDialog: AlertDialog) {
-                    sharedPreferences.edit().putBoolean(Constants.USER_ASKED_CRASHLYTICS, true)
-                        .apply()
-                    sharedPreferences.edit()
-                        .putString(Constants.USER, binding.userName.editText?.text.toString())
-                        .apply()
-                    showLoginProgress(true)
-                }
+        val spannable = SpannableString(
+            getString(R.string.analytics_crash_name_message) + " " +
+                getString(R.string.send_user_privacy_policy)
+        )
 
-                override fun onNegativeClick(alertDialog: AlertDialog) {
-                    sharedPreferences.edit().putBoolean(Constants.USER_ASKED_CRASHLYTICS, true)
-                        .apply()
-                    showLoginProgress(true)
+        val clickableSpan = object : ClickableSpan() {
+            override fun onClick(p0: View) {
+                navigateToPrivacyPolicy()
+            }
+            override fun updateDrawState(ds: TextPaint) {
+                ds.color = ContextCompat.getColor(context, R.color.colorPrimary)
+                ds.isUnderlineText = true
+            }
+        }
+        spannable.setSpan(
+            clickableSpan,
+            spannable.length - 14,
+            spannable.length,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        MaterialAlertDialogBuilder(this, R.style.DhisMaterialDialog)
+            .setTitle(title)
+            .setCancelable(false)
+            .setMessage(spannable)
+            .setPositiveButton(getString(R.string.action_continue)) { _: DialogInterface, _: Int ->
+                sharedPreferences.edit().putBoolean(Constants.USER_ASKED_CRASHLYTICS, true)
+                    .apply()
+                sharedPreferences.edit()
+                    .putString(Constants.USER, binding.userName.editText?.text.toString())
+                    .apply()
+                showLoginProgress(true)
+            }
+            .show()
+            .also { dialog ->
+                dialog.findViewById<TextView>(android.R.id.message)?.apply {
+                    movementMethod = LinkMovementMethod.getInstance()
                 }
             }
-        )?.show()
     }
 
     override fun onUnlockClick(android: View) {
@@ -284,7 +331,8 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
             },
             {
                 analyticsHelper.setEvent(FORGOT_CODE, CLICK, FORGOT_CODE)
-                binding.unlockLayout.visibility = View.GONE
+                binding.unlock.visibility = View.GONE
+                binding.logout.visibility = View.GONE
             }
         )
             .show(supportFragmentManager, PIN_DIALOG_TAG)
@@ -314,31 +362,39 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
     override fun saveUsersData() {
         (context.applicationContext as App).createUserComponent()
 
-        if (presenter.canHandleBiometrics() == true &&
-            !presenter.areSameCredentials(
-                binding.serverUrlEdit.text.toString(),
-                binding.userNameEdit.text.toString(),
-                binding.userPassEdit.text.toString()
-            )
+        if (!presenter.areSameCredentials(
+            binding.serverUrlEdit.text.toString(),
+            binding.userNameEdit.text.toString(),
+            binding.userPassEdit.text.toString()
+        )
         ) {
-            showInfoDialog(
-                getString(R.string.biometrics_security_title),
-                getString(R.string.biometrics_security_text),
-                object : OnDialogClickListener {
-                    override fun onPossitiveClick(alertDialog: AlertDialog) {
-                        presenter.saveUserCredentials(
-                            binding.serverUrlEdit.text.toString(),
-                            binding.userNameEdit.text.toString(),
-                            binding.userPassEdit.text.toString()
-                        )
-                        goToNextScreen()
-                    }
+            if (presenter.canHandleBiometrics() == true) {
+                showInfoDialog(
+                    getString(R.string.biometrics_security_title),
+                    getString(R.string.biometrics_security_text),
+                    object : OnDialogClickListener {
+                        override fun onPositiveClick() {
+                            presenter.saveUserCredentials(
+                                binding.serverUrlEdit.text.toString(),
+                                binding.userNameEdit.text.toString(),
+                                binding.userPassEdit.text.toString()
+                            )
+                            goToNextScreen()
+                        }
 
-                    override fun onNegativeClick(alertDialog: AlertDialog) {
-                        goToNextScreen()
+                        override fun onNegativeClick() {
+                            goToNextScreen()
+                        }
                     }
-                }
-            )?.show()
+                )
+            } else {
+                presenter.saveUserCredentials(
+                    binding.serverUrlEdit.text.toString(),
+                    binding.userNameEdit.text.toString(),
+                    ""
+                )
+                goToNextScreen()
+            }
         } else {
             goToNextScreen()
         }
@@ -357,6 +413,15 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == RQ_QR_SCANNER && resultCode == Activity.RESULT_OK) {
             qrUrl = data?.getStringExtra(Constants.EXTRA_DATA)
+            qrUrl?.let { setUrl(it) }
+        } else if (resultCode == Activity.RESULT_OK) {
+            data?.let {
+                presenter.handleAuthResponseData(
+                    binding.serverUrlEdit.text.toString(),
+                    data,
+                    requestCode
+                )
+            }
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
@@ -389,14 +454,6 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
         startActivity(intent)
     }
 
-    override fun displayAlertDialog() {
-        MaterialAlertDialogBuilder(this, R.style.DhisMaterialDialog)
-            .setTitle(R.string.login_server_info_title)
-            .setMessage(R.string.login_server_info_message)
-            .setPositiveButton(R.string.action_accept, null)
-            .show()
-    }
-
     override fun navigateToQRActivity() {
         Intent(context, ScanActivity::class.java).apply {
             startActivityForResult(this, RQ_QR_SCANNER)
@@ -415,4 +472,27 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
             .title(R.string.fingerprint_title)
             .negativeButtonText(R.string.cancel)
             .build()
+
+    private fun showLoginOptions(authServiceModel: AuthServiceModel?) {
+        authServiceModel?.let {
+            binding.serverUrlEdit.setText(authServiceModel.serverUrl)
+            binding.loginOpenId.visibility = View.VISIBLE
+            binding.loginOpenId.text = authServiceModel.loginLabel
+            binding.loginOpenId.setOnClickListener {
+                presenter.openIdLogin(authServiceModel.toOpenIdConfig())
+            }
+        }
+    }
+
+    override fun openOpenIDActivity(intentData: IntentWithRequestCode?) {
+        intentData?.let {
+            startActivityForResult(intentData.intent, intentData.requestCode)
+        }
+    }
+
+    fun navigateToPrivacyPolicy() {
+        activity?.let {
+            startActivity(Intent(it, PolicyView::class.java))
+        }
+    }
 }

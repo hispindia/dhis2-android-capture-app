@@ -1,5 +1,6 @@
 package org.dhis2.utils
 
+import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
@@ -7,7 +8,7 @@ import java.util.ArrayList
 import org.dhis2.data.forms.dataentry.fields.FieldViewModel
 import org.dhis2.data.forms.dataentry.fields.FieldViewModelFactory
 import org.dhis2.data.forms.dataentry.fields.FieldViewModelFactoryImpl
-import org.dhis2.data.forms.dataentry.fields.display.DisplayViewModel
+import org.hisp.dhis.android.core.D2
 import org.hisp.dhis.android.core.common.ObjectStyle
 import org.hisp.dhis.android.core.common.ValueType
 import org.hisp.dhis.rules.models.RuleActionAssign
@@ -26,14 +27,17 @@ import org.hisp.dhis.rules.models.RuleActionShowWarning
 import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion
 import org.hisp.dhis.rules.models.RuleEffect
 import org.junit.Assert
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.mockito.Mockito
 
 class RulesUtilsProviderImplTest {
 
     private lateinit var ruleUtils: RulesUtilsProvider
     private lateinit var testFieldViewModels: MutableMap<String, FieldViewModel>
     private lateinit var fieldFactory: FieldViewModelFactory
+    private val d2: D2 = Mockito.mock(D2::class.java, Mockito.RETURNS_DEEP_STUBS)
 
     private val actionCallbacks: RulesActionCallbacks = mock()
 
@@ -41,9 +45,10 @@ class RulesUtilsProviderImplTest {
 
     @Before
     fun setUp() {
-        ruleUtils = RulesUtilsProviderImpl()
+        ruleUtils = RulesUtilsProviderImpl(d2)
         fieldFactory = FieldViewModelFactoryImpl(
-            ValueType.values().map { it to it.name }.toMap()
+            ValueType.values().map { it to it.name }.toMap(),
+            false
         )
         testFieldViewModels = getTestingFieldViewModels().associateBy { it.uid() }.toMutableMap()
     }
@@ -81,7 +86,10 @@ class RulesUtilsProviderImplTest {
             null,
             null,
             ObjectStyle.builder().build(),
-            ""
+            "",
+            null,
+            null,
+            null
         )
     }
 
@@ -91,6 +99,7 @@ class RulesUtilsProviderImplTest {
 
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid",
                 RuleActionShowWarning.create("content", "action_data", testingUid),
                 "data"
             )
@@ -112,6 +121,7 @@ class RulesUtilsProviderImplTest {
 
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid",
                 RuleActionShowError.create("content", "action_data", testingUid),
                 "data"
             )
@@ -138,6 +148,7 @@ class RulesUtilsProviderImplTest {
         val testingUid = "uid3"
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid",
                 RuleActionHideField.create("content", testingUid),
                 "data"
             )
@@ -154,9 +165,10 @@ class RulesUtilsProviderImplTest {
     }
 
     @Test
-    fun `RuleActionDisplayText Should add new DisplayViewModel`() {
+    fun `RuleActionDisplayText Should not add new DisplayViewModel`() {
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid",
                 RuleActionDisplayText.createForFeedback("content", "action data"),
                 "data"
             )
@@ -170,16 +182,15 @@ class RulesUtilsProviderImplTest {
             actionCallbacks
         )
 
-        Assert.assertTrue(testFieldViewModels.size == testFieldViewModelSize + 1)
-        Assert.assertTrue(testFieldViewModels.containsKey("content"))
-        Assert.assertTrue(testFieldViewModels["content"] is DisplayViewModel)
-        Assert.assertEquals(testFieldViewModels["content"]!!.value(), "content data")
+        Assert.assertTrue(testFieldViewModels.size == testFieldViewModelSize)
+        Assert.assertTrue(!testFieldViewModels.containsKey("content"))
     }
 
     @Test
-    fun `RuleActionDisplayKeyValuePair should add new DisplayViewModel`() {
+    fun `RuleActionDisplayKeyValuePair should not add new DisplayViewModel`() {
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid",
                 RuleActionDisplayKeyValuePair.createForIndicators("content", "action data"),
                 "data"
             )
@@ -193,13 +204,8 @@ class RulesUtilsProviderImplTest {
             actionCallbacks
         )
 
-        Assert.assertTrue(testFieldViewModels.size == testFieldViewModelSize + 1)
-        Assert.assertTrue(testFieldViewModels.containsKey("content"))
-        Assert.assertTrue(testFieldViewModels["content"] is DisplayViewModel)
-        Assert.assertEquals(testFieldViewModels["content"]!!.label(), "content")
-        Assert.assertEquals(testFieldViewModels["content"]!!.value(), "data")
-
-        verify(actionCallbacks, times(1)).setDisplayKeyValue("content", "data")
+        Assert.assertTrue(testFieldViewModels.size == testFieldViewModelSize)
+        Assert.assertTrue(!testFieldViewModels.containsKey("content"))
     }
 
     @Test
@@ -207,10 +213,16 @@ class RulesUtilsProviderImplTest {
         val testingSectionUid = "section2"
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid",
                 RuleActionHideSection.create(testingSectionUid),
                 "data"
             )
         )
+
+        val mandatoryFieldUid = "uid3"
+        testFieldViewModels.apply {
+            put(mandatoryFieldUid, get(mandatoryFieldUid)!!.setMandatory())
+        }
 
         ruleUtils.applyRuleEffects(
             testFieldViewModels,
@@ -218,7 +230,9 @@ class RulesUtilsProviderImplTest {
             actionCallbacks
         )
 
-        verify(actionCallbacks, times(1)).setHideSection(testingSectionUid)
+        assertTrue(testFieldViewModels[mandatoryFieldUid] != null)
+        assertTrue(testFieldViewModels["uid4"] == null)
+        assertTrue(testFieldViewModels["uid5"] == null)
     }
 
     @Test
@@ -227,6 +241,7 @@ class RulesUtilsProviderImplTest {
 
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid",
                 RuleActionAssign.create("content", "data", testingUid),
                 "data"
             )
@@ -240,7 +255,7 @@ class RulesUtilsProviderImplTest {
 
         verify(actionCallbacks, times(1)).save(testingUid, "data")
         Assert.assertTrue(testFieldViewModels[testingUid]!!.value().equals("data"))
-        Assert.assertFalse(testFieldViewModels[testingUid]!!.editable()!!)
+        Assert.assertTrue(!testFieldViewModels[testingUid]!!.editable()!!)
     }
 
     @Test
@@ -250,12 +265,14 @@ class RulesUtilsProviderImplTest {
 
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid1",
                 RuleActionAssign.create("content", "data", testingUid),
                 "data"
             )
         )
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid2",
                 RuleActionAssign.create("content", "data", testingUid2),
                 "test"
             )
@@ -271,14 +288,15 @@ class RulesUtilsProviderImplTest {
         verify(actionCallbacks, times(0)).save(testingUid2, "test")
         Assert.assertTrue(testFieldViewModels[testingUid]!!.value().equals("data"))
         Assert.assertTrue(testFieldViewModels[testingUid2]!!.value().equals("test"))
-        Assert.assertFalse(testFieldViewModels[testingUid]!!.editable()!!)
-        Assert.assertFalse(testFieldViewModels[testingUid]!!.editable()!!)
+        Assert.assertTrue(!testFieldViewModels[testingUid]!!.editable()!!)
+        Assert.assertTrue(!testFieldViewModels[testingUid]!!.editable()!!)
     }
 
     @Test
     fun `RuleActionAssign should set a value to calculated value`() {
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid",
                 RuleActionAssign.create("content", "data", null),
                 "data"
             )
@@ -290,7 +308,7 @@ class RulesUtilsProviderImplTest {
             actionCallbacks
         )
 
-        verify(actionCallbacks, times(1)).setCalculatedValue("content", "data")
+        verify(actionCallbacks, times(0)).save(any(), any())
     }
 
     @Test
@@ -299,6 +317,7 @@ class RulesUtilsProviderImplTest {
 
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid",
                 RuleActionSetMandatoryField.create(testingUid),
                 "data"
             )
@@ -319,6 +338,7 @@ class RulesUtilsProviderImplTest {
 
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid",
                 RuleActionWarningOnCompletion.create("content", "action_data", testingUid),
                 "data"
             )
@@ -340,6 +360,7 @@ class RulesUtilsProviderImplTest {
 
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid",
                 RuleActionErrorOnCompletion.create("content", "action_data", testingUid),
                 "data"
             )
@@ -360,6 +381,7 @@ class RulesUtilsProviderImplTest {
         val testingUid = "stageUid"
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid",
                 RuleActionHideProgramStage.create(testingUid),
                 "data"
             )
@@ -382,6 +404,7 @@ class RulesUtilsProviderImplTest {
     fun `RuleActionHideOption should execute callback action`() {
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid",
                 RuleActionHideOption.create("content", "optionUid", "field"),
                 "data"
             )
@@ -400,6 +423,7 @@ class RulesUtilsProviderImplTest {
     fun `RuleActionHideOptionGroup should execute callback action`() {
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid",
                 RuleActionHideOptionGroup.create("content", "optionGroupUid", "field"),
                 "data"
             )
@@ -418,6 +442,7 @@ class RulesUtilsProviderImplTest {
     fun `RuleActionShowOptionGroup should execute callback action`() {
         testRuleEffects.add(
             RuleEffect.create(
+                "ruleUid",
                 RuleActionShowOptionGroup.create("content", "optionGroupUid", "field"),
                 "data"
             )

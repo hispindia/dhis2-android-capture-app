@@ -4,9 +4,8 @@ import android.app.DatePickerDialog;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
-import org.dhis2.data.forms.FormSectionViewModel;
-import org.dhis2.data.forms.dataentry.fields.FieldViewModel;
 import org.dhis2.usescases.general.AbstractActivityContracts;
 import org.dhis2.utils.EventCreationType;
 import org.hisp.dhis.android.core.category.CategoryCombo;
@@ -22,12 +21,6 @@ import org.hisp.dhis.android.core.program.ProgramStage;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import io.reactivex.functions.Consumer;
-
-/**
- * QUADRAM. Created by Cristian on 01/03/2018.
- */
 
 public class EventInitialContract {
 
@@ -50,10 +43,7 @@ public class EventInitialContract {
 
         void setProgramStage(ProgramStage programStage);
 
-        void onEventSections(List<FormSectionViewModel> formSectionViewModels);
-
-        @NonNull
-        Consumer<List<FieldViewModel>> showFields(String sectionUid);
+        void updatePercentage(float primaryValue, float secondaryValue);
 
         void showProgramStageSelection();
 
@@ -81,7 +71,7 @@ public class EventInitialContract {
     }
 
     public interface Presenter extends AbstractActivityContracts.Presenter {
-        void init(EventInitialContract.View view, String programId, String eventId, String orgUnitId, String programStageId);
+        void init(String programId, String eventId, String orgUnitId, String programStageId);
 
         void getProgramStage(String programStageUid);
 
@@ -107,15 +97,10 @@ public class EventInitialContract {
 
         void onOrgUnitButtonClick();
 
-        void onLocationClick();
-
         void onFieldChanged(CharSequence s, int start, int before, int count);
 
-        void getSectionCompletion(@Nullable String sectionUid);
-
-        void getEventSections(@NonNull String eventId);
-
-        List<OrganisationUnit> getOrgUnits();
+        @VisibleForTesting
+        String getCurrentOrgUnit(String orgUnitUid);
 
         void onShareClick(android.view.View mView);
 
@@ -125,13 +110,25 @@ public class EventInitialContract {
 
         void getStageObjectStyle(String uid);
 
-        String getCatOptionCombo(List<CategoryOptionCombo> categoryOptionCombos, List<CategoryOption> values);
+        String getCatOptionCombo(String uid, List<CategoryOptionCombo> categoryOptionCombos, List<CategoryOption> values);
 
         Date getStageLastDate(String programStageUid, String enrollmentUid);
 
         void getEventOrgUnit(String ouUid);
 
         void initOrgunit(Date selectedDate);
+
+        CategoryOption getCatOption(String selectedOption);
+
+        int catOptionSize(String uid);
+
+        List<CategoryOption> getCatOptions(String categoryUid);
+
+        void setChangingCoordinates(boolean changingCoordinates);
+
+        boolean getCompletionPercentageVisibility();
+
+        void onEventCreated();
     }
 
 }

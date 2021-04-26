@@ -10,14 +10,19 @@ import io.reactivex.Flowable
 import io.reactivex.Single
 import io.reactivex.processors.BehaviorProcessor
 import io.reactivex.processors.FlowableProcessor
+import org.dhis2.data.filter.FilterRepository
 import org.dhis2.data.prefs.Preference.Companion.DEFAULT_CAT_COMBO
+import org.dhis2.data.prefs.Preference.Companion.PIN
 import org.dhis2.data.prefs.Preference.Companion.PREF_DEFAULT_CAT_OPTION_COMBO
+import org.dhis2.data.prefs.Preference.Companion.SESSION_LOCKED
 import org.dhis2.data.prefs.PreferenceProvider
 import org.dhis2.data.schedulers.SchedulerProvider
 import org.dhis2.data.schedulers.TrampolineSchedulerProvider
 import org.dhis2.data.service.workManager.WorkManagerController
 import org.dhis2.usescases.login.LoginActivity
+import org.dhis2.utils.analytics.matomo.MatomoAnalyticsController
 import org.dhis2.utils.filters.FilterManager
+import org.dhis2.utils.filters.Filters
 import org.hisp.dhis.android.core.D2
 import org.hisp.dhis.android.core.category.CategoryCombo
 import org.hisp.dhis.android.core.category.CategoryOptionCombo
@@ -26,10 +31,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
-/**
- * Created by frodriguez on 10/22/2019.
- *
- */
 class MainPresenterTest {
 
     private lateinit var presenter: MainPresenter
@@ -39,11 +40,22 @@ class MainPresenterTest {
     private val preferences: PreferenceProvider = mock()
     private val workManagerController: WorkManagerController = mock()
     private val filterManager: FilterManager = mock()
+    private val filterRepository: FilterRepository = mock()
+    private val matomoAnalyticsController: MatomoAnalyticsController = mock()
 
     @Before
     fun setUp() {
         presenter =
-            MainPresenter(view, d2, schedulers, preferences, workManagerController, filterManager)
+            MainPresenter(
+                view,
+                d2,
+                schedulers,
+                preferences,
+                workManagerController,
+                filterManager,
+                filterRepository,
+                matomoAnalyticsController
+            )
     }
 
     @Test
@@ -59,16 +71,30 @@ class MainPresenterTest {
 
     @Test
     fun `Should setup filters when activity is resumed`() {
-        val periodRequest: FlowableProcessor<FilterManager.PeriodRequest> =
+        val periodRequest: FlowableProcessor<Pair<FilterManager.PeriodRequest, Filters?>> =
             BehaviorProcessor.create()
         whenever(filterManager.asFlowable()) doReturn Flowable.just(filterManager)
         whenever(filterManager.periodRequest) doReturn periodRequest
-        periodRequest.onNext(FilterManager.PeriodRequest.FROM_TO)
+        periodRequest.onNext(Pair(FilterManager.PeriodRequest.FROM_TO, null))
 
         presenter.initFilters()
 
         verify(view).updateFilters(any())
-        verify(view).showPeriodRequest(periodRequest.blockingFirst())
+        verify(view).showPeriodRequest(periodRequest.blockingFirst().first)
+    }
+
+    @Test
+    fun `Should hide filter icon when is list is empty`() {
+        val periodRequest: FlowableProcessor<Pair<FilterManager.PeriodRequest, Filters?>> =
+            BehaviorProcessor.create()
+        whenever(filterManager.asFlowable()) doReturn Flowable.just(filterManager)
+        whenever(filterManager.periodRequest) doReturn periodRequest
+        periodRequest.onNext(Pair(FilterManager.PeriodRequest.FROM_TO, null))
+        whenever(filterRepository.homeFilters()) doReturn emptyList()
+
+        presenter.initFilters()
+
+        verify(view).hideFilters()
     }
 
     @Test
@@ -79,6 +105,8 @@ class MainPresenterTest {
         presenter.logOut()
 
         verify(workManagerController).cancelAllWork()
+        verify(preferences).setValue(SESSION_LOCKED, false)
+        verify(preferences).setValue(PIN, null)
         verify(view).startActivity(LoginActivity::class.java, null, true, true, null)
     }
 
@@ -111,6 +139,20 @@ class MainPresenterTest {
         presenter.onMenuClick()
 
         verify(view).openDrawer(any())
+    }
+
+    @Test
+    fun `should return to home section when user taps back in a different section`() {
+        val periodRequest: FlowableProcessor<Pair<FilterManager.PeriodRequest, Filters?>> =
+            BehaviorProcessor.create()
+        whenever(filterManager.asFlowable()) doReturn Flowable.just(filterManager)
+        whenever(filterManager.periodRequest) doReturn periodRequest
+        periodRequest.onNext(Pair(FilterManager.PeriodRequest.FROM_TO, null))
+
+        presenter.onNavigateBackToHome()
+
+        verify(view).goToHome()
+        verify(filterRepository).homeFilters()
     }
 
     private fun presenterMocks() {

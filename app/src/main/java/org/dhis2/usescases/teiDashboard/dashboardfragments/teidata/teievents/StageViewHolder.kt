@@ -26,7 +26,7 @@ internal class StageViewHolder(
             stage.style().color(),
             ColorUtils.getPrimaryColor(
                 itemView.context,
-                ColorUtils.ColorType.PRIMARY_LIGHT
+                ColorUtils.ColorType.PRIMARY
             )
         )
 
@@ -38,22 +38,12 @@ internal class StageViewHolder(
                 R.drawable.ic_program_default
             )
         )
+        binding.programStageIcon.setColorFilter(ColorUtils.getContrastColor(color))
+
         binding.lastUpdatedEvent.text = eventItem.lastUpdate.toDateSpan(itemView.context)
-        val stageNotRepeatableZeroCount = stage.repeatable() != true &&
-            eventItem.eventCount == 0
-        val stageRepeatableZeroCount = stage.repeatable() == true &&
-            eventItem.eventCount == 0
-        val stageRepeatableCountSelected = stage.repeatable() == true &&
-            eventItem.eventCount > 0 && eventItem.isSelected
 
         binding.addStageButton.visibility =
-            if (eventItem.canAddNewEvent &&
-                (
-                    stageNotRepeatableZeroCount ||
-                        stageRepeatableZeroCount ||
-                        stageRepeatableCountSelected
-                    )
-            ) {
+            if (eventItem.canShowAddButton()) {
                 View.VISIBLE
             } else {
                 View.GONE

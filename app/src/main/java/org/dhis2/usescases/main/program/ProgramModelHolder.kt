@@ -6,10 +6,6 @@ import org.dhis2.databinding.ItemProgramModelBinding
 import org.dhis2.utils.ColorUtils
 import org.dhis2.utils.resources.ResourceManager
 
-/**
- * QUADRAM. Created by ppajuelo on 13/06/2018.
- */
-
 class ProgramModelHolder(private val binding: ItemProgramModelBinding) :
     RecyclerView.ViewHolder(binding.root) {
 
@@ -19,7 +15,10 @@ class ProgramModelHolder(private val binding: ItemProgramModelBinding) :
 
         val color = ColorUtils.getColorFrom(
             programViewModel.color(),
-            ColorUtils.getPrimaryColor(binding.programImage.context, ColorUtils.ColorType.PRIMARY)
+            ColorUtils.getPrimaryColor(
+                binding.programImage.context,
+                ColorUtils.ColorType.PRIMARY_LIGHT
+            )
         )
 
         binding.programImage.background = ColorUtils.tintDrawableWithColor(

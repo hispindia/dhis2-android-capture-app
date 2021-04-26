@@ -1,6 +1,8 @@
 package org.dhis2.usescases.splash
 
+import android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE
 import android.os.Bundle
+import android.os.Debug
 import android.text.TextUtils.isEmpty
 import android.view.LayoutInflater
 import android.view.View
@@ -8,7 +10,6 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
-import com.google.firebase.iid.FirebaseInstanceId
 import com.scottyab.rootbeer.RootBeer
 import javax.inject.Inject
 import javax.inject.Named
@@ -20,7 +21,6 @@ import org.dhis2.usescases.general.ActivityGlobalAbstract
 import org.dhis2.usescases.login.LoginActivity
 import org.dhis2.usescases.main.MainActivity
 import org.dhis2.usescases.sync.SyncActivity
-import timber.log.Timber
 
 class SplashActivity : ActivityGlobalAbstract(), SplashView {
     companion object {
@@ -46,15 +46,6 @@ class SplashActivity : ActivityGlobalAbstract(), SplashView {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_splash)
 
-        FirebaseInstanceId.getInstance().instanceId
-            .addOnCompleteListener {
-                if (!it.isSuccessful) {
-                    Timber.tag("NOTIFICATION").d("GET INSTANCE FAILED")
-                } else {
-                    Timber.tag("NOTIFICATION").d("TOKEN IS: %s", it.result!!.token)
-                }
-            }
-
         renderFlag(flag)
     }
 
@@ -62,7 +53,14 @@ class SplashActivity : ActivityGlobalAbstract(), SplashView {
         super.onResume()
 
         if (BuildConfig.DEBUG || !RootBeer(this).isRootedWithoutBusyBoxCheck) {
-            presenter.init()
+            if (!isDebuggerEnable() || !detectDebugger()) {
+                presenter.init()
+            } else {
+                showRootedDialog(
+                    getString(R.string.security_title),
+                    getString(R.string.security_debugger_message)
+                )
+            }
         } else {
             showRootedDialog(
                 getString(R.string.security_title),
@@ -124,6 +122,22 @@ class SplashActivity : ActivityGlobalAbstract(), SplashView {
             startActivity(SyncActivity::class.java, null, true, true, null)
         } else {
             startActivity(LoginActivity::class.java, null, true, true, null)
+        }
+    }
+
+    private fun isDebuggerEnable(): Boolean {
+        return if (!BuildConfig.DEBUG) {
+            context.applicationContext.applicationInfo.flags and FLAG_DEBUGGABLE != 0
+        } else {
+            false
+        }
+    }
+
+    private fun detectDebugger(): Boolean {
+        return if (!BuildConfig.DEBUG) {
+            Debug.isDebuggerConnected()
+        } else {
+            false
         }
     }
 }

@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import org.dhis2.usescases.general.AbstractActivityContracts;
 import org.dhis2.usescases.teiDashboard.DashboardProgramModel;
 import org.dhis2.usescases.teiDashboard.dashboardfragments.teidata.teievents.EventViewModel;
+import org.dhis2.utils.filters.FilterItem;
 import org.dhis2.utils.filters.FilterManager;
 import org.hisp.dhis.android.core.category.CategoryCombo;
 import org.hisp.dhis.android.core.category.CategoryOptionCombo;
@@ -20,6 +21,7 @@ import org.hisp.dhis.android.core.program.Program;
 import org.hisp.dhis.android.core.program.ProgramStage;
 import org.hisp.dhis.android.core.trackedentity.TrackedEntityInstance;
 
+import java.util.Date;
 import java.util.List;
 
 import io.reactivex.Flowable;
@@ -33,6 +35,8 @@ public class TEIDataContracts {
 
     public interface View extends AbstractActivityContracts.View {
 
+        void hideDueDate();
+
         Consumer<List<EventViewModel>> setEvents();
 
         Consumer<ProgramStage> displayGenerateEvent();
@@ -41,7 +45,7 @@ public class TEIDataContracts {
 
         Consumer<EnrollmentStatus> enrollmentCompleted();
 
-        void showCatComboDialog(String eventId, CategoryCombo categoryCombo, List<CategoryOptionCombo> categoryOptionCombos);
+        void showCatComboDialog(String eventUid, Date eventDate, String categoryComboUid);
 
         void switchFollowUp(boolean followUp);
 
@@ -61,6 +65,10 @@ public class TEIDataContracts {
 
         void showTeiImage(String fileName, String defaultIcon);
 
+        void setFilters(List<FilterItem> filterItems);
+
+        void hideFilters();
+
         Flowable<String> observeStageSelection(Program currentProgram, Enrollment currentEnrollment);
 
         void showNewEventOptions(android.view.View view, ProgramStage stageUid);
@@ -74,6 +82,8 @@ public class TEIDataContracts {
         void openOrgUnitTreeSelector(String programUid);
 
         void setEnrollment(Enrollment enrollment);
+
+        void showSyncDialog(String uid);
     }
 
     public interface Presenter extends AbstractActivityContracts.Presenter {
@@ -115,6 +125,10 @@ public class TEIDataContracts {
         void getEnrollment(String enrollmentUid);
 
         boolean hasAssignment();
+
+        void onSyncDialogClick(String eventUid);
+
+        boolean enrollmentOrgUnitInCaptureScope(String enrollmentOrgUnit);
     }
 
 }

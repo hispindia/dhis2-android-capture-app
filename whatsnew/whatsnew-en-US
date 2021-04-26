@@ -1,10 +1,10 @@
-This is a patch version which fixes:
-- ANDROAPP-3093
-- ANDROAPP-3038
-- ANDROAPP-3041
-- ANDROAPP-2812
-- ANDROAPP-3036
-- ANDROAPP-3037
-- ANDROAPP-3073
-- ANDROAPP-3076
-- ANDROAPP-3109
+This new version includes the following features:
+- User experience and user interface improvements.
+- Indicator form event programs and data sets.
+- Local analytics at TEI level.
+- Display attributes and data elements on maps.
+- Navigate to selected location on maps.
+- Working lists.
+- Stability improvements.
+
+You can find all details in Jira and Github (github.com/dhis2/dhis2-android-capture-app).

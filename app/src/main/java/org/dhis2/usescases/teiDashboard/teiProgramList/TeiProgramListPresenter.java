@@ -1,31 +1,40 @@
 package org.dhis2.usescases.teiDashboard.teiProgramList;
 
-import org.dhis2.R;
+import org.dhis2.data.prefs.Preference;
+import org.dhis2.data.prefs.PreferenceProvider;
 import org.dhis2.usescases.main.program.ProgramViewModel;
+import org.dhis2.utils.analytics.AnalyticsHelper;
+import org.hisp.dhis.android.core.enrollment.EnrollmentService;
 
 import static org.dhis2.utils.analytics.AnalyticsConstants.CLICK;
 import static org.dhis2.utils.analytics.AnalyticsConstants.DESELECT_ENROLLMENT;
 import static org.dhis2.utils.analytics.AnalyticsConstants.ENROLL_FROM_LIST;
 
-/**
- * QUADRAM. Created by Cristian on 06/03/2018.
- */
-
 public class TeiProgramListPresenter implements TeiProgramListContract.Presenter {
 
-    private TeiProgramListContract.View view;
+    private final PreferenceProvider preferences;
+    private final AnalyticsHelper analytics;
+    private final EnrollmentService enrollmentService;
+    private final TeiProgramListContract.View view;
     private final TeiProgramListContract.Interactor interactor;
     private String teiUid;
 
-    TeiProgramListPresenter(TeiProgramListContract.Interactor interactor, String trackedEntityId) {
+    TeiProgramListPresenter(TeiProgramListContract.View view,
+                            TeiProgramListContract.Interactor interactor,
+                            String trackedEntityId,
+                            PreferenceProvider preferenceProvider,
+                            AnalyticsHelper analyticsHelper,
+                            EnrollmentService enrollmentService) {
+        this.view = view;
         this.interactor = interactor;
         this.teiUid = trackedEntityId;
-
+        this.preferences = preferenceProvider;
+        this.analytics = analyticsHelper;
+        this.enrollmentService = enrollmentService;
     }
 
     @Override
-    public void init(TeiProgramListContract.View view) {
-        this.view = view;
+    public void init() {
         interactor.init(view, teiUid);
     }
 
@@ -36,17 +45,28 @@ public class TeiProgramListPresenter implements TeiProgramListContract.Presenter
 
     @Override
     public void onEnrollClick(ProgramViewModel program) {
-        if (program.accessDataWrite()) {
-            view.analyticsHelper().setEvent(ENROLL_FROM_LIST, CLICK, ENROLL_FROM_LIST);
-            interactor.enroll(program.id(), teiUid);
+        switch (enrollmentService.blockingGetEnrollmentAccess(teiUid, program.id())) {
+            case WRITE_ACCESS:
+            default:
+                analytics.setEvent(ENROLL_FROM_LIST, CLICK, ENROLL_FROM_LIST);
+                preferences.removeValue(Preference.CURRENT_ORG_UNIT);
+                interactor.enroll(program.id(), teiUid);
+                break;
+            case PROTECTED_PROGRAM_DENIED:
+            case CLOSED_PROGRAM_DENIED:
+                view.displayBreakGlassError();
+                break;
+            case READ_ACCESS:
+            case NO_ACCESS:
+                view.displayAccessError();
+                break;
         }
-        else
-            view.displayMessage(view.getContext().getString(R.string.search_access_error));
     }
 
     @Override
     public void onActiveEnrollClick(EnrollmentViewModel enrollmentModel) {
-        view.changeCurrentProgram(enrollmentModel.programUid());
+        preferences.removeValue(Preference.CURRENT_ORG_UNIT);
+        view.changeCurrentProgram(enrollmentModel.programUid(), enrollmentModel.uid());
     }
 
     @Override
@@ -56,8 +76,9 @@ public class TeiProgramListPresenter implements TeiProgramListContract.Presenter
 
     @Override
     public void onUnselectEnrollment() {
-        view.analyticsHelper().setEvent(DESELECT_ENROLLMENT, CLICK, DESELECT_ENROLLMENT);
-        view.changeCurrentProgram(null);
+        analytics.setEvent(DESELECT_ENROLLMENT, CLICK, DESELECT_ENROLLMENT);
+        preferences.removeValue(Preference.CURRENT_ORG_UNIT);
+        view.changeCurrentProgram(null, null);
     }
 
     @Override

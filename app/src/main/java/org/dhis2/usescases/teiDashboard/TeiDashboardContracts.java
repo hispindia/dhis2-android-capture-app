@@ -33,6 +33,8 @@ public class TeiDashboardContracts {
         void showTabsAndEnableSwipe();
 
         void updateStatus();
+
+        void displayStatusError(StatusChangeResultCode statusCode);
     }
 
     public interface Presenter {
@@ -76,5 +78,7 @@ public class TeiDashboardContracts {
         EnrollmentStatus getEnrollmentStatus(String enrollmentUid);
 
         void updateEnrollmentStatus(String enrollmentUid, EnrollmentStatus status);
+
+        void setTotalFilters();
     }
 }

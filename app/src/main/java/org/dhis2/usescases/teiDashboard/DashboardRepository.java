@@ -36,7 +36,7 @@ public interface DashboardRepository {
 
     Observable<List<ProgramStage>> getProgramStages(String programStages);
 
-    Observable<Enrollment> getEnrollment(String programUid, String teiUid);
+    Observable<Enrollment> getEnrollment();
 
     Observable<List<Event>> getTEIEnrollmentEvents(String programUid, String teiUid);
 
@@ -47,10 +47,6 @@ public interface DashboardRepository {
     Flowable<List<ProgramIndicator>> getIndicators(String programUid);
 
     boolean setFollowUp(String enrollmentUid);
-
-    Consumer<Pair<String, Boolean>> handleNote();
-
-    Observable<List<TrackedEntityAttributeValue>> mainTrackedEntityAttributes(String teiUid);
 
     Event updateState(Event event, EventStatus newStatus);
 
@@ -65,6 +61,8 @@ public interface DashboardRepository {
     Observable<List<Pair<RelationshipType, String>>> relationshipsForTeiType(String teType);
 
     Observable<CategoryCombo> catComboForProgram(String program);
+
+    boolean isStageFromProgram(String stageUid);
 
     Observable<List<CategoryOptionCombo>> catOptionCombos(String catComboUid);
 
@@ -93,5 +91,5 @@ public interface DashboardRepository {
 
     EnrollmentStatus getEnrollmentStatus(String enrollmentUid);
 
-    Observable<Boolean> updateEnrollmentStatus(String enrollmentUid, EnrollmentStatus status);
+    Observable<StatusChangeResultCode> updateEnrollmentStatus(String enrollmentUid, EnrollmentStatus status);
 }

@@ -1,10 +1,9 @@
 package org.dhis2.usescases.eventsWithoutRegistration.eventInitial;
 
-import android.content.Context;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.dhis2.data.forms.FormSectionViewModel;
 import org.hisp.dhis.android.core.category.CategoryCombo;
 import org.hisp.dhis.android.core.category.CategoryOption;
 import org.hisp.dhis.android.core.category.CategoryOptionCombo;
@@ -22,10 +21,6 @@ import java.util.Map;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 
-/**
- * QUADRAM. Created by Cristian E. on 02/11/2017.
- */
-
 public interface EventInitialRepository {
 
     @NonNull
@@ -41,13 +36,13 @@ public interface EventInitialRepository {
     Observable<List<OrganisationUnit>> filteredOrgUnits(String date, String programId, String parentId);
 
     Observable<String> createEvent(String enrollmentUid, @Nullable String trackedEntityInstanceUid,
-                                   @NonNull Context context, @NonNull String program,
+                                   @NonNull String program,
                                    @NonNull String programStage, @NonNull Date date,
                                    @NonNull String orgUnitUid, @NonNull String catComboUid,
                                    @NonNull String catOptionUid, @NonNull Geometry coordinates);
 
     Observable<String> scheduleEvent(String enrollmentUid, @Nullable String trackedEntityInstanceUid,
-                                     @NonNull Context context, @NonNull String program,
+                                     @NonNull String program,
                                      @NonNull String programStage, @NonNull Date dueDate,
                                      @NonNull String orgUnitUid, @NonNull String catComboUid,
                                      @NonNull String catOptionUid, @NonNull Geometry coordinates);
@@ -69,9 +64,9 @@ public interface EventInitialRepository {
 
     Observable<List<CategoryOptionCombo>> catOptionCombos(String catOptionComboUid);
 
-    Flowable<Map<String,CategoryOption>> getOptionsFromCatOptionCombo(String eventId);
+    Flowable<Map<String, CategoryOption>> getOptionsFromCatOptionCombo(String eventId);
 
-    Date getStageLastDate(String programStageUid,String enrollmentUid);
+    Date getStageLastDate(String programStageUid, String enrollmentUid);
 
     Observable<Program> getProgramWithId(String programUid);
 
@@ -82,4 +77,14 @@ public interface EventInitialRepository {
     Observable<ObjectStyle> getObjectStyle(String uid);
 
     String getCategoryOptionCombo(String categoryComboUid, List<String> categoryOptionsUid);
+
+    CategoryOption getCatOption(String selectedOption);
+
+    int getCatOptionSize(String uid);
+
+    List<CategoryOption> getCategoryOptions(String categoryUid);
+
+    boolean showCompletionPercentage();
+
+    Flowable<List<FormSectionViewModel>> eventSections();
 }

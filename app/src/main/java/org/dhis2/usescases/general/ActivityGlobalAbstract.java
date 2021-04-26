@@ -1,95 +1,82 @@
 package org.dhis2.usescases.general;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.PopupMenu;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.content.ContextCompat;
 
-import com.crashlytics.android.Crashlytics;
-import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import org.dhis2.App;
 import org.dhis2.Bindings.ExtensionsKt;
 import org.dhis2.BuildConfig;
 import org.dhis2.R;
-import org.dhis2.usescases.eventsWithoutRegistration.eventCapture.EventCaptureActivity;
+import org.dhis2.data.server.ServerComponent;
 import org.dhis2.usescases.login.LoginActivity;
 import org.dhis2.usescases.main.MainActivity;
-import org.dhis2.usescases.map.MapSelectorActivity;
 import org.dhis2.usescases.splash.SplashActivity;
+import org.dhis2.utils.ActivityResultObservable;
+import org.dhis2.utils.ActivityResultObserver;
 import org.dhis2.utils.Constants;
+import org.dhis2.utils.DialogClickListener;
 import org.dhis2.utils.HelpManager;
 import org.dhis2.utils.OnDialogClickListener;
 import org.dhis2.utils.analytics.AnalyticsConstants;
 import org.dhis2.utils.analytics.AnalyticsHelper;
-import org.dhis2.utils.customviews.CoordinatesView;
 import org.dhis2.utils.customviews.CustomDialog;
-import org.dhis2.utils.customviews.PictureView;
-import org.dhis2.utils.customviews.ScanTextView;
 import org.dhis2.utils.granularsync.SyncStatusDialog;
+import org.dhis2.utils.reporting.CrashReportController;
 import org.dhis2.utils.session.PinDialog;
-import org.hisp.dhis.android.core.arch.helpers.GeometryHelper;
-import org.hisp.dhis.android.core.common.FeatureType;
-import org.hisp.dhis.android.core.common.Geometry;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.List;
 
 import javax.inject.Inject;
 
+import kotlin.Unit;
 import rx.Observable;
 import rx.subjects.BehaviorSubject;
 import timber.log.Timber;
 
-import static android.content.pm.PackageManager.PERMISSION_GRANTED;
-import static org.dhis2.usescases.eventsWithoutRegistration.eventInitial.EventInitialPresenter.ACCESS_LOCATION_PERMISSION_REQUEST;
+import static org.dhis2.utils.Constants.CAMERA_REQUEST;
+import static org.dhis2.utils.Constants.GALLERY_REQUEST;
 import static org.dhis2.utils.analytics.AnalyticsConstants.CLICK;
 import static org.dhis2.utils.analytics.AnalyticsConstants.SHOW_HELP;
 import static org.dhis2.utils.session.PinDialogKt.PIN_DIALOG_TAG;
 
-/**
- * QUADRAM. Created by Javi on 28/07/2017.
- */
 
 public abstract class ActivityGlobalAbstract extends AppCompatActivity
-        implements AbstractActivityContracts.View, CoordinatesView.OnMapPositionClick,
-        PictureView.OnIntentSelected, ScanTextView.OnScanClick {
+        implements AbstractActivityContracts.View, ActivityResultObservable {
+
+    private static final String FRAGMENT_TAG = "SYNC";
 
     private BehaviorSubject<Status> lifeCycleObservable = BehaviorSubject.create();
-    private CoordinatesView coordinatesView;
     public String uuid;
     @Inject
     public AnalyticsHelper analyticsHelper;
-    public ScanTextView scanTextView;
+    @Inject
+    public CrashReportController crashReportController;
+    private PinDialog pinDialog;
+    private boolean comesFromImageSource = false;
 
-    public void requestLocationPermission(CoordinatesView coordinatesView) {
-        this.coordinatesView = coordinatesView;
-        ActivityCompat.requestPermissions((ActivityGlobalAbstract) getContext(),
-                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                ACCESS_LOCATION_PERMISSION_REQUEST);
+    private ActivityResultObserver activityResultObserver;
+
+    public void requestEnableLocation() {
+        displayMessage(getString(R.string.enable_location_message));
     }
 
     public enum Status {
@@ -97,16 +84,20 @@ public abstract class ActivityGlobalAbstract extends AppCompatActivity
         ON_RESUME
     }
 
-    //****************
-    //LIFECYCLE REGION
 
     public void setScreenName(String name) {
-        Crashlytics.setString(Constants.SCREEN_NAME, name);
+        crashReportController.trackScreenName(name);
     }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        FirebaseAnalytics mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+        ServerComponent serverComponent = ((App) getApplicationContext()).getServerComponent();
+        if (serverComponent != null) {
+            serverComponent.openIdSession().setSessionCallback(this, () -> {
+                showSessionExpired();
+                return Unit.INSTANCE;
+            });
+        }
 
         if (!getResources().getBoolean(R.bool.is_tablet))
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
@@ -121,58 +112,11 @@ public abstract class ActivityGlobalAbstract extends AppCompatActivity
         if (!(this instanceof SplashActivity) && !(this instanceof LoginActivity))
             setTheme(prefs.getInt(Constants.PROGRAM_THEME, prefs.getInt(Constants.THEME, R.style.AppTheme)));
 
-        Crashlytics.setString(Constants.SERVER, prefs.getString(Constants.SERVER, null));
-        String userName = prefs.getString(Constants.USER, null);
-        if (userName != null)
-            Crashlytics.setString(Constants.USER, userName);
-        mFirebaseAnalytics.setUserId(prefs.getString(Constants.SERVER, null));
-
         super.onCreate(savedInstanceState);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        lifeCycleObservable.onNext(Status.ON_RESUME);
-        if (ExtensionsKt.app(this).isSessionBlocked() && !(this instanceof SplashActivity)) {
-            showPinDialog();
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        lifeCycleObservable.onNext(Status.ON_PAUSE);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case ACCESS_LOCATION_PERMISSION_REQUEST:
-                if (grantResults[0] == PERMISSION_GRANTED) {
-                    coordinatesView.getLocation();
-                }
-                this.coordinatesView = null;
-                break;
-        }
-    }
-
-    //****************
-    //PUBLIC METHOD REGION
-
-
-    @Override
-    public void setTutorial() {
-
-    }
-
-    public void showPinDialog() {
-        new PinDialog(PinDialog.Mode.ASK,
+    private void initPinDialog() {
+        pinDialog = new PinDialog(PinDialog.Mode.ASK,
                 (this instanceof LoginActivity),
                 aBoolean -> {
                     startActivity(MainActivity.class, null, true, true, null);
@@ -185,12 +129,79 @@ public abstract class ActivityGlobalAbstract extends AppCompatActivity
                     }
                     return null;
                 }
-        ).show(getSupportFragmentManager(), PIN_DIALOG_TAG);
+        );
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        lifeCycleObservable.onNext(Status.ON_RESUME);
+        shouldCheckPIN();
+    }
+
+    private void shouldCheckPIN() {
+        if (comesFromImageSource) {
+            ExtensionsKt.app(this).disableBackGroundFlag();
+            comesFromImageSource = false;
+        } else {
+            if (ExtensionsKt.app(this).isSessionBlocked() && !(this instanceof SplashActivity)) {
+                if (getPinDialog() == null) {
+                    initPinDialog();
+                    showPinDialog();
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        lifeCycleObservable.onNext(Status.ON_PAUSE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        PinDialog dialog = getPinDialog();
+        if (dialog != null) {
+            dialog.dismissAllowingStateLoss();
+        }
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (activityResultObserver != null) {
+            activityResultObserver.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            activityResultObserver = null;
+        }
+    }
+
+    @Override
+    public void setTutorial() {
+
+    }
+
+    public void showPinDialog() {
+        pinDialog.show(getSupportFragmentManager(), PIN_DIALOG_TAG);
+    }
+
+    public PinDialog getPinDialog() {
+        return (PinDialog) getSupportFragmentManager().findFragmentByTag(PIN_DIALOG_TAG);
     }
 
     @Override
     public void showTutorial(boolean shaked) {
-        HelpManager.getInstance().showHelp();
+        if (HelpManager.getInstance().isReady()) {
+            HelpManager.getInstance().showHelp();
+        } else {
+            showToast(getString(R.string.no_intructions));
+        }
     }
 
     public void showMoreOptions(View view) {
@@ -290,119 +301,65 @@ public abstract class ActivityGlobalAbstract extends AppCompatActivity
     @Override
     public void showInfoDialog(String title, String message) {
         if (getActivity() != null) {
-            AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
+            showInfoDialog(title, message, new OnDialogClickListener() {
+                @Override
+                public void onPositiveClick() {
 
-            //TITLE
-            final View titleView = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_title, null);
-            ((TextView) titleView.findViewById(R.id.dialogTitle)).setText(title);
-            alertDialog.setCustomTitle(titleView);
+                }
 
-            //BODY
-            final View msgView = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_body, null);
-            ((TextView) msgView.findViewById(R.id.dialogBody)).setText(message);
-            msgView.findViewById(R.id.dialogAccept).setOnClickListener(view -> alertDialog.dismiss());
-            msgView.findViewById(R.id.dialogCancel).setOnClickListener(view -> alertDialog.dismiss());
-            alertDialog.setView(msgView);
+                @Override
+                public void onNegativeClick() {
 
-
-            alertDialog.show();
-
+                }
+            });
         }
     }
 
     @Override
-    public AlertDialog showInfoDialog(String title, String message, OnDialogClickListener clickListener) {
+    public void showInfoDialog(String title, String message, OnDialogClickListener clickListener) {
         if (getActivity() != null) {
-            AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
-
-            //TITLE
-            final View titleView = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_title, null);
-            ((TextView) titleView.findViewById(R.id.dialogTitle)).setText(title);
-            alertDialog.setCustomTitle(titleView);
-
-            //BODY
-            final View msgView = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_body, null);
-            ((TextView) msgView.findViewById(R.id.dialogBody)).setText(message);
-            msgView.findViewById(R.id.dialogAccept).setOnClickListener(view -> {
-                clickListener.onPossitiveClick(alertDialog);
-                alertDialog.dismiss();
-            });
-            msgView.findViewById(R.id.dialogCancel).setOnClickListener(view -> {
-                clickListener.onNegativeClick(alertDialog);
-                alertDialog.dismiss();
-            });
-            alertDialog.setView(msgView);
-
-            return alertDialog;
-
-        } else
-            return null;
+            showInfoDialog(title, message, getString(R.string.button_ok), getString(R.string.cancel), clickListener);
+        }
     }
 
     @Override
-    public AlertDialog showInfoDialog(String title, String message, String positiveButtonText, String negativeButtonText, OnDialogClickListener clickListener) {
+    public void showInfoDialog(String title, String message, String positiveButtonText, String negativeButtonText, OnDialogClickListener clickListener) {
         if (getActivity() != null) {
-            AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
-
-            //TITLE
-            final View titleView = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_title, null);
-            ((TextView) titleView.findViewById(R.id.dialogTitle)).setText(title);
-            alertDialog.setCustomTitle(titleView);
-
-            //BODY
-            final View msgView = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_body, null);
-            ((TextView) msgView.findViewById(R.id.dialogBody)).setText(message);
-            ((Button) msgView.findViewById(R.id.dialogAccept)).setText(positiveButtonText);
-            ((Button) msgView.findViewById(R.id.dialogCancel)).setText(negativeButtonText);
-            msgView.findViewById(R.id.dialogAccept).setOnClickListener(view -> {
-                clickListener.onPossitiveClick(alertDialog);
-                alertDialog.dismiss();
-            });
-            msgView.findViewById(R.id.dialogCancel).setOnClickListener(view -> {
-                clickListener.onNegativeClick(alertDialog);
-                alertDialog.dismiss();
-            });
-            alertDialog.setView(msgView);
-
-            return alertDialog;
-
-        } else
-            return null;
+            new MaterialAlertDialogBuilder(this, R.style.DhisMaterialDialog)
+                    .setTitle(title)
+                    .setCancelable(false)
+                    .setMessage(message)
+                    .setPositiveButton(positiveButtonText, (dialogInterface, i) -> clickListener.onPositiveClick())
+                    .setNegativeButton(negativeButtonText, (dialogInterface, i) -> clickListener.onNegativeClick())
+                    .show();
+        }
     }
 
     @Override
-    public void onMapPositionClick(CoordinatesView coordinatesView) {
-        this.coordinatesView = coordinatesView;
-        startActivityForResult(MapSelectorActivity.Companion.create(this,
-                coordinatesView.getFeatureType(),
-                coordinatesView.currentCoordinates()),
-                Constants.RQ_MAP_LOCATION_VIEW);
+    public void subscribe(@NotNull ActivityResultObserver activityResultObserver) {
+        this.activityResultObserver = activityResultObserver;
+    }
+
+    @Override
+    public void unsubscribe() {
+        this.activityResultObserver = null;
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK && requestCode == Constants.RQ_MAP_LOCATION_VIEW) {
-            if (coordinatesView != null && data.getExtras() != null) {
-                FeatureType locationType = FeatureType.valueOf(data.getStringExtra(MapSelectorActivity.LOCATION_TYPE_EXTRA));
-                String dataExtra = data.getStringExtra(MapSelectorActivity.DATA_EXTRA);
-                Geometry geometry;
-                if (locationType == FeatureType.POINT) {
-                    Type type = new TypeToken<List<Double>>() {
-                    }.getType();
-                    geometry = GeometryHelper.createPointGeometry(new Gson().fromJson(dataExtra, type));
-                } else if (locationType == FeatureType.POLYGON) {
-                    Type type = new TypeToken<List<List<List<Double>>>>() {
-                    }.getType();
-                    geometry = GeometryHelper.createPolygonGeometry(new Gson().fromJson(dataExtra, type));
-                } else {
-                    Type type = new TypeToken<List<List<List<List<Double>>>>>() {
-                    }.getType();
-                    geometry = GeometryHelper.createMultiPolygonGeometry(new Gson().fromJson(dataExtra, type));
-                }
-                coordinatesView.updateLocation(geometry);
-            }
-            this.coordinatesView = null;
+
+        switch (requestCode) {
+            case GALLERY_REQUEST:
+            case CAMERA_REQUEST:
+                comesFromImageSource = true;
+                break;
         }
+
+        if (activityResultObserver != null) {
+            activityResultObserver.onActivityResult(requestCode, resultCode, data);
+            activityResultObserver = null;
+        }
+
         super.onActivityResult(requestCode, resultCode, data);
     }
 
@@ -421,26 +378,35 @@ public abstract class ActivityGlobalAbstract extends AppCompatActivity
 
     @Override
     public void showSyncDialog(SyncStatusDialog dialog) {
-        dialog.show(getSupportFragmentManager(), dialog.getDialogTag());
-    }
-
-    @Override
-    public void intentSelected(String uuid, Intent intent, int request, PictureView.OnPictureSelected onPictureSelected) {
-        this.uuid = uuid;
-        if (this instanceof EventCaptureActivity)
-            ((EventCaptureActivity) getContext()).startActivityForResult(intent, request);
-        else
-            startActivityForResult(intent, request);
-    }
-
-    @Override
-    public void onsScanClicked(Intent intent, @NotNull ScanTextView scanTextView) {
-        this.scanTextView = scanTextView;
-        startActivityForResult(intent, Constants.RQ_QR_SCANNER);
+        dialog.show(getSupportFragmentManager(), FRAGMENT_TAG);
     }
 
     @Override
     public AnalyticsHelper analyticsHelper() {
         return analyticsHelper;
+    }
+
+    private void showSessionExpired() {
+        CustomDialog sessionDialog = new CustomDialog(
+                this,
+                getString(R.string.openid_session_expired),
+                getString(R.string.openid_session_expired_message),
+                getString(R.string.action_accept),
+                null,
+                Constants.SESSION_DIALOG_RQ,
+                new DialogClickListener() {
+                    @Override
+                    public void onPositive() {
+                        startActivity(LoginActivity.class, LoginActivity.Companion.bundle(true), true, true, null);
+                    }
+
+                    @Override
+                    public void onNegative() {
+
+                    }
+                }
+        );
+        sessionDialog.setCancelable(false);
+        sessionDialog.show();
     }
 }

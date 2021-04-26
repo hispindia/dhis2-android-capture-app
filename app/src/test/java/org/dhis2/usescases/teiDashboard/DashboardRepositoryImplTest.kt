@@ -1,14 +1,18 @@
 package org.dhis2.usescases.teiDashboard
 
 import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.doReturnConsecutively
 import com.nhaarman.mockitokotlin2.doThrow
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import io.reactivex.Single
-import org.dhis2.utils.DateUtils
+import org.dhis2.Bindings.toDate
 import org.dhis2.utils.resources.ResourceManager
 import org.hisp.dhis.android.core.D2
+import org.hisp.dhis.android.core.arch.repositories.scope.RepositoryScope
+import org.hisp.dhis.android.core.common.ObjectWithUid
 import org.hisp.dhis.android.core.common.Unit
+import org.hisp.dhis.android.core.common.ValueType
 import org.hisp.dhis.android.core.enrollment.Enrollment
 import org.hisp.dhis.android.core.enrollment.EnrollmentStatus
 import org.hisp.dhis.android.core.event.Event
@@ -18,8 +22,12 @@ import org.hisp.dhis.android.core.maintenance.D2ErrorCode
 import org.hisp.dhis.android.core.maintenance.D2ErrorComponent
 import org.hisp.dhis.android.core.program.Program
 import org.hisp.dhis.android.core.program.ProgramStage
+import org.hisp.dhis.android.core.program.ProgramTrackedEntityAttribute
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityAttribute
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityAttributeValue
 import org.junit.Before
 import org.junit.Test
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
 
 class DashboardRepositoryImplTest {
@@ -27,9 +35,10 @@ class DashboardRepositoryImplTest {
     private lateinit var repository: DashboardRepositoryImpl
     private val d2: D2 = Mockito.mock(D2::class.java, Mockito.RETURNS_DEEP_STUBS)
     private val resources: ResourceManager = mock()
+
     @Before
     fun setUp() {
-        repository = DashboardRepositoryImpl(d2, "teiUid", "programUid", resources)
+        repository = DashboardRepositoryImpl(d2, "teiUid", "programUid", "enrollmentUid", resources)
     }
 
     @Test
@@ -53,74 +62,6 @@ class DashboardRepositoryImplTest {
         testObserver.assertValue(getMockStage())
 
         testObserver.dispose()
-    }
-
-    @Test
-    fun `event list should be order from newest to oldest`() {
-        whenever(
-            d2.enrollmentModule().enrollments()
-                .byProgram().eq("programUid")
-        ) doReturn mock()
-        whenever(
-            d2.enrollmentModule().enrollments()
-                .byProgram().eq("programUid")
-                .byTrackedEntityInstance()
-        ) doReturn mock()
-        whenever(
-            d2.enrollmentModule().enrollments()
-                .byProgram().eq("programUid")
-                .byTrackedEntityInstance().eq("teiUid")
-        ) doReturn mock()
-        whenever(
-            d2.enrollmentModule().enrollments()
-                .byProgram().eq("programUid")
-                .byTrackedEntityInstance().eq("teiUid")
-                .one()
-        ) doReturn mock()
-        whenever(
-            d2.enrollmentModule().enrollments()
-                .byProgram().eq("programUid")
-                .byTrackedEntityInstance().eq("teiUid")
-                .one().get()
-        ) doReturn Single.just(getMockingEnrollment())
-        whenever(
-            d2.eventModule().events()
-                .byEnrollmentUid().eq("enrollmentUid")
-        ) doReturn mock()
-        whenever(
-            d2.eventModule().events()
-                .byEnrollmentUid().eq("enrollmentUid")
-                .byDeleted()
-        ) doReturn mock()
-        whenever(
-            d2.eventModule().events()
-                .byEnrollmentUid().eq("enrollmentUid")
-                .byDeleted().isFalse
-        ) doReturn mock()
-        whenever(
-            d2.eventModule().events()
-                .byEnrollmentUid().eq("enrollmentUid")
-                .byDeleted().isFalse.get()
-        ) doReturn Single.just(getMockingEventList())
-
-        whenever(
-            d2.programModule().programs()
-                .uid("programUid").blockingGet()
-        ) doReturn getMockingProgram()
-
-        val testObserver = repository.getTEIEnrollmentEvents(
-            "programUid",
-            "teiUid"
-        ).test()
-
-        testObserver.assertNoErrors()
-        testObserver.assertValueCount(1)
-        testObserver.assertValue { events ->
-            events[0].uid() == "event_uid_4" &&
-                events[1].uid() == "event_uid_2" &&
-                events[2].uid() == "event_uid_3" &&
-                events[3].uid() == "event_uid_1"
-        }
     }
 
     @Test
@@ -205,7 +146,7 @@ class DashboardRepositoryImplTest {
 
         testObserver.assertNoErrors()
         testObserver.assertValueAt(0) {
-            !it
+            it == StatusChangeResultCode.FAILED
         }
     }
 
@@ -235,7 +176,7 @@ class DashboardRepositoryImplTest {
 
         testObserver.assertNoErrors()
         testObserver.assertValueAt(0) {
-            it
+            it == StatusChangeResultCode.CHANGED
         }
     }
 
@@ -259,8 +200,124 @@ class DashboardRepositoryImplTest {
 
         testObserver.assertNoErrors()
         testObserver.assertValueAt(0) {
-            !it
+            it == StatusChangeResultCode.WRITE_PERMISSION_FAIL
         }
+    }
+
+    @Test
+    fun `Should get program attributes if program is not null`() {
+        val programUid = "programUid"
+        val teiUid = "teiUid"
+        val expectedResults = arrayListOf<String>("1", "", "3")
+
+        whenever(
+            d2.programModule().programTrackedEntityAttributes()
+        ) doReturn mock()
+
+        whenever(
+            d2.programModule().programTrackedEntityAttributes()
+                .byDisplayInList()
+        ) doReturn mock()
+
+        whenever(
+            d2.programModule().programTrackedEntityAttributes()
+                .byDisplayInList().isTrue
+        ) doReturn mock()
+
+        whenever(
+            d2.programModule().programTrackedEntityAttributes()
+                .byDisplayInList().isTrue
+                .byProgram()
+        ) doReturn mock()
+
+        whenever(
+            d2.programModule().programTrackedEntityAttributes()
+                .byDisplayInList().isTrue
+                .byProgram().eq(programUid)
+        ) doReturn mock()
+
+        whenever(
+            d2.programModule().programTrackedEntityAttributes()
+                .byDisplayInList().isTrue
+                .byProgram().eq(programUid)
+                .orderBySortOrder(RepositoryScope.OrderByDirection.ASC)
+        ) doReturn mock()
+
+        whenever(
+            d2.programModule().programTrackedEntityAttributes()
+                .byDisplayInList().isTrue
+                .byProgram().eq(programUid)
+                .orderBySortOrder(RepositoryScope.OrderByDirection.ASC).get()
+        ) doReturn Single.just(programAttributeValues())
+
+        whenever(
+            d2.trackedEntityModule().trackedEntityAttributeValues()
+        ) doReturn mock()
+
+        whenever(
+            d2.trackedEntityModule().trackedEntityAttributeValues().value(anyString(), anyString())
+        ) doReturn mock()
+
+        whenever(
+            d2.trackedEntityModule().trackedEntityAttributeValues().value(anyString(), anyString())
+                .blockingExists()
+        ) doReturnConsecutively arrayListOf(true, false, true)
+
+        whenever(
+            d2.trackedEntityModule()
+                .trackedEntityAttributeValues().value(anyString(), anyString())
+                .blockingGet()
+        )doReturnConsecutively arrayListOf(
+            TrackedEntityAttributeValue.builder()
+                .trackedEntityAttribute("attr1")
+                .trackedEntityInstance(teiUid)
+                .value("1")
+                .build(),
+            TrackedEntityAttributeValue.builder()
+                .trackedEntityAttribute("attr3")
+                .trackedEntityInstance(teiUid)
+                .value("3")
+                .build()
+        )
+
+        whenever(
+            d2.trackedEntityModule().trackedEntityAttributes().uid(anyString()).blockingGet()
+        )doReturnConsecutively arrayListOf(
+            TrackedEntityAttribute.builder()
+                .uid("attr1")
+                .valueType(ValueType.TEXT)
+                .build(),
+            TrackedEntityAttribute.builder()
+                .uid("attr3")
+                .valueType(ValueType.TEXT)
+                .build()
+        )
+
+        val testObserver = repository.getTEIAttributeValues(programUid, teiUid).test()
+        testObserver
+            .assertNoErrors()
+            .assertValue {
+                it[0].value() == expectedResults[0] &&
+                    it[1].value() == expectedResults[1] &&
+                    it[2].value() == expectedResults[2]
+            }
+    }
+
+    private fun programAttributeValues(): List<ProgramTrackedEntityAttribute> {
+        return arrayListOf(
+            ProgramTrackedEntityAttribute.builder()
+                .uid("programAttr1")
+                .trackedEntityAttribute(ObjectWithUid.create(("attr1")))
+                .build(),
+            ProgramTrackedEntityAttribute.builder()
+                .uid("programAttr2")
+                .trackedEntityAttribute(ObjectWithUid.create(("attr2")))
+                .build(),
+            ProgramTrackedEntityAttribute.builder()
+                .uid("programAttr3")
+                .trackedEntityAttribute(ObjectWithUid.create(("attr3")))
+                .build()
+        )
     }
 
     private fun getMockingProgram(): Program {
@@ -278,7 +335,7 @@ class DashboardRepositoryImplTest {
                 .program("program")
                 .enrollment("enrollmentUid")
                 .status(EventStatus.ACTIVE)
-                .eventDate(DateUtils.uiDateFormat().parse("2019-06-01"))
+                .eventDate("2019-06-01".toDate())
                 .build(),
             Event.builder()
                 .uid("event_uid_2")
@@ -286,7 +343,7 @@ class DashboardRepositoryImplTest {
                 .program("program")
                 .enrollment("enrollmentUid")
                 .status(EventStatus.ACTIVE)
-                .eventDate(DateUtils.uiDateFormat().parse("2019-06-05"))
+                .eventDate("2019-06-05".toDate())
                 .build(),
             Event.builder()
                 .uid("event_uid_3")
@@ -294,7 +351,7 @@ class DashboardRepositoryImplTest {
                 .program("program")
                 .enrollment("enrollmentUid")
                 .status(EventStatus.SCHEDULE)
-                .dueDate(DateUtils.uiDateFormat().parse("2019-06-02"))
+                .dueDate("2019-06-02".toDate())
                 .build(),
             Event.builder()
                 .uid("event_uid_4")
@@ -302,7 +359,7 @@ class DashboardRepositoryImplTest {
                 .program("program")
                 .enrollment("enrollmentUid")
                 .status(EventStatus.ACTIVE)
-                .eventDate(DateUtils.uiDateFormat().parse("2019-06-10"))
+                .eventDate("2019-06-10".toDate())
                 .build()
         )
     }

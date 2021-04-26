@@ -1,6 +1,5 @@
 package org.dhis2.usescases.qrReader;
 
-import android.database.Cursor;
 import android.util.Log;
 
 import org.dhis2.data.schedulers.SchedulerProvider;
@@ -8,10 +7,12 @@ import org.dhis2.data.tuples.Pair;
 import org.dhis2.data.tuples.Trio;
 import org.dhis2.utils.DateUtils;
 import org.hisp.dhis.android.core.D2;
+import org.hisp.dhis.android.core.arch.helpers.GeometryHelper;
 import org.hisp.dhis.android.core.common.Coordinates;
+import org.hisp.dhis.android.core.common.FeatureType;
+import org.hisp.dhis.android.core.common.Geometry;
 import org.hisp.dhis.android.core.common.State;
 import org.hisp.dhis.android.core.dataelement.DataElement;
-import org.hisp.dhis.android.core.dataelement.DataElementTableInfo;
 import org.hisp.dhis.android.core.enrollment.Enrollment;
 import org.hisp.dhis.android.core.enrollment.EnrollmentStatus;
 import org.hisp.dhis.android.core.enrollment.EnrollmentTableInfo;
@@ -20,7 +21,6 @@ import org.hisp.dhis.android.core.event.EventStatus;
 import org.hisp.dhis.android.core.event.EventTableInfo;
 import org.hisp.dhis.android.core.program.Program;
 import org.hisp.dhis.android.core.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.android.core.trackedentity.TrackedEntityAttributeTableInfo;
 import org.hisp.dhis.android.core.trackedentity.TrackedEntityAttributeValue;
 import org.hisp.dhis.android.core.trackedentity.TrackedEntityAttributeValueTableInfo;
 import org.hisp.dhis.android.core.trackedentity.TrackedEntityDataValue;
@@ -122,7 +122,7 @@ class QrReaderPresenterImpl implements QrReaderContracts.Presenter {
                         if (d2.dataElementModule().dataElements().uid(attrValue.getString("dataElement")).blockingExists()) {
                             this.dataJson.add(attrValue);
                             DataElement de = d2.dataElementModule().dataElements().uid(attrValue.getString("dataElement")).blockingGet();
-                            attributes.add(Trio.create(trackedEntityDataValueModelBuilder.build(), de.formName(), true));
+                            attributes.add(Trio.create(trackedEntityDataValueModelBuilder.build(), de.displayFormName(), true));
                         } else {
                             attributes.add(Trio.create(trackedEntityDataValueModelBuilder.build(), null, false));
                         }
@@ -176,9 +176,9 @@ class QrReaderPresenterImpl implements QrReaderContracts.Presenter {
                     // LOOK FOR dataElement ON LOCAL DATABASE.
                     // IF FOUND, OPEN DASHBOARD
                     if (d2.dataElementModule().dataElements().uid(attrValue.getString("dataElement")).blockingExists()) {
-                        this.dataJson.add(attrValue);
+                        this.teiDataJson.add(attrValue);
                         DataElement de = d2.dataElementModule().dataElements().uid(attrValue.getString("dataElement")).blockingGet();
-                        attributes.add(Trio.create(trackedEntityDataValueModelBuilder.build(), de.formName(), true));
+                        attributes.add(Trio.create(trackedEntityDataValueModelBuilder.build(), de.displayFormName(), true));
                     } else {
                         attributes.add(Trio.create(trackedEntityDataValueModelBuilder.build(), null, false));
                     }
@@ -356,8 +356,17 @@ class QrReaderPresenterImpl implements QrReaderContracts.Presenter {
                     teiModelBuilder.organisationUnit(teiJson.getString("organisationUnit"));
                 if (teiJson.has("trackedEntityType"))
                     teiModelBuilder.trackedEntityType(teiJson.getString("trackedEntityType"));
+                if (teiJson.has("geometry"))
+                    teiModelBuilder.geometry(
+                            Geometry.builder()
+                                    .type(FeatureType.valueOf(teiJson.getJSONObject("geometry").getString("type")))
+                                    .coordinates(teiJson.getJSONObject("geometry").getString("coordinates"))
+                                    .build()
+                    );
 
-                TrackedEntityInstance teiModel = teiModelBuilder.build();
+                TrackedEntityInstance teiModel = teiModelBuilder
+                        .deleted(false)
+                        .build();
 
                 if (teiModel != null) {
                     d2.databaseAdapter().insert(TrackedEntityInstanceTableInfo.TABLE_INFO.name(), null, teiModel.toContentValues());
@@ -451,18 +460,27 @@ class QrReaderPresenterImpl implements QrReaderContracts.Presenter {
                             enrollmentBuilder.program(enrollmentJson.getString("program"));
                         if (enrollmentJson.has("followUp"))
                             enrollmentBuilder.followUp(enrollmentJson.getBoolean("followUp"));
-                        if (enrollmentJson.has("enrollmentStatus"))
-                            enrollmentBuilder.status(EnrollmentStatus.valueOf(enrollmentJson.getString("enrollmentStatus")));
+                        if (enrollmentJson.has("status"))
+                            enrollmentBuilder.status(EnrollmentStatus.valueOf(enrollmentJson.getString("status")));
                         if (enrollmentJson.has("enrollmentDate"))
                             enrollmentBuilder.enrollmentDate(DateUtils.databaseDateFormat().parse(enrollmentJson.getString("enrollmentDate")));
-                        if (enrollmentJson.has("dateOfIncident"))
-                            enrollmentBuilder.incidentDate(DateUtils.databaseDateFormat().parse(enrollmentJson.getString("incidentDate ")));
+                        if (enrollmentJson.has("incidentDate"))
+                            enrollmentBuilder.incidentDate(DateUtils.databaseDateFormat().parse(enrollmentJson.getString("incidentDate")));
                         if (enrollmentJson.has("organisationUnit"))
                             enrollmentBuilder.organisationUnit(enrollmentJson.getString("organisationUnit"));
                         if (enrollmentJson.has("trackedEntityInstance"))
                             enrollmentBuilder.trackedEntityInstance(enrollmentJson.getString("trackedEntityInstance"));
+                        if (enrollmentJson.has("geometry"))
+                            enrollmentBuilder.geometry(
+                                    Geometry.builder()
+                                            .type(FeatureType.valueOf(enrollmentJson.getJSONObject("geometry").getString("type")))
+                                            .coordinates(enrollmentJson.getJSONObject("geometry").getString("coordinates"))
+                                            .build()
+                            );
 
-                        Enrollment enrollment = enrollmentBuilder.build();
+                        Enrollment enrollment = enrollmentBuilder
+                                .deleted(false)
+                                .build();
 
                         if (enrollment != null)
                             d2.databaseAdapter().insert(EnrollmentTableInfo.TABLE_INFO.name(), null, enrollment.toContentValues());
@@ -504,18 +522,22 @@ class QrReaderPresenterImpl implements QrReaderContracts.Presenter {
                         eventBuilder.status(EventStatus.valueOf(eventJson.getString("status")));
                     if (eventJson.has("attributeOptionCombo"))
                         eventBuilder.attributeOptionCombo(eventJson.getString("attributeOptionCombo"));
-                    if (eventJson.has("latitude") && eventJson.has("longitude")) {
-                        Coordinates coordinates = Coordinates.create(
-                                Double.parseDouble(eventJson.getString("latitude")),
-                                Double.parseDouble(eventJson.getString("longitude")));
-//                        eventBuilder.coordinate(coordinates);
+                    if (eventJson.has("geometry")) {
+                        eventBuilder.geometry(
+                                Geometry.builder()
+                                        .type(FeatureType.valueOf(eventJson.getJSONObject("geometry").getString("type")))
+                                        .coordinates(eventJson.getJSONObject("geometry").getString("coordinates"))
+                                        .build()
+                        );
                     }
                     if (eventJson.has("completedDate"))
                         eventBuilder.completedDate(DateUtils.databaseDateFormat().parse(eventJson.getString("completedDate")));
                     if (eventJson.has("dueDate"))
                         eventBuilder.dueDate(DateUtils.databaseDateFormat().parse(eventJson.getString("dueDate")));
 
-                    Event eventModel = eventBuilder.build();
+                    Event eventModel = eventBuilder
+                            .deleted(false)
+                            .build();
 
                     if (eventModel != null)
                         d2.databaseAdapter().insert(EventTableInfo.TABLE_INFO.name(), null, eventModel.toContentValues());
@@ -626,11 +648,13 @@ class QrReaderPresenterImpl implements QrReaderContracts.Presenter {
                 if (eventWORegistrationJson.has("status")) {
                     eventBuilder.status(EventStatus.valueOf(eventWORegistrationJson.getString("status")));
                 }
-                if (eventWORegistrationJson.has("latitude") && eventWORegistrationJson.has("longitude")) { //TODO: FIX QRs -> SHOULD USE SMS COMPRESSION LIBRARY
-                    Coordinates coordinates = Coordinates.create(
-                            Double.parseDouble(eventWORegistrationJson.getString("latitude")),
-                            Double.parseDouble(eventWORegistrationJson.getString("longitude")));
-//                    eventBuilder.coordinate(coordinates);
+                if (eventWORegistrationJson.has("geometry")) { //TODO: FIX QRs -> SHOULD USE SMS COMPRESSION LIBRARY
+                    eventBuilder.geometry(
+                            Geometry.builder()
+                                    .type(FeatureType.valueOf(eventWORegistrationJson.getJSONObject("geometry").getString("type")))
+                                    .coordinates(eventWORegistrationJson.getJSONObject("geometry").getString("coordinates"))
+                                    .build()
+                    );
                 }
                 if (eventWORegistrationJson.has("program")) {
                     eventBuilder.program(eventWORegistrationJson.getString("program"));
@@ -661,7 +685,9 @@ class QrReaderPresenterImpl implements QrReaderContracts.Presenter {
 
                 eventBuilder.state(State.TO_UPDATE);
 
-                Event event = eventBuilder.build();
+                Event event = eventBuilder
+                        .deleted(false)
+                        .build();
 
                 if (!d2.eventModule().events().uid(event.uid()).blockingExists()) {
                     long result = d2.databaseAdapter().insert(EventTableInfo.TABLE_INFO.name(), null, event.toContentValues());

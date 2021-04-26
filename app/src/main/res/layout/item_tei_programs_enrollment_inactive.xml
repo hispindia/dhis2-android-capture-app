@@ -18,6 +18,7 @@
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:onClick="@{()->presenter.onActiveEnrollClick(enrollment)}"
         android:background="@color/white"
         android:orientation="vertical">
 
@@ -119,7 +120,7 @@
                 android:layout_weight="0.4"
                 android:alpha="0.5"
                 android:contentDescription='@{enrollment.uid()}'
-                android:tint="@color/colorGreyDefault"
+                app:tint="@color/colorGreyDefault"
                 app:srcCompat="@drawable/ic_keyboard_arrow_right" />
         </LinearLayout>
 

@@ -1,11 +1,10 @@
 package org.dhis2.usescases.datasets.datasetDetail;
 
 
-import org.dhis2.data.tuples.Pair;
+import org.dhis2.data.dhislogic.DhisPeriodUtils;
 import org.dhis2.utils.DateUtils;
 import org.hisp.dhis.android.core.D2;
 import org.hisp.dhis.android.core.arch.helpers.UidsHelper;
-import org.hisp.dhis.android.core.category.CategoryCombo;
 import org.hisp.dhis.android.core.category.CategoryOption;
 import org.hisp.dhis.android.core.category.CategoryOptionCombo;
 import org.hisp.dhis.android.core.common.State;
@@ -22,31 +21,24 @@ import java.util.List;
 import java.util.Locale;
 
 import io.reactivex.Flowable;
-import io.reactivex.Single;
+
+import static org.dhis2.data.dhislogic.AuthoritiesKt.AUTH_DATAVALUE_ADD;
 
 public class DataSetDetailRepositoryImpl implements DataSetDetailRepository {
 
     private final D2 d2;
     private final String dataSetUid;
+    private final DhisPeriodUtils periodUtils;
 
-    public DataSetDetailRepositoryImpl(String dataSetUid, D2 d2) {
+    public DataSetDetailRepositoryImpl(String dataSetUid, D2 d2,DhisPeriodUtils periodUtils) {
         this.d2 = d2;
         this.dataSetUid = dataSetUid;
+        this.periodUtils = periodUtils;
     }
 
     @Override
-    public Single<Pair<CategoryCombo, List<CategoryOptionCombo>>> catOptionCombos() {
-        return d2.dataSetModule().dataSets().uid(dataSetUid).get()
-                .filter(program -> program.categoryCombo() != null)
-                .flatMapSingle(program -> d2.categoryModule().categoryCombos().uid(program.categoryCombo().uid()).get())
-                .filter(categoryCombo -> !categoryCombo.isDefault())
-                .flatMapSingle(categoryCombo -> Single.zip(
-                        d2.categoryModule().categoryCombos()
-                                .uid(categoryCombo.uid()).get(),
-                        d2.categoryModule().categoryOptionCombos()
-                                .byCategoryComboUid().eq(categoryCombo.uid()).get(),
-                        Pair::create
-                ));
+    public String getDataSetUid() {
+        return dataSetUid;
     }
 
     @Override
@@ -60,11 +52,16 @@ public class DataSetDetailRepositoryImpl implements DataSetDetailRepository {
         if (!catOptComboFilters.isEmpty())
             repo = repo.byAttributeOptionComboUid().in(UidsHelper.getUids(catOptComboFilters));
 
+        d2.dataSetModule().dataSets().uid(dataSetUid).blockingGet();
+        int dataSetOrgUnitNumber = d2.organisationUnitModule().organisationUnits()
+                .byDataSetUids(Collections.singletonList(dataSetUid))
+                .blockingGet().size();
+
         DataSetInstanceCollectionRepository finalRepo = repo;
         return Flowable.fromIterable(finalRepo.blockingGet())
                 .map(dataSetReport -> {
                     Period period = d2.periodModule().periods().byPeriodId().eq(dataSetReport.period()).one().blockingGet();
-                    String periodName = DateUtils.getInstance().getPeriodUIString(period.periodType(), period.startDate(), Locale.getDefault());
+                    String periodName = periodUtils.getPeriodUIString(period.periodType(), period.startDate(), Locale.getDefault());
                     DataSetCompleteRegistration dscr = d2.dataSetModule().dataSetCompleteRegistrations()
                             .byDataSetUid().eq(dataSetUid)
                             .byAttributeOptionComboUid().eq(dataSetReport.attributeOptionComboUid())
@@ -73,7 +70,7 @@ public class DataSetDetailRepositoryImpl implements DataSetDetailRepository {
 
                     State state = dataSetReport.state();
 
-                    if(state == State.SYNCED && dscr!=null){
+                    if (state == State.SYNCED && dscr != null) {
                         state = dscr.state();
                     }
 
@@ -86,7 +83,9 @@ public class DataSetDetailRepositoryImpl implements DataSetDetailRepository {
                             dataSetReport.attributeOptionComboDisplayName(),
                             periodName,
                             state,
-                            dataSetReport.periodType().name());
+                            dataSetReport.periodType().name(),
+                            dataSetOrgUnitNumber > 1,
+                            dscr != null);
                 })
                 .filter(dataSetDetailModel -> stateFilters.isEmpty() || stateFilters.contains(dataSetDetailModel.state()))
                 .toSortedList((dataSet1, dataSet2) -> {
@@ -105,7 +104,7 @@ public class DataSetDetailRepositoryImpl implements DataSetDetailRepository {
     public Flowable<Boolean> canWriteAny() {
         return d2.dataSetModule().dataSets().uid(dataSetUid).get().toFlowable()
                 .flatMap(dataSet -> {
-                    if (dataSet.access().data().write())
+                    if (dataSet.access().data().write() && hasDataValueAuthority())
                         return d2.categoryModule().categoryOptionCombos().withCategoryOptions()
                                 .byCategoryComboUid().eq(dataSet.categoryCombo().uid()).get().toFlowable()
                                 .map(categoryOptionCombos -> {
@@ -135,5 +134,14 @@ public class DataSetDetailRepositoryImpl implements DataSetDetailRepository {
                         return Flowable.just(false);
                 });
 
+    }
+
+    private boolean hasDataValueAuthority() {
+        return !d2.userModule().authorities().byName().eq(AUTH_DATAVALUE_ADD).blockingIsEmpty();
+    }
+
+    @Override
+    public CategoryOptionCombo getCatOptCombo(String selectedCatOptionCombo) {
+        return d2.categoryModule().categoryOptionCombos().uid(selectedCatOptionCombo).blockingGet();
     }
 }

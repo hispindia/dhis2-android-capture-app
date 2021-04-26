@@ -4,12 +4,16 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
+import io.reactivex.processors.FlowableProcessor
 import junit.framework.Assert.assertTrue
+import org.dhis2.data.forms.FormSectionViewModel
 import org.dhis2.data.forms.dataentry.StoreResult
 import org.dhis2.data.forms.dataentry.ValueStore
 import org.dhis2.data.forms.dataentry.ValueStoreImpl
-import org.dhis2.data.forms.dataentry.fields.display.DisplayViewModel
+import org.dhis2.data.forms.dataentry.fields.FieldViewModelFactory
+import org.dhis2.data.forms.dataentry.fields.RowAction
 import org.dhis2.data.forms.dataentry.fields.spinner.SpinnerViewModel
+import org.dhis2.data.prefs.PreferenceProvider
 import org.dhis2.data.schedulers.TrampolineSchedulerProvider
 import org.dhis2.utils.RulesUtilsProvider
 import org.hisp.dhis.android.core.common.ObjectStyle
@@ -24,6 +28,11 @@ class EventCapturePresenterTest {
     private val rulesUtilProvider: RulesUtilsProvider = mock()
     private val valueStore: ValueStore = mock()
     private val schedulers = TrampolineSchedulerProvider()
+    private val preferences: PreferenceProvider = mock()
+    private val getNextVisibleSection: GetNextVisibleSection = GetNextVisibleSection()
+    private val eventFieldMapper: EventFieldMapper = mock()
+    private val onRowActionProcessor: FlowableProcessor<RowAction> = mock()
+    private val fieldFactory: FieldViewModelFactory = mock()
 
     @Before
     fun setUp() {
@@ -33,7 +42,12 @@ class EventCapturePresenterTest {
             eventRepository,
             rulesUtilProvider,
             valueStore,
-            schedulers
+            schedulers,
+            preferences,
+            getNextVisibleSection,
+            eventFieldMapper,
+            onRowActionProcessor,
+            fieldFactory.sectionProcessor()
         )
     }
 
@@ -70,15 +84,6 @@ class EventCapturePresenterTest {
     }
 
     @Test
-    fun `Display field should return display section`() {
-        val section = presenter.getFieldSection(
-            DisplayViewModel.create("", "", "", "")
-        )
-
-        assertTrue(section == "display")
-    }
-
-    @Test
     fun `Field with section should return its section`() {
         val section = presenter.getFieldSection(
             SpinnerViewModel.create(
@@ -91,8 +96,10 @@ class EventCapturePresenterTest {
                 "testSection",
                 false,
                 null,
-                1,
-                ObjectStyle.builder().build()
+                ObjectStyle.builder().build(),
+                false,
+                "any",
+                null
             )
         )
 
@@ -112,11 +119,48 @@ class EventCapturePresenterTest {
                 null,
                 false,
                 null,
-                1,
-                ObjectStyle.builder().build()
+                ObjectStyle.builder().build(),
+                false,
+                "any",
+                null
             )
         )
 
         assertTrue(section.isEmpty())
+    }
+
+    @Test
+    fun `Should return current section if sectionsToHide is empty`() {
+        val activeSection = getNextVisibleSection.get("activeSection", sections())
+        assertTrue(activeSection == "activeSection")
+    }
+
+    @Test
+    fun `Should return current when section is last one and hide section is not empty`() {
+        val activeSection = getNextVisibleSection.get("sectionUid_3", sections())
+        assertTrue(activeSection == "sectionUid_3")
+    }
+
+    private fun sections(): MutableList<FormSectionViewModel> {
+        return arrayListOf(
+            FormSectionViewModel.createForSection(
+                "eventUid",
+                "sectionUid_1",
+                "sectionName_1",
+                null
+            ),
+            FormSectionViewModel.createForSection(
+                "eventUid",
+                "sectionUid_2",
+                "sectionName_2",
+                null
+            ),
+            FormSectionViewModel.createForSection(
+                "eventUid",
+                "sectionUid_3",
+                "sectionName_3",
+                null
+            )
+        )
     }
 }

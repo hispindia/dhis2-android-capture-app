@@ -1,18 +1,18 @@
 package org.dhis2.usescases.main.program
 
-import android.content.Context
 import dagger.Module
 import dagger.Provides
-import org.dhis2.R
 import org.dhis2.data.dagger.PerFragment
+import org.dhis2.data.dhislogic.DhisProgramUtils
+import org.dhis2.data.dhislogic.DhisTrackedEntityInstanceUtils
+import org.dhis2.data.filter.FilterPresenter
 import org.dhis2.data.prefs.PreferenceProvider
 import org.dhis2.data.schedulers.SchedulerProvider
+import org.dhis2.utils.analytics.matomo.MatomoAnalyticsController
 import org.dhis2.utils.filters.FilterManager
+import org.dhis2.utils.resources.ResourceManager
 import org.hisp.dhis.android.core.D2
 
-/**
- * QUADRAM. Created by ppajuelo on 07/02/2018.
- */
 @Module
 @PerFragment
 class ProgramModule(private val view: ProgramView) {
@@ -23,14 +23,16 @@ class ProgramModule(private val view: ProgramView) {
         homeRepository: HomeRepository,
         schedulerProvider: SchedulerProvider,
         preferenceProvider: PreferenceProvider,
-        filterManager: FilterManager
+        filterManager: FilterManager,
+        matomoAnalyticsController: MatomoAnalyticsController
     ): ProgramPresenter {
         return ProgramPresenter(
             view,
             homeRepository,
             schedulerProvider,
             preferenceProvider,
-            filterManager
+            filterManager,
+            matomoAnalyticsController
         )
     }
 
@@ -38,18 +40,31 @@ class ProgramModule(private val view: ProgramView) {
     @PerFragment
     internal fun homeRepository(
         d2: D2,
+        filterPresenter: FilterPresenter,
+        dhisProgramUtils: DhisProgramUtils,
+        dhisTrackedEntityInstanceUtils: DhisTrackedEntityInstanceUtils,
         schedulerProvider: SchedulerProvider,
-        context: Context
+        resourceManager: ResourceManager
     ): HomeRepository {
-        val eventsLabel = context.getString(R.string.events)
-        val dataSetLabel = context.getString(R.string.data_sets)
-        val teiLabel = context.getString(R.string.tei)
-        return HomeRepositoryImpl(d2, eventsLabel, dataSetLabel, teiLabel, schedulerProvider)
+        return HomeRepositoryImpl(
+            d2,
+            filterPresenter,
+            dhisProgramUtils,
+            dhisTrackedEntityInstanceUtils,
+            resourceManager,
+            schedulerProvider
+        )
     }
 
     @Provides
     @PerFragment
     internal fun providesAdapter(presenter: ProgramPresenter): ProgramModelAdapter {
         return ProgramModelAdapter(presenter)
+    }
+
+    @Provides
+    @PerFragment
+    fun provideAnimations(): ProgramAnimation {
+        return ProgramAnimation()
     }
 }

@@ -8,12 +8,11 @@
         <import type="android.view.View" />
 
         <variable
-            name="currentFilter"
-            type="androidx.databinding.ObservableField&lt;org.dhis2.utils.filters.Filters&gt;" />
-
-        <variable
             name="filterType"
             type="org.dhis2.utils.filters.Filters" />
+        <variable
+            name="filterItem"
+            type="org.dhis2.utils.filters.OrgUnitFilter" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -24,9 +23,8 @@
             android:id="@+id/orgUnitSearchLayout"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:background="?colorPrimary"
             android:elevation="1dp"
-            android:visibility="@{currentFilter == filterType ? View.VISIBLE : View.GONE}"
+            android:visibility="@{filterItem.openFilter == filterType ? View.VISIBLE : View.GONE}"
             app:layout_constraintTop_toTopOf="parent">
 
             <LinearLayout
@@ -51,10 +49,12 @@
                 <RelativeLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:focusableInTouchMode="true"
                     android:layout_weight="1">
 
-                    <EditText
+                    <org.dhis2.utils.customviews.TextInputAutoCompleteTextView
                         android:id="@+id/orgUnitSearchEditText"
+                        android:theme="@style/loginInputText"
                         android:background="@android:color/transparent"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -62,6 +62,7 @@
                         android:hint="@string/search_optionset"
                         android:imeOptions="actionDone"
                         android:maxLines="1"
+                        android:singleLine="true"
                         android:paddingTop="8dp"
                         android:paddingStart="5dp"
                         android:paddingEnd="5dp"
@@ -83,6 +84,14 @@
                         android:textSize="16sp"
                         app:layout_constraintStart_toStartOf="parent" />
                 </RelativeLayout>
+
+                <ProgressBar
+                    android:id="@+id/progress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:visibility="gone"
+                    app:progressColor="@{@color/colorPrimary}" />
 
                 <ImageView
                     android:id="@+id/addButton"
@@ -110,10 +119,10 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?colorPrimaryDark"
+            android:background="@color/filter_alpha"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:visibility="@{currentFilter == filterType ? View.VISIBLE : View.GONE}"
+            android:visibility="@{filterItem.openFilter == filterType ? View.VISIBLE : View.GONE}"
             app:layout_constraintTop_toBottomOf="@id/orgUnitSearchLayout">
 
             <androidx.recyclerview.widget.RecyclerView

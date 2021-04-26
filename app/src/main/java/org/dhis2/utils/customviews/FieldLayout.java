@@ -1,13 +1,10 @@
 package org.dhis2.utils.customviews;
 
 import android.content.Context;
-import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.RelativeLayout;
-
-import androidx.annotation.Nullable;
 
 import org.hisp.dhis.android.core.common.ValueType;
 
@@ -19,7 +16,6 @@ public abstract class FieldLayout extends RelativeLayout {
     protected boolean isBgTransparent;
     protected LayoutInflater inflater;
     protected String label;
-    protected OnActivation activationListener;
     protected ValueType valueType;
 
 
@@ -42,29 +38,36 @@ public abstract class FieldLayout extends RelativeLayout {
         inflater = LayoutInflater.from(context);
     }
 
-    @Override
-    protected void onFocusChanged(boolean gainFocus, int direction, @Nullable Rect previouslyFocusedRect) {
-        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect);
-
-    }
-
     public void nextFocus(View view) {
         View nextView;
         if ((nextView = view.focusSearch(FOCUS_DOWN)) != null)
             nextView.requestFocus();
     }
 
-    protected void activate() {
-        if (activationListener != null)
-            activationListener.onActivation();
+    public void setEditable(boolean editable, View... views) {
+        for (View view : views) {
+            if(view!=null) {
+                view.setAlpha(editable ? 1 : 0.5f);
+            }
+        }
     }
 
-    public void setActivationListener(OnActivation onActivationListener){
-        this.activationListener = onActivationListener;
+    protected void updateDeleteVisibility(View clearButton) {
+        if (clearButton != null) {
+            if(hasValue() && isEditable()){
+                clearButton.setVisibility(View.VISIBLE);
+            }else{
+                clearButton.setVisibility(View.GONE);
+            }
+        }
     }
 
-    public interface OnActivation {
-        void onActivation();
+    protected boolean hasValue(){
+        return false;
+    }
+
+    protected boolean isEditable(){
+        return false;
     }
 }
 

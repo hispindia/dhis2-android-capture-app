@@ -7,6 +7,7 @@ import io.reactivex.functions.Function5
 import java.util.Calendar
 import java.util.Date
 import org.dhis2.Bindings.blockingGetCheck
+import org.dhis2.Bindings.profilePicturePath
 import org.dhis2.Bindings.toRuleAttributeValue
 import org.dhis2.data.forms.RulesRepository
 import org.dhis2.utils.Constants
@@ -20,9 +21,10 @@ import org.hisp.dhis.android.core.event.EventCreateProjection
 import org.hisp.dhis.android.core.event.EventStatus
 import org.hisp.dhis.android.core.program.Program
 import org.hisp.dhis.android.core.program.ProgramStage
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityInstance
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityInstanceObjectRepository
 import org.hisp.dhis.rules.RuleEngine
 import org.hisp.dhis.rules.RuleEngineContext
-import org.hisp.dhis.rules.RuleExpressionEvaluator
 import org.hisp.dhis.rules.models.Rule
 import org.hisp.dhis.rules.models.RuleAttributeValue
 import org.hisp.dhis.rules.models.RuleEffect
@@ -34,15 +36,16 @@ import org.hisp.dhis.rules.models.TriggerEnvironment
 class EnrollmentFormRepositoryImpl(
     val d2: D2,
     rulesRepository: RulesRepository,
-    expressionEvaluator: RuleExpressionEvaluator,
     private val enrollmentRepository: EnrollmentObjectRepository,
-    private val programRepository: ReadOnlyOneObjectRepositoryFinalImpl<Program>
+    private val programRepository: ReadOnlyOneObjectRepositoryFinalImpl<Program>,
+    teiRepository: TrackedEntityInstanceObjectRepository
 ) : EnrollmentFormRepository {
 
     private var cachedRuleEngineFlowable: Flowable<RuleEngine>
     private var ruleEnrollmentBuilder: RuleEnrollment.Builder
     private var programUid: String = programRepository.blockingGet().uid()
     private var enrollmentUid: String = enrollmentRepository.blockingGet().uid()!!
+    private val tei: TrackedEntityInstance = teiRepository.blockingGet()
 
     init {
         this.cachedRuleEngineFlowable =
@@ -62,10 +65,9 @@ class EnrollmentFormRepositoryImpl(
                     enrollmentRepository.blockingGet().organisationUnit()!!
                 ),
                 Function5 { rules, variables, events, constants, supplData ->
-                    val builder = RuleEngineContext.builder(expressionEvaluator)
+                    val builder = RuleEngineContext.builder()
                         .rules(rules)
                         .ruleVariables(variables)
-                        .calculatedValueMap(HashMap())
                         .supplementaryData(supplData)
                         .constantsValue(constants)
                         .build().toEngineBuilder()
@@ -290,4 +292,6 @@ class EnrollmentFormRepositoryImpl(
         }
         return optionsFromGroups
     }
+
+    override fun getProfilePicture() = tei.profilePicturePath(d2, programUid)
 }

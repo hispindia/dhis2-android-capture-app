@@ -3,6 +3,7 @@ package org.dhis2.data.user;
 import androidx.annotation.NonNull;
 
 import org.dhis2.data.dagger.PerUser;
+import org.dhis2.data.filter.FilterPresenter;
 import org.dhis2.data.service.ReservedValuesWorkerComponent;
 import org.dhis2.data.service.ReservedValuesWorkerModule;
 import org.dhis2.data.service.SyncDataWorkerComponent;
@@ -61,16 +62,16 @@ import org.dhis2.usescases.searchTrackEntity.SearchTEComponent;
 import org.dhis2.usescases.searchTrackEntity.SearchTEModule;
 import org.dhis2.usescases.settings.SyncManagerComponent;
 import org.dhis2.usescases.settings.SyncManagerModule;
-import org.dhis2.usescases.settings_program.ProgramSettingsComponent;
-import org.dhis2.usescases.settings_program.SettingsProgramModule;
+import org.dhis2.usescases.settingsprogram.ProgramSettingsComponent;
+import org.dhis2.usescases.settingsprogram.SettingsProgramModule;
 import org.dhis2.usescases.sms.SmsComponent;
 import org.dhis2.usescases.sms.SmsModule;
 import org.dhis2.usescases.sync.SyncComponent;
 import org.dhis2.usescases.sync.SyncModule;
 import org.dhis2.usescases.teiDashboard.TeiDashboardComponent;
 import org.dhis2.usescases.teiDashboard.TeiDashboardModule;
-import org.dhis2.usescases.teiDashboard.nfc_data.NfcDataWriteComponent;
-import org.dhis2.usescases.teiDashboard.nfc_data.NfcDataWriteModule;
+import org.dhis2.usescases.teiDashboard.nfcdata.NfcDataWriteComponent;
+import org.dhis2.usescases.teiDashboard.nfcdata.NfcDataWriteModule;
 import org.dhis2.usescases.teiDashboard.teiProgramList.TeiProgramListComponent;
 import org.dhis2.usescases.teiDashboard.teiProgramList.TeiProgramListModule;
 import org.dhis2.utils.optionset.OptionSetComponent;
@@ -81,6 +82,8 @@ import dagger.Subcomponent;
 @PerUser
 @Subcomponent(modules = UserModule.class)
 public interface UserComponent {
+
+    FilterPresenter filterPresenter();
 
     @NonNull
     MainComponent plus(@NonNull MainModule mainModule);

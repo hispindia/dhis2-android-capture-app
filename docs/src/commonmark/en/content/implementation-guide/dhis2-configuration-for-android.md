@@ -1,4 +1,4 @@
-# DHIS2 configuration for using the Android App 
+# DHIS2 configuration for using the Android App { #implementation_guide_dhis2_config }
 
 This chapter includes the basic configuration aspects for a successful experience using the Android App to help understanding the implications of using the mobile component of DHIS 2. For a complete and successful implementation, please read the detailed and updated [<span class="underline">documentation</span>](https://www.dhis2.org/android-documentation) to get all the information about configuring the DHIS 2 Server for using with the DHIS 2 Android Capture App.
 
@@ -11,9 +11,11 @@ Aspects of the setup of the new DHIS 2 Capture Android App included in this docu
 - Defining Program Indicators and Legends
 - Reserved IDs
 
-## Security related considerations
+## Security related considerations { #implementation_guide_dhis2_config_sec }
 
-### Using DHIS 2 sharing and share restrictions
+
+### Using DHIS 2 sharing and share restrictions { #implementation_guide_dhis2_config_sec_sharing }
+
 
 In this section we will share some tips on how to use DHIS 2 sharing and share restrictions to ensure that only the right users have access to records with identifiable information.
 
@@ -52,7 +54,7 @@ When defining your Data Protection SOPs you should address questions such as:
 - Hardware security?
 - Mutual Confidentiality Agreements
 
-We include here some SOP Best Practices taken from the [<span class="underline">DHIS 2</span> <span class="underline">Community Health Information System Guidelines</span>](https://s3-eu-west-1.amazonaws.com/content.dhis2.org/Publications/CHISGuidelines_version_August29.pdf) document published by the University of Oslo:
+We include here some SOP Best Practices taken from the [DHIS 2 Community Health Information System Guidelines](https://s3-eu-west-1.amazonaws.com/content.dhis2.org/Publications/CHIS+Guidelines+En.pdf) document published by the University of Oslo:
 
 1. Harmonize multiple programs into a single data capture protocol.
 2. Develop SOPs for each individual community project especially if multiple data flows exist.
@@ -68,7 +70,8 @@ We include here some SOP Best Practices taken from the [<span class="underline">
 12. Produce simple videos or audio and upload them to phones. Responsibilities and actions for every event are made easier with a simple, local-language videos or audio guides that facility staff and CHWs can refer to.
 
 
-### Practical Data Security Guidelines
+### Practical Data Security Guidelines { #implementation_guide_dhis2_config_sec_practical }
+
 
 Ensuring that the personal data stored on mobile devices is only accessible by the authorized health staff starts by educating users on how to use this data and ensure that it is kept secured at all times. The guidelines below are an extract taken from the PSI’s “Monitoring and Evaluation Standard Operating Procedures for Keeping Client Data Secure & Confidential” manual.
 
@@ -78,9 +81,11 @@ System administrators play an important role when configuring user’s access-le
 
 .![](resources/images/image13.png){ .center }
 
-## Creating an Android User
+## Creating an Android User { #implementation_guide_dhis2_config_creating_user }
 
-### Create Role
+
+### Create Role { #implementation_guide_dhis2_config_creating_user_role }
+
 
 Before you can create a user, first you need to define a DHIS 2 user role. The DHIS 2 Android Capture App doesn’t require any of the authorities that are encapsulated in a user role. The security for a DHIS 2 program or dataset is set as program or dataset data access.
 
@@ -92,7 +97,8 @@ For the purposes of web debugging problems with your users it is recommended tha
 
 ![](resources/images/image3.png)
 
-### Create user
+### Create user { #implementation_guide_dhis2_config_creating_user_user }
+
 
 Second, you should create a user, for which you will need to add some basic details such as the user name and assign it the role.
 
@@ -100,7 +106,8 @@ Second, you should create a user, for which you will need to add some basic deta
 - Example: belen.android
 - User Role assignment: assign to the role you created in step one.
 
-### Assign Organisation units
+### Assign Organisation units { #implementation_guide_dhis2_config_creating_user_assign }
+
 
 The third step is to assign the Org Units to the user you just created.
 
@@ -114,7 +121,8 @@ There are three types of organisation unit assignment:
 
 ![](resources/images/image39.png){ .center width=80% }
 
-## Visual configuration: Understanding what renders and why
+## Visual configuration: Understanding what renders and why { #implementation_guide_dhis2_config_visual_config }
+
 
 The information displayed and how it is displayed is configurable by the system administrator. There is an icon library of over four hundred images. The icons are assignable to most metadata objects: Options, Data Elements, Attributes, Programs / Data Sets. The images are not downloaded during the metadata sync process - only the icon name is downloaded. All icons already exist as highly efficient vector-based images in the APK of the app.
 
@@ -146,7 +154,8 @@ A System Administrator can decide the best way to render the information in each
 
 ![](resources/images/image15.png){ .center }
 
-### Setting up the Program Rules
+## Setting up the Program Rules { #implementation_guide_dhis2_config_setting_pr }
+
 
 We recommend to test the Android App in parallel with the configuration of your program rules, this is to make sure that your changes in the server are properly reflected and working in the app.
 
@@ -162,9 +171,10 @@ Then we need to decide on the action or actions to be executed when the program 
 
 ![](resources/images/image38.png){ .center }
 
-When setting up your program rules you should be aware of what is supported by the DHIS 2 Android app. You can check the updated list in the [<span class="underline">complete documentation</span>](https://www.dhis2.org/android-documentation).
+When setting up your program rules you should be aware of what is supported by the DHIS 2 Android app. You can check the updated list in the [configuration guide](https://docs.dhis2.org/master/en/dhis2_android_capture_app/about-this-guide.html).
 
-## Defining Program Indicators and Legends
+## Defining Program Indicators and Legends { #implementation_guide_dhis2_config_defining_prog_ind }
+
 
 Indicators to be displayed in the App, can be calculated with the data from the Tracked Entity Instance (TEI) enrollment. Please keep in mind that calculations will apply in the domain of the TEI and the current Enrollment.
 
@@ -172,7 +182,7 @@ Aggregation types are not available, only Last Value can be used in the calculat
 
 ![](resources/images/image37.png){ .center }
 
-You can check the updated information of what is supported when using program indicators in the [<span class="underline">complete documentation</span>](https://www.dhis2.org/android-documentation). Analytic period boundaries are not supported, neither planned for future support, as they apply to multiple TEI’s.
+You can check the updated information of what is supported when using program indicators in the [configuration guide](https://docs.dhis2.org/master/en/dhis2_android_capture_app/program-indicators.html). Analytic period boundaries are not supported, neither planned for future support, as they apply to multiple TEI’s.
 
 In order to display a program indicator in the App, you must select the checkbox “Display in form” in the DHIS 2 server indicator configuration wizard.
 
@@ -190,9 +200,10 @@ Once you have created the legend you can assign it to the indicator. Alternative
 |------|----|
 | ![](resources/images/image32.png){ .center } | ![](resources/images/image26.png){ .center } |
 
-## Reserved IDs 
+## Reserved IDs  { #implementation_guide_dhis2_config_reserved_id }
 
-If you are working with tracker programs and you use auto-generated unique tracked entity attributes (see [<span class="underline">DHIS 2</span> <span class="underline">documentation</span>](https://docs.dhis2.org/master/en/user/html/dhis2_user_manual_en_full.html#create_tracked_entity_attribute)), it is important to understand how the app deals with the generation of values. Values are downloaded in advance from the server, so they are available when the application operates offline. Those values are marked as reserved on the server side.
+
+If you are working with tracker programs and you use auto-generated unique tracked entity attributes (see [DHIS 2 documentation](https://docs.dhis2.org/master/en/user/html/dhis2_user_manual_en_full.html#create_tracked_entity_attribute)), it is important to understand how the app deals with the generation of values. Values are downloaded in advance from the server, so they are available when the application operates offline. Those values are marked as reserved on the server side.
 
 When the user first syncs the app will download 100 values, which will be marked as reserved on the server side. From that point the user starts using the values as new tracked entity instances are created.
 

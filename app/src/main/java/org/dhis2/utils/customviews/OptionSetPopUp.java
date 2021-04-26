@@ -7,6 +7,7 @@ import android.view.View;
 import androidx.appcompat.widget.PopupMenu;
 
 import org.dhis2.App;
+import org.dhis2.data.forms.dataentry.fields.spinner.OptionSetView;
 import org.dhis2.data.forms.dataentry.fields.spinner.SpinnerViewModel;
 import org.hisp.dhis.android.core.D2;
 import org.hisp.dhis.android.core.arch.helpers.UidsHelper;
@@ -42,9 +43,10 @@ public class OptionSetPopUp extends PopupMenu {
         this.optionGroupsToShow = model.getOptionGroupsToShow() != null ? model.getOptionGroupsToShow() : new ArrayList<>();
         setOnDismissListener(menu -> dismiss());
         setOnMenuItemClickListener(item -> {
+            dismiss();
             Option selectedOption = optionsMap.get(item.getTitle().toString());
             optionSetView.onSelectOption(selectedOption);
-            return false;
+            return true;
         });
         disposable = new CompositeDisposable();
 

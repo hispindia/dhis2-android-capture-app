@@ -14,11 +14,13 @@ import org.dhis2.data.service.workManager.WorkManagerController
 import org.dhis2.data.service.workManager.WorkerItem
 import org.dhis2.data.service.workManager.WorkerType
 import org.dhis2.usescases.settings.models.DataSettingsViewModel
+import org.dhis2.usescases.settings.models.ErrorModelMapper
 import org.dhis2.usescases.settings.models.MetadataSettingsViewModel
 import org.dhis2.usescases.settings.models.ReservedValueSettingsViewModel
 import org.dhis2.usescases.settings.models.SMSSettingsViewModel
 import org.dhis2.usescases.settings.models.SyncParametersViewModel
 import org.dhis2.utils.analytics.AnalyticsHelper
+import org.dhis2.utils.analytics.matomo.MatomoAnalyticsController
 import org.hisp.dhis.android.core.D2
 import org.hisp.dhis.android.core.settings.LimitScope
 import org.junit.Before
@@ -36,6 +38,8 @@ class SyncManagerPresenterTest {
     private val settingsRepository: SettingsRepository = mock()
     private val view: SyncManagerContracts.View = mock()
     private val analyticsHelper: AnalyticsHelper = mock()
+    private val errorMapper: ErrorModelMapper = mock()
+    private val matomoAnalyticsController: MatomoAnalyticsController = mock()
 
     @Before
     fun setUp() {
@@ -47,7 +51,9 @@ class SyncManagerPresenterTest {
             workManagerController,
             settingsRepository,
             view,
-            analyticsHelper
+            analyticsHelper,
+            errorMapper,
+            matomoAnalyticsController
         )
     }
 
@@ -159,8 +165,8 @@ class SyncManagerPresenterTest {
 
     @Test
     fun `Should save event max count`() {
-        presenter.saveEventMaxCount(any())
-        verify(settingsRepository, times(1)).saveEventsToDownload(any())
+        presenter.saveEventMaxCount(200)
+        verify(settingsRepository, times(1)).saveEventsToDownload(200)
     }
 
     @Test
@@ -171,8 +177,8 @@ class SyncManagerPresenterTest {
 
     @Test
     fun `Should save reserved values to download`() {
-        presenter.saveReservedValues(any())
-        verify(settingsRepository, times(1)).saveReservedValuesToDownload(any())
+        presenter.saveReservedValues(50)
+        verify(settingsRepository, times(1)).saveReservedValuesToDownload(50)
     }
 
     @Test

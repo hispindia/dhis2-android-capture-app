@@ -1,4 +1,4 @@
-# Data Security and Privacy
+# Data Security and Privacy { #implementation_guide_datasec }
 
 With the new DHIS 2 Android Capture App, users will be collecting individual data at the point of service provision, which is the lowest level of direct data capture as it involves the direct beneficiary. Capturing Data this way enables upstream analytics without compromising on detail, makes downstream analytics possible, reduces error and enables post hoc analysis to answer questions identified after data collection and system design. However, individual data brings additional challenges for information systems, including considerations of security and privacy, considerations of readiness and capacity, as lower IT literacy data collectors are provided with digital tools and additional complications with regards to analytics, storage and system responsiveness.
 
@@ -45,4 +45,4 @@ An adequate security / privacy approach for any DHIS2 implementation capturing p
 | **Pseudonymization** | Consider using alternative values for recording information about certain procedures or conditions of a patient. Por example you can have a list of medical procedures / personal behavior / actions listed as a color list. This allows to do analytics, without revealing what could be a stigmatized procedure/ action/ behavior in a given territory. |
 | **Traceability** | DHIS 2 provides detailed audit log for each data point. This includes the tracing of data captured via its web tools (from 2.22), as well as imported or via Android (from version 2.27). Currently (2.32) DHIS 2 does not provide a full deletion / anonymization export option, as deletion of a value preserves previous data in the audit log. For this reason, any sharing of exported data to outside parties should include manual removal of sensitive / identifiable data. |
 
-For practical recommendations on configuring DHIS 2 to guarantee data protection and security, please read the [Security and Data Protection considerations](#security-related-considerations) section.
+For practical recommendations on configuring DHIS 2 to guarantee data protection and security, please read the [Security and Data Protection considerations](#configuration_security) section.

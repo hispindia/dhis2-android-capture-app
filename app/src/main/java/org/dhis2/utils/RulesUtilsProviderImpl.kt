@@ -1,7 +1,7 @@
 package org.dhis2.utils
 
 import org.dhis2.data.forms.dataentry.fields.FieldViewModel
-import org.dhis2.data.forms.dataentry.fields.display.DisplayViewModel
+import org.hisp.dhis.android.core.D2
 import org.hisp.dhis.android.core.program.ProgramStage
 import org.hisp.dhis.rules.models.RuleActionAssign
 import org.hisp.dhis.rules.models.RuleActionCreateEvent
@@ -20,7 +20,7 @@ import org.hisp.dhis.rules.models.RuleActionShowWarning
 import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion
 import org.hisp.dhis.rules.models.RuleEffect
 
-class RulesUtilsProviderImpl : RulesUtilsProvider {
+class RulesUtilsProviderImpl(val d2: D2) : RulesUtilsProvider {
 
     private var currentFieldViewModels: HashMap<String, FieldViewModel>? = null
 
@@ -34,13 +34,13 @@ class RulesUtilsProviderImpl : RulesUtilsProvider {
                 is RuleActionShowWarning -> showWarning(
                     it.ruleAction() as RuleActionShowWarning,
                     fieldViewModels,
-                    it.data()
+                    it.data() ?: ""
                 )
                 is RuleActionShowError -> showError(
                     it.ruleAction() as RuleActionShowError,
                     fieldViewModels,
                     rulesActionCallbacks,
-                    it.data()
+                    it.data() ?: ""
                 )
                 is RuleActionHideField -> hideField(
                     it.ruleAction() as RuleActionHideField,
@@ -59,8 +59,8 @@ class RulesUtilsProviderImpl : RulesUtilsProvider {
                     rulesActionCallbacks
                 )
                 is RuleActionHideSection -> hideSection(
-                    it.ruleAction() as RuleActionHideSection,
-                    rulesActionCallbacks
+                    fieldViewModels,
+                    it.ruleAction() as RuleActionHideSection
                 )
                 is RuleActionAssign -> assign(
                     it.ruleAction() as RuleActionAssign,
@@ -81,13 +81,13 @@ class RulesUtilsProviderImpl : RulesUtilsProvider {
                     it.ruleAction() as RuleActionWarningOnCompletion,
                     rulesActionCallbacks,
                     fieldViewModels,
-                    it.data()
+                    it.data() ?: ""
                 )
                 is RuleActionErrorOnCompletion -> errorOnCompletion(
                     it.ruleAction() as RuleActionErrorOnCompletion,
                     rulesActionCallbacks,
                     fieldViewModels,
-                    it.data()
+                    it.data() ?: ""
                 )
                 is RuleActionHideProgramStage -> hideProgramStage(
                     it.ruleAction() as RuleActionHideProgramStage,
@@ -158,8 +158,10 @@ class RulesUtilsProviderImpl : RulesUtilsProvider {
         fieldViewModels: MutableMap<String, FieldViewModel>,
         rulesActionCallbacks: RulesActionCallbacks
     ) {
-        fieldViewModels.remove(hideField.field())
-        rulesActionCallbacks.save(hideField.field(), null)
+        if (fieldViewModels[hideField.field()]?.mandatory() != true) {
+            fieldViewModels.remove(hideField.field())
+            rulesActionCallbacks.save(hideField.field(), null)
+        }
     }
 
     private fun displayText(
@@ -167,13 +169,6 @@ class RulesUtilsProviderImpl : RulesUtilsProvider {
         ruleEffect: RuleEffect,
         fieldViewModels: MutableMap<String, FieldViewModel>
     ) {
-        val uid = displayText.content()
-
-        val displayViewModel = DisplayViewModel.create(
-            uid, "",
-            displayText.content() + " " + ruleEffect.data(), "Display"
-        )
-        fieldViewModels[uid] = displayViewModel
     }
 
     private fun displayKeyValuePair(
@@ -182,21 +177,16 @@ class RulesUtilsProviderImpl : RulesUtilsProvider {
         fieldViewModels: MutableMap<String, FieldViewModel>,
         rulesActionCallbacks: RulesActionCallbacks
     ) {
-        val uid = displayKeyValuePair.content()
-
-        val displayViewModel = DisplayViewModel.create(
-            uid, displayKeyValuePair.content(),
-            ruleEffect.data(), "Display"
-        )
-        fieldViewModels[uid] = displayViewModel
-        rulesActionCallbacks.setDisplayKeyValue(displayKeyValuePair.content(), ruleEffect.data())
     }
 
     private fun hideSection(
-        hideSection: RuleActionHideSection,
-        rulesActionCallbacks: RulesActionCallbacks
+        fieldViewModels: MutableMap<String, FieldViewModel>,
+        hideSection: RuleActionHideSection
     ) {
-        rulesActionCallbacks.setHideSection(hideSection.programStageSection())
+        fieldViewModels.filter {
+            it.value.programStageSection() == hideSection.programStageSection() &&
+                !it.value.mandatory()
+        }.keys.forEach { fieldViewModels.remove(it) }
     }
 
     private fun assign(
@@ -205,19 +195,35 @@ class RulesUtilsProviderImpl : RulesUtilsProvider {
         fieldViewModels: MutableMap<String, FieldViewModel>,
         rulesActionCallbacks: RulesActionCallbacks
     ) {
-        if (fieldViewModels[assign.field()] == null) {
-            rulesActionCallbacks.setCalculatedValue(assign.content(), ruleEffect.data())
-        } else {
-            val value = fieldViewModels[assign.field()]!!.value()
+        if (fieldViewModels[assign.field()] != null) {
+            val field = fieldViewModels[assign.field()]!!
+
+            val value =
+                if (field.optionSet() != null && field.value() != null) {
+                    d2.optionModule().options().byOptionSetUid().eq(field.optionSet())
+                        .byDisplayName().eq(field.value())
+                        .one().blockingGet().code()
+                } else {
+                    field.value()
+                }
 
             if (value == null || value != ruleEffect.data()) {
                 rulesActionCallbacks.save(assign.field(), ruleEffect.data())
             }
 
-            fieldViewModels.put(
-                assign.field(),
-                fieldViewModels[assign.field()]!!.withValue(ruleEffect.data())
-            )!!.withEditMode(false)
+            val valueToShow =
+                if (field.optionSet() != null && ruleEffect.data()?.isNotEmpty() == true) {
+                    d2.optionModule().options().byOptionSetUid().eq(field.optionSet())
+                        .byCode().eq(ruleEffect.data())
+                        .one().blockingGet().displayName()
+                } else {
+                    ruleEffect.data()
+                }
+
+            fieldViewModels[assign.field()] =
+                fieldViewModels[assign.field()]!!
+                    .withValue(valueToShow)
+                    .withEditMode(false)
         }
     }
 
@@ -236,6 +242,12 @@ class RulesUtilsProviderImpl : RulesUtilsProvider {
         val model = fieldViewModels[mandatoryField.field()]
         if (model != null) {
             fieldViewModels[mandatoryField.field()] = model.setMandatory()
+        } else {
+            fieldViewModels.filterKeys {
+                it.startsWith(mandatoryField.field())
+            }.forEach { (key, value) ->
+                fieldViewModels[key] = value.setMandatory()
+            }
         }
     }
 

@@ -1,76 +1,113 @@
 package org.dhis2.usescases.programEventDetail;
-import androidx.annotation.NonNull;
-import com.mapbox.mapboxsdk.geometry.LatLng;
 
+import androidx.annotation.NonNull;
+
+import org.dhis2.data.filter.FilterPresenter;
+import org.dhis2.data.filter.FilterRepository;
 import org.dhis2.data.schedulers.SchedulerProvider;
-import org.dhis2.data.tuples.Pair;
+import org.dhis2.utils.analytics.matomo.MatomoAnalyticsController;
+import org.dhis2.utils.filters.DisableHomeFiltersFromSettingsApp;
+import org.dhis2.utils.filters.FilterItem;
 import org.dhis2.utils.filters.FilterManager;
+import org.dhis2.utils.filters.workingLists.EventFilterToWorkingListItemMapper;
+import org.dhis2.utils.filters.workingLists.WorkingListItem;
+import org.hisp.dhis.android.core.common.FeatureType;
 import org.hisp.dhis.android.core.common.Unit;
+import org.hisp.dhis.android.core.program.Program;
+
+import java.util.List;
 
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.processors.FlowableProcessor;
 import io.reactivex.processors.PublishProcessor;
 import timber.log.Timber;
 
-/**
- * QUADRAM. Created by Cristian on 13/02/2018.
- */
+import static org.dhis2.utils.analytics.matomo.Actions.SYNC_EVENT;
+import static org.dhis2.utils.analytics.matomo.Categories.EVENT_LIST;
+import static org.dhis2.utils.analytics.matomo.Labels.CLICK;
 
 public class ProgramEventDetailPresenter implements ProgramEventDetailContract.Presenter {
 
     private final ProgramEventDetailRepository eventRepository;
     private final SchedulerProvider schedulerProvider;
     private final FilterManager filterManager;
+    private final FilterRepository filterRepository;
     private ProgramEventDetailContract.View view;
     CompositeDisposable compositeDisposable;
-
-    //Search fields
-    FlowableProcessor<Pair<String, LatLng>> eventInfoProcessor;
-    FlowableProcessor<Unit> mapProcessor;
+    private FlowableProcessor<Unit> listDataProcessor;
+    private EventFilterToWorkingListItemMapper workingListMapper;
+    private DisableHomeFiltersFromSettingsApp disableHomFilters;
+    private MatomoAnalyticsController matomoAnalyticsController;
 
     public ProgramEventDetailPresenter(
             ProgramEventDetailContract.View view,
             @NonNull ProgramEventDetailRepository programEventDetailRepository,
             SchedulerProvider schedulerProvider,
-            FilterManager filterManager) {
+            FilterManager filterManager,
+            EventFilterToWorkingListItemMapper workingListMapper,
+            FilterRepository filterRepository,
+            FilterPresenter filterPresenter,
+            DisableHomeFiltersFromSettingsApp disableHomFilters,
+            MatomoAnalyticsController matomoAnalyticsController) {
         this.view = view;
         this.eventRepository = programEventDetailRepository;
         this.schedulerProvider = schedulerProvider;
         this.filterManager = filterManager;
-        eventInfoProcessor = PublishProcessor.create();
-        mapProcessor = PublishProcessor.create();
+        this.workingListMapper = workingListMapper;
+        this.filterRepository = filterRepository;
+        this.disableHomFilters = disableHomFilters;
+        this.matomoAnalyticsController = matomoAnalyticsController;
         compositeDisposable = new CompositeDisposable();
+        listDataProcessor = PublishProcessor.create();
     }
 
     @Override
     public void init() {
+        compositeDisposable.add(
+                Observable.just(filterRepository.programFilters(getProgram().uid()))
+                        .subscribeOn(schedulerProvider.io())
+                        .observeOn(schedulerProvider.ui())
+                        .subscribe(
+                                filters -> {
+                                    if (filters.isEmpty()) {
+                                        view.hideFilters();
+                                    } else {
+                                        view.setFilterItems(filters);
+                                    }
+                                },
+                                Timber::e
+                        )
+        );
+
+        compositeDisposable.add(FilterManager.getInstance().getCatComboRequest()
+                .subscribeOn(schedulerProvider.io())
+                .observeOn(schedulerProvider.ui())
+                .subscribe(
+                        catComboUid -> view.showCatOptComboDialog(catComboUid),
+                        Timber::e
+                )
+        );
         compositeDisposable.add(eventRepository.featureType()
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.ui())
                 .subscribe(
-                        featureType -> view.setFeatureType(),
+                        view::setFeatureType,
                         Timber::e
                 )
         );
 
-        compositeDisposable.add(Observable.just(eventRepository.getAccessDataWrite())
+        compositeDisposable.add(Single.zip(
+                Single.just(eventRepository.getAccessDataWrite()),
+                eventRepository.hasAccessToAllCatOptions(),
+                (hasWritePermission, hasAccessToAllCatOptions) ->
+                        hasWritePermission && hasAccessToAllCatOptions)
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.ui())
                 .subscribe(
                         view::setWritePermission,
                         Timber::e)
-        );
-
-
-        compositeDisposable.add(
-                eventRepository.hasAccessToAllCatOptions()
-                        .subscribeOn(schedulerProvider.io())
-                        .observeOn(schedulerProvider.ui())
-                        .subscribe(
-                                view::setOptionComboAccess,
-                                Timber::e
-                        )
         );
 
         compositeDisposable.add(
@@ -84,70 +121,7 @@ public class ProgramEventDetailPresenter implements ProgramEventDetailContract.P
         );
 
         compositeDisposable.add(
-                eventRepository.catOptionCombos()
-                        .subscribeOn(schedulerProvider.io())
-                        .observeOn(schedulerProvider.ui())
-                        .subscribe(view::setCatOptionComboFilter,
-                                Timber::e
-                        )
-        );
-
-        compositeDisposable.add(
-                filterManager.asFlowable()
-                        .startWith(filterManager)
-                        .map(filterManager -> eventRepository.filteredProgramEvents(
-                                filterManager.getPeriodFilters(),
-                                filterManager.getOrgUnitUidsFilters(),
-                                filterManager.getCatOptComboFilters(),
-                                filterManager.getEventStatusFilters(),
-                                filterManager.getStateFilters(),
-                                filterManager.getAssignedFilter()
-                        ))
-                        .subscribeOn(schedulerProvider.io())
-                        .observeOn(schedulerProvider.ui())
-                        .subscribe(
-                                view::setLiveData,
-                                throwable -> view.renderError(throwable.getMessage())
-                        ));
-
-        compositeDisposable.add(
-                mapProcessor
-                        .observeOn(schedulerProvider.io())
-                        .switchMap(unit ->
-                                filterManager.asFlowable()
-                                        .startWith(FilterManager.getInstance())
-                                        .flatMap(filterManager -> eventRepository.filteredEventsForMap(
-                                                filterManager.getPeriodFilters(),
-                                                filterManager.getOrgUnitUidsFilters(),
-                                                filterManager.getCatOptComboFilters(),
-                                                filterManager.getEventStatusFilters(),
-                                                filterManager.getStateFilters(),
-                                                filterManager.getAssignedFilter()
-                                        )))
-                        .subscribeOn(schedulerProvider.io())
-                        .observeOn(schedulerProvider.ui())
-                        .subscribe(
-                                map -> view.setMap(map.component1(), map.component2()),
-                                throwable -> view.renderError(throwable.getMessage())
-                        ));
-
-        compositeDisposable.add(
-                eventInfoProcessor
-                        .flatMap(eventInfo -> eventRepository.getInfoForEvent(eventInfo.val0())
-                                .map(eventData -> Pair.create(eventData, eventInfo.val1())))
-                        .subscribeOn(schedulerProvider.io())
-                        .observeOn(schedulerProvider.ui())
-                        .subscribe(
-                                view::setEventInfo,
-                                throwable -> view.renderError(throwable.getMessage())
-                        ));
-
-        compositeDisposable.add(
                 filterManager.ouTreeFlowable()
-                        .doOnNext(queryData -> {
-                            if (view.isMapVisible())
-                                mapProcessor.onNext(new Unit());
-                        })
                         .subscribeOn(schedulerProvider.io())
                         .observeOn(schedulerProvider.ui())
                         .subscribe(
@@ -157,11 +131,8 @@ public class ProgramEventDetailPresenter implements ProgramEventDetailContract.P
         );
 
         compositeDisposable.add(
-                filterManager.asFlowable()
-                        .doOnNext(queryData -> {
-                            if (view.isMapVisible())
-                                mapProcessor.onNext(new Unit());
-                        })
+                filterManager.asFlowable().onBackpressureLatest()
+                        .doOnNext(filterManager -> view.showFilterProgress())
                         .subscribeOn(schedulerProvider.io())
                         .observeOn(schedulerProvider.ui())
                         .subscribe(
@@ -172,36 +143,18 @@ public class ProgramEventDetailPresenter implements ProgramEventDetailContract.P
 
         compositeDisposable.add(
                 filterManager.getPeriodRequest()
-                        .doOnNext(queryData -> {
-                            if (view.isMapVisible())
-                                mapProcessor.onNext(new Unit());
-                        })
                         .subscribeOn(schedulerProvider.io())
                         .observeOn(schedulerProvider.ui())
                         .subscribe(
-                                periodRequest -> view.showPeriodRequest(periodRequest),
+                                periodRequest -> view.showPeriodRequest(periodRequest.getFirst()),
                                 Timber::e
                         ));
     }
 
     @Override
     public void onSyncIconClick(String uid) {
+        matomoAnalyticsController.trackEvent(EVENT_LIST, SYNC_EVENT, CLICK);
         view.showSyncDialog(uid);
-    }
-
-    @Override
-    public void getEventInfo(String eventUid, LatLng latLng) {
-        eventInfoProcessor.onNext(Pair.create(eventUid, latLng));
-    }
-
-    @Override
-    public void getMapData() {
-        mapProcessor.onNext(new Unit());
-    }
-
-    @Override
-    public void onEventClick(String eventId, String orgUnit) {
-        view.navigateToEvent(eventId, orgUnit);
     }
 
     public void addEvent() {
@@ -231,11 +184,36 @@ public class ProgramEventDetailPresenter implements ProgramEventDetailContract.P
     @Override
     public void clearFilterClick() {
         filterManager.clearAllFilters();
-        view.clearFilters();
     }
 
     @Override
-    public boolean hasAssignment() {
-        return eventRepository.hasAssignment();
+    public void filterCatOptCombo(String selectedCatOptionCombo) {
+        FilterManager.getInstance().addCatOptCombo(
+                eventRepository.getCatOptCombo(selectedCatOptionCombo)
+        );
+    }
+
+    @Override
+    public Program getProgram() {
+        return eventRepository.program().blockingFirst();
+    }
+
+    @Override
+    public FeatureType getFeatureType() {
+        return eventRepository.featureType().blockingGet();
+    }
+
+    @Override
+    public List<WorkingListItem> workingLists() {
+        return eventRepository.workingLists().toFlowable()
+                .flatMapIterable(data -> data)
+                .map(eventFilter -> workingListMapper.map(eventFilter))
+                .toList().blockingGet();
+    }
+
+    @Override
+    public void clearOtherFiltersIfWebAppIsConfig() {
+        List<FilterItem> filters = filterRepository.homeFilters();
+        disableHomFilters.execute(filters);
     }
 }
