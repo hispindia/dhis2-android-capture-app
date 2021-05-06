@@ -7,7 +7,7 @@
 
         <variable
             name="tableScale"
-            type="androidx.databinding.ObservableField&lt;org.dhis2.usescases.datasets.dataSetTable.dataSetSection.DataSetTableAdapter.TableScale&gt;" />
+            type="androidx.databinding.ObservableField&lt;org.dhis2afgamis.usescases.datasets.dataSetTable.dataSetSection.DataSetTableAdapter.TableScale&gt;" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -36,7 +36,6 @@
 
         <ImageView
             android:id="@+id/descriptionLabel"
-            style="@style/ActionIconUnwrap"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintWidth_max="18dp"

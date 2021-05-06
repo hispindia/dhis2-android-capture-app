@@ -3,10 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-        <import type="org.dhis2.R" />
+        <import type="org.dhis2afgamis.R" />
         <variable
             name="presenter"
-            type="org.dhis2.usescases.teiDashboard.teiProgramList.TeiProgramListContract.Presenter" />
+            type="org.dhis2afgamis.usescases.teiDashboard.teiProgramList.TeiProgramListContract.Presenter" />
     </data>
 
     <LinearLayout
@@ -25,9 +25,10 @@
 
             <ImageView
                 android:id="@+id/menu"
-                style="@style/ActionIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
                 android:onClick="@{()->presenter.onBackClick()}"
-                android:layout_marginStart="4dp"
+                android:layout_marginStart="16dp"
                 app:srcCompat="@drawable/ic_arrow_back"
                 tools:ignore="ContentDescription" />
 
@@ -36,7 +37,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="start"
-                android:layout_marginStart="4dp"
+                android:layout_marginStart="12dp"
                 android:text="@string/enrollment_list"
                 android:textColor="@android:color/white"
                 android:textSize="20sp" />

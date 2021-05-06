@@ -5,7 +5,7 @@
 
     <data>
 
-        <import type="org.dhis2.R" />
+        <import type="org.dhis2afgamis.R" />
 
         <import type="org.hisp.dhis.android.core.common.FeatureType" />
 
@@ -21,7 +21,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.eventsWithoutRegistration.eventInitial.EventInitialContract.Presenter" />
+            type="org.dhis2afgamis.usescases.eventsWithoutRegistration.eventInitial.EventInitialContract.Presenter" />
     </data>
 
     <LinearLayout
@@ -40,12 +40,11 @@
 
             <ImageView
                 android:id="@+id/menu"
-                style="@style/ActionIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
                 android:onClick="@{()->presenter.onBackClick()}"
+                android:padding="15dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_marginStart="4dp"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:srcCompat="@drawable/ic_arrow_back"
                 tools:ignore="ContentDescription" />
 
@@ -61,7 +60,7 @@
                 app:layout_constraintStart_toEndOf="@id/menu"
                 tools:text="TITLE\ntest\n234" />
 
-            <org.dhis2.utils.customviews.CircularCompletionView
+            <org.dhis2afgamis.utils.customviews.CircularCompletionView
                 android:id="@+id/completion"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
@@ -133,7 +132,7 @@
                                 android:layout_height="80dp"
                                 android:contentDescription='@{name}'
                                 android:padding="7dp"
-                                app:tint="?colorPrimaryDark"
+                                android:tint="?colorPrimaryDark"
                                 app:imageBackground="@{ @drawable/photo_temp }"
                                 app:srcCompat="@drawable/ic_clinical_f_outline" />
 
@@ -172,7 +171,7 @@
                                         android:id="@+id/shareIcon"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        app:tint="@color/text_black_333"
+                                        android:tint="@color/text_black_333"
                                         app:srcCompat="@drawable/ic_share" />
 
                                     <TextView
@@ -239,7 +238,7 @@
                             android:layout_height="wrap_content"
                             android:orientation="vertical" />
 
-                        <org.dhis2.data.forms.dataentry.fields.coordinate.CoordinatesView
+                        <org.dhis2afgamis.usescases.coodinates.CoordinatesView
                             android:id="@+id/geometry"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

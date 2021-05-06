@@ -6,7 +6,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.datasets.dataSetTable.dataSetSection.DataValuePresenter" />
+            type="org.dhis2afgamis.usescases.datasets.dataSetTable.dataSetSection.DataValuePresenter" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -19,8 +19,8 @@
             android:id="@+id/scroll"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:paddingTop="5dp"
-            android:background="@color/white_faf"
+            android:layout_marginTop="5dp"
+            android:background="@color/table_view_default_separator_color"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 

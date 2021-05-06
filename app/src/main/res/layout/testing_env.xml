@@ -69,7 +69,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="40dp"
                 android:layout_marginTop="7dp"
-                android:text="https://play.dhis2.org/android-previous1\nhttps://play.dhis2.org/android-current"
+                android:text="https://play.dhis2.org/android-previous1\nhttps://play.dhis2afgamis.org/android-current"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/env_url"

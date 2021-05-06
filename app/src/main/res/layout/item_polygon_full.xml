@@ -12,11 +12,11 @@
 
         <variable
             name="viewModel"
-            type="org.dhis2.uicomponents.map.geometry.polygon.PolygonViewModel" />
+            type="org.dhis2afgamis.uicomponents.map.geometry.polygon.PolygonViewModel" />
 
         <variable
             name="point"
-            type="org.dhis2.uicomponents.map.geometry.polygon.PolygonViewModel.PolygonPoint" />
+            type="org.dhis2afgamis.uicomponents.map.geometry.polygon.PolygonViewModel.PolygonPoint" />
 
     </data>
 
@@ -50,8 +50,7 @@
         <ImageView
             android:onClick="@{() -> viewModel.add(point)}"
             android:visibility="@{isLast ? View.VISIBLE : View.GONE}"
-            app:tint="@color/blue_fab"
-            style="@style/ActionIconUnwrap"
+            android:tint="@color/blue_fab"
             app:srcCompat="@drawable/ic_add_primary"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -62,9 +61,8 @@
         <ImageView
             android:onClick="@{() -> viewModel.remove(point)}"
             android:visibility="@{isLast ? View.GONE : View.VISIBLE}"
-            app:tint="@color/red_a14"
+            android:tint="@color/red_a14"
             app:srcCompat="@drawable/ic_close"
-            style="@style/ActionIconUnwrap"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent"

@@ -5,7 +5,7 @@
 
     <data>
 
-        <import type="org.dhis2.utils.DateUtils" />
+        <import type="org.dhis2afgamis.utils.DateUtils" />
 
         <variable
             name="event"
@@ -43,6 +43,7 @@
             android:id="@+id/eventCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="72dp"
             app:rippleColor="@color/rippleColor"
             app:cardBackgroundColor="@color/white"
             app:cardCornerRadius="0dp"
@@ -239,15 +240,6 @@
                     app:stateIcon='@{event.state()}'
                     tools:ignore="ContentDescription"
                     tools:src="@drawable/ic_sync" />
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_marginStart="16dp"
-                    android:background="@color/divider_bg"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/stage_image" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </com.google.android.material.card.MaterialCardView>

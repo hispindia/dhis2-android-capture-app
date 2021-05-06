@@ -4,11 +4,21 @@
 
     <data>
 
-        <import type="android.view.View" />
+        <variable
+            name="label"
+            type="java.lang.String" />
 
         <variable
-            name="item"
-            type="org.dhis2.data.forms.dataentry.fields.datetime.DateTimeViewModel" />
+            name="description"
+            type="java.lang.String" />
+
+        <variable
+            name="initData"
+            type="java.lang.String" />
+
+        <variable
+            name="allowFutureDates"
+            type="java.lang.Boolean" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -20,22 +30,24 @@
             android:id="@+id/fieldSelected"
             android:layout_width="2dp"
             android:layout_height="50dp"
+            android:background="?colorPrimary"
             android:layout_marginStart="8dp"
             android:layout_marginBottom="6dp"
-            android:background="?colorPrimary"
-            android:visibility="@{item.activated ? View.VISIBLE : View.GONE}"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:visibility="gone"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
 
-        <org.dhis2.data.forms.dataentry.fields.datetime.TimeView
+        <org.dhis2afgamis.utils.customviews.TimeView
             android:id="@+id/timeView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:initData="@{initData}"
+            app:label="@{label}"
+            app:description="@{description}"
             app:layout_constraintTop_toTopOf="parent"
-            app:viewModel="@{item}" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

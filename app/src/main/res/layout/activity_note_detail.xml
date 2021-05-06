@@ -17,13 +17,13 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.notes.noteDetail.NoteDetailPresenter" />
+            type="org.dhis2afgamis.usescases.notes.noteDetail.NoteDetailPresenter" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="org.dhis2.usescases.notes.noteDetail.NoteDetailActivity">
+        tools:context="org.dhis2afgamis.usescases.notes.noteDetail.NoteDetailActivity">
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/startGuideline"
@@ -50,12 +50,11 @@
 
             <ImageView
                 android:id="@+id/menu"
-                style="@style/ActionIcon"
-                android:layout_marginStart="4dp"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="16dp"
                 android:onClick="@{()->presenter.back()}"
-                app:tint="@color/black_de0"
+                android:tint="@color/black_de0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:srcCompat="@drawable/ic_arrow_back"
                 tools:ignore="ContentDescription" />
@@ -67,7 +66,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginTop="10dp"
-            app:tint="?colorPrimary"
+            android:tint="?colorPrimary"
             android:transitionName="@string/transitionElement_userImage"
             android:visibility="@{isForm ? View.GONE : View.VISIBLE}"
             app:layout_constraintStart_toEndOf="@id/startGuideline"

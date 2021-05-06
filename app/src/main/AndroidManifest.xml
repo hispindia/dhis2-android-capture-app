@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="org.dhis2">
+    package="org.dhis2afgamis">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
@@ -16,36 +16,20 @@
         android:required="false" />
 
     <application
-        android:name=".App"
+        android:name="org.dhis2afgamis.App"
         android:allowBackup="false"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/logo_front"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
-        android:largeHeap="true"
         tools:replace="allowBackup">
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />
 
-        <meta-data
-            android:name="io.sentry.dsn"
-            android:value="${sentry_dsn}" />
-        <meta-data
-            android:name="io.sentry.environment"
-            android:value="${sentry_environment}" />
-        <meta-data
-            android:name="io.sentry.debug"
-            android:value="${sentry_debug}" />
-
-        <meta-data
-            android:name="io.sentry.traces.sample-rate"
-            android:value="${sentry_sample_rate}" />
-
         <activity
-            android:name=".usescases.splash.SplashActivity"
+            android:name="org.dhis2afgamis.usescases.splash.SplashActivity"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -64,38 +48,40 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".usescases.login.LoginActivity"
+            android:name="org.dhis2afgamis.usescases.login.LoginActivity"
             android:windowSoftInputMode="adjustPan" />
-        <activity android:name=".usescases.main.MainActivity" />
-        <activity android:name=".usescases.programEventDetail.ProgramEventDetailActivity" />
+        <activity android:name="org.dhis2afgamis.usescases.main.MainActivity" />
+        <activity android:name="org.dhis2afgamis.usescases.programEventDetail.ProgramEventDetailActivity" />
         <activity
-            android:name=".usescases.searchTrackEntity.SearchTEActivity"
+            android:name="org.dhis2afgamis.usescases.searchTrackEntity.SearchTEActivity"
             android:configChanges="keyboardHidden|screenSize" />
-        <activity android:name=".usescases.teiDashboard.TeiDashboardMobileActivity" />
-        <activity android:name=".usescases.qrScanner.ScanActivity" />
-        <activity android:name=".usescases.teiDashboard.teiProgramList.TeiProgramListActivity" />
-        <activity android:name="org.dhis2.uicomponents.map.views.MapSelectorActivity" />
-        <activity android:name=".usescases.programStageSelection.ProgramStageSelectionActivity" />
-        <activity android:name=".utils.WebViewActivity" />
+        <activity android:name="org.dhis2afgamis.usescases.teiDashboard.TeiDashboardMobileActivity" />
+        <activity android:name="org.dhis2afgamis.usescases.qrScanner.ScanActivity" />
+        <activity android:name="org.dhis2afgamis.usescases.teiDashboard.teiProgramList.TeiProgramListActivity" />
+        <activity android:name="org.dhis2afgamis.uicomponents.map.views.MapSelectorActivity" />
+        <activity android:name="org.dhis2afgamis.usescases.programStageSelection.ProgramStageSelectionActivity" />
+        <activity android:name="org.dhis2afgamis.utils.WebViewActivity" />
         <activity
-            android:name=".usescases.eventsWithoutRegistration.eventInitial.EventInitialActivity"
+            android:name="org.dhis2afgamis.usescases.eventsWithoutRegistration.eventInitial.EventInitialActivity"
             android:windowSoftInputMode="stateHidden" />
         <!--<activity android:name=".usescases.teiDashboard.TeiDashboardActivity" />-->
-        <activity android:name=".usescases.qrCodes.QrActivity" />
-        <activity android:name=".usescases.qrCodes.eventsworegistration.QrEventsWORegistrationActivity" />
+        <activity android:name="org.dhis2afgamis.usescases.qrCodes.QrActivity" />
+        <activity android:name="org.dhis2afgamis.usescases.qrCodes.eventsworegistration.QrEventsWORegistrationActivity" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAGNpaLadezvuQFPLMpWEHqsTxLdNWhPGk" />
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="a5caa46009119f5e584e4964c30a922095b1075c" />
 
-        <activity android:name=".usescases.datasets.datasetDetail.DataSetDetailActivity" />
-        <activity android:name=".usescases.datasets.datasetInitial.DataSetInitialActivity" />
+        <activity android:name="org.dhis2afgamis.usescases.datasets.datasetDetail.DataSetDetailActivity" />
+        <activity android:name="org.dhis2afgamis.usescases.datasets.datasetInitial.DataSetInitialActivity" />
         <activity
-            android:name=".usescases.datasets.dataSetTable.DataSetTableActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:windowSoftInputMode="adjustResize" />
+            android:name="org.dhis2afgamis.usescases.datasets.dataSetTable.DataSetTableActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
 
-        <receiver android:name=".widgets.DhisCustomLauncher">
+        <receiver android:name="org.dhis2afgamis.widgets.DhisCustomLauncher">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -105,18 +91,16 @@
                 android:resource="@xml/dhis_custom_launcher_info" />
         </receiver>
 
-        <activity android:name=".usescases.reservedValue.ReservedValueActivity" />
+        <activity android:name="org.dhis2afgamis.usescases.reservedValue.ReservedValueActivity" />
         <activity
-            android:name=".usescases.eventsWithoutRegistration.eventCapture.EventCaptureActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:windowSoftInputMode="adjustResize|stateHidden" />
-        <activity android:name=".usescases.sync.SyncActivity" />
-        <activity android:name=".usescases.development.DevelopmentActivity" />
+            android:name="org.dhis2afgamis.usescases.eventsWithoutRegistration.eventCapture.EventCaptureActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity android:name="org.dhis2afgamis.usescases.sync.SyncActivity" />
+        <activity android:name="org.dhis2afgamis.usescases.development.DevelopmentActivity" />
 
-        <service android:name=".usescases.sms.SmsSendingService" />
-
-        <activity android:name=".usescases.teiDashboard.nfcdata.NfcDataWriteActivity" />
-        <activity android:name=".usescases.about.PolicyView" />
+        <service android:name="org.dhis2afgamis.usescases.sms.SmsSendingService" />
+        <activity android:name="org.dhis2afgamis.usescases.teiDashboard.nfcdata.NfcDataWriteActivity" />
+        <activity android:name="org.dhis2afgamis.usescases.about.PolicyView" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -128,31 +112,27 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <activity android:name=".usescases.orgunitselector.OUTreeActivity" />
+        <activity android:name="org.dhis2afgamis.usescases.orgunitselector.OUTreeActivity" />
         <activity
-            android:name=".usescases.enrollment.EnrollmentActivity"
+            android:name="org.dhis2afgamis.usescases.enrollment.EnrollmentActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:windowSoftInputMode="adjustPan|stateHidden" />
-        <activity android:name=".usescases.events.ScheduledEventActivity" />
+        <activity android:name="org.dhis2afgamis.usescases.events.ScheduledEventActivity" />
 
-        <activity
-            android:name=".usescases.notes.noteDetail.NoteDetailActivity"
+        <activity android:name="org.dhis2afgamis.usescases.notes.noteDetail.NoteDetailActivity"
             android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".usescases.settingsprogram.SettingsProgramActivity" />
+        <activity android:name="org.dhis2afgamis.usescases.settingsprogram.SettingsProgramActivity" />
 
-        <activity
-            android:name="net.openid.appauth.RedirectUriReceiverActivity"
-            android:exported="true"
-            tools:node="replace">
+        <service
+            android:name="org.dhis2afgamis.data.notifications.DhisFirebaseMessagingService"
+            android:exported="false">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="*" />
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
-        </activity>
+        </service>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="@string/default_notification_channel_id" />
     </application>
 
 </manifest>

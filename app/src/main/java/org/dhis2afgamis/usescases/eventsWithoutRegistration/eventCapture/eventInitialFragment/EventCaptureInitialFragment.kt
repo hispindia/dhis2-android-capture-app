@@ -1,0 +1,5 @@
+package org.dhis2afgamis.usescases.eventsWithoutRegistration.eventCapture.eventInitialFragment
+
+import org.dhis2afgamis.usescases.general.FragmentGlobalAbstract
+
+class EventCaptureInitialFragment : FragmentGlobalAbstract()

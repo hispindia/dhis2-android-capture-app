@@ -22,24 +22,9 @@
             type="org.hisp.dhis.android.core.program.ProgramStage" />
     </data>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="bottom"
-        android:orientation="vertical">
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/mapNavigateFab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_marginEnd="4dp"
-            android:layout_marginBottom="8dp"
-            android:visibility="gone"
-            app:backgroundTint="?colorPrimary"
-            app:fabSize="normal"
-            app:srcCompat="@drawable/ic_map_navigate"
-            tools:ignore="ContentDescription" />
+        android:layout_height="match_parent">
 
         <include
             android:id="@+id/noCoordinatesLabel"
@@ -171,7 +156,8 @@
 
                 <ImageView
                     android:id="@+id/sync_icon"
-                    style="@style/ActionIconNoPadding"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:stateIcon='@{event.state()}'
@@ -179,5 +165,5 @@
                     tools:src="@drawable/ic_sync" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
