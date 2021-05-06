@@ -9,11 +9,11 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.programEventDetail.ProgramEventDetailContract.Presenter" />
+            type="org.fpandhis2.usescases.programEventDetail.ProgramEventDetailContract.Presenter" />
 
         <variable
             name="event"
-            type="org.dhis2.usescases.programEventDetail.ProgramEventViewModel" />
+            type="org.fpandhis2.usescases.programEventDetail.ProgramEventViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

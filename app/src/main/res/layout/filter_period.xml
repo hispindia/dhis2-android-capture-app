@@ -8,8 +8,12 @@
         <import type="android.view.View" />
 
         <variable
-            name="filterItem"
-            type="org.dhis2.utils.filters.FilterItem" />
+            name="currentFilter"
+            type="androidx.databinding.ObservableField&lt;org.fpandhis2.utils.filters.Filters&gt;" />
+
+        <variable
+            name="filterType"
+            type="org.fpandhis2.utils.filters.Filters" />
 
     </data>
 
@@ -19,6 +23,7 @@
         android:background="@color/filter_alpha"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
+        android:visibility="@{currentFilter == filterType ? View.VISIBLE : View.GONE}"
         app:layout_constraintTop_toTopOf="parent">
 
         <!--DAILY-->

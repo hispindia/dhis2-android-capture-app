@@ -5,7 +5,7 @@
 
     <data>
 
-        <import type="org.dhis2.R" />
+        <import type="org.fpandhis2.R" />
 
         <import type="android.view.View" />
 
@@ -21,7 +21,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.eventsWithoutRegistration.eventInitial.EventInitialContract.Presenter" />
+            type="org.fpandhis2.usescases.eventsWithoutRegistration.eventInitial.EventInitialContract.Presenter" />
     </data>
 
     <LinearLayout
@@ -64,7 +64,7 @@
                 app:layout_constraintStart_toEndOf="@id/menu"
                 tools:text="TITLE\ntest\n234" />
 
-            <org.dhis2.utils.customviews.CircularCompletionView
+            <org.fpandhis2.utils.customviews.CircularCompletionView
                 android:id="@+id/completion"
                 android:layout_width="60dp"
                 android:layout_height="0dp"
@@ -166,7 +166,7 @@
                                         android:id="@+id/shareIcon"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        app:tint="@color/text_black_333"
+                                        android:tint="@color/text_black_333"
                                         app:srcCompat="@drawable/ic_share" />
 
                                     <TextView
@@ -231,7 +231,7 @@
                             android:layout_height="wrap_content"
                             android:orientation="vertical" />
 
-                        <org.dhis2.data.forms.dataentry.fields.coordinate.CoordinatesView
+                        <org.fpandhis2.usescases.coodinates.CoordinatesView
                             android:id="@+id/geometry"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

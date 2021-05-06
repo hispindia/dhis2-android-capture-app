@@ -7,21 +7,14 @@
 
         <import type="android.view.View" />
 
-        <import type="org.dhis2.utils.filters.ProgramType" />
-
-        <import type="org.hisp.dhis.android.core.event.EventStatus" />
+        <variable
+            name="currentFilter"
+            type="androidx.databinding.ObservableField&lt;org.fpandhis2.utils.filters.Filters&gt;" />
 
         <variable
             name="filterType"
-            type="org.dhis2.utils.filters.Filters" />
+            type="org.fpandhis2.utils.filters.Filters" />
 
-        <variable
-            name="programType"
-            type="org.dhis2.utils.filters.ProgramType" />
-
-        <variable
-            name="filterItem"
-            type="org.dhis2.utils.filters.EventStatusFilter" />
     </data>
 
     <LinearLayout
@@ -31,7 +24,7 @@
         android:orientation="vertical"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:visibility="@{filterItem.openFilter == filterType ? View.VISIBLE : View.GONE}"
+        android:visibility="@{currentFilter == filterType ? View.VISIBLE : View.GONE}"
         app:layout_constraintTop_toTopOf="parent">
 
         <!--OPEN-->
@@ -44,8 +37,8 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                app:srcCompat="@drawable/ic_event_status_open"
-                app:tint="@color/white" />
+                android:tint="@color/white"
+                app:srcCompat="@drawable/ic_event_status_open" />
 
             <TextView
                 android:layout_width="0dp"
@@ -62,9 +55,7 @@
                 android:id="@+id/stateOpen"
                 style="@style/filterCheckBox"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="@{filterItem.observeEventStatus().contains(EventStatus.ACTIVE) || filterItem.observeEventStatus().contains(EventStatus.VISITED)}"
-                android:onCheckedChanged="@{(switch, checked)->filterItem.setEventStatus(checked,EventStatus.ACTIVE, EventStatus.VISITED)}" />
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <!--SCHEDULED-->
@@ -72,14 +63,13 @@
             android:id="@+id/layoutScheduled"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:gravity="center_vertical"
-            android:visibility="@{programType != ProgramType.EVENT ? View.VISIBLE : View.GONE}">
+            android:gravity="center_vertical">
 
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                app:srcCompat="@drawable/ic_event_status_schedule"
-                app:tint="@color/white" />
+                android:tint="@color/white"
+                app:srcCompat="@drawable/ic_event_status_schedule" />
 
             <TextView
                 android:layout_width="0dp"
@@ -96,9 +86,7 @@
                 android:id="@+id/stateScheduled"
                 style="@style/filterCheckBox"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="@{filterItem.observeEventStatus().contains(EventStatus.SCHEDULE)}"
-                android:onCheckedChanged="@{(switch, checked)->filterItem.setEventStatus(checked,EventStatus.SCHEDULE)}" />
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <!--OVERDUE-->
@@ -106,14 +94,13 @@
             android:id="@+id/layoutOverdue"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:gravity="center_vertical"
-            android:visibility="@{programType != ProgramType.EVENT ? View.VISIBLE : View.GONE}">
+            android:gravity="center_vertical">
 
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                app:srcCompat="@drawable/ic_overdue_filter"
-                app:tint="@color/white" />
+                android:tint="@color/white"
+                app:srcCompat="@drawable/ic_overdue_filter" />
 
             <TextView
                 android:layout_width="0dp"
@@ -131,8 +118,6 @@
                 style="@style/filterCheckBox"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:checked="@{filterItem.observeEventStatus().contains(EventStatus.OVERDUE)}"
-                android:onCheckedChanged="@{(switch, checked)->filterItem.setEventStatus(checked,EventStatus.OVERDUE)}"
                 tools:checked="true" />
         </LinearLayout>
 
@@ -146,8 +131,8 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                app:srcCompat="@drawable/ic_event_status_complete"
-                app:tint="@color/white" />
+                android:tint="@color/white"
+                app:srcCompat="@drawable/ic_event_status_complete" />
 
             <TextView
                 android:layout_width="0dp"
@@ -164,24 +149,21 @@
                 android:id="@+id/stateCompleted"
                 style="@style/filterCheckBox"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="@{filterItem.observeEventStatus().contains(EventStatus.COMPLETED)}"
-                android:onCheckedChanged="@{(switch, checked)->filterItem.setEventStatus(checked,EventStatus.COMPLETED)}" />
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/layoutSkipped"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:gravity="center_vertical"
-            android:visibility="@{programType != ProgramType.EVENT ? View.VISIBLE : View.GONE}">
+            android:gravity="center_vertical">
 
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:padding="2dp"
-                app:srcCompat="@drawable/ic_filter_event_status_skipped"
-                app:tint="@color/white" />
+                android:tint="@color/white"
+                app:srcCompat="@drawable/ic_filter_event_status_skipped" />
 
             <TextView
                 android:layout_width="0dp"
@@ -198,9 +180,7 @@
                 android:id="@+id/stateSkipped"
                 style="@style/filterCheckBox"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="@{filterItem.observeEventStatus().contains(EventStatus.SKIPPED)}"
-                android:onCheckedChanged="@{(switch, checked)->filterItem.setEventStatus(checked,EventStatus.SKIPPED)}" />
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
     </LinearLayout>

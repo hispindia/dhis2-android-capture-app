@@ -4,19 +4,19 @@
 
     <data>
 
-        <import type="org.dhis2.R" />
+        <import type="org.fpandhis2.R" />
 
         <variable
             name="dataSetModel"
-            type="org.dhis2.usescases.datasets.datasetInitial.DataSetInitialModel" />
+            type="org.fpandhis2.usescases.datasets.datasetInitial.DataSetInitialModel" />
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.datasets.datasetInitial.DataSetInitialContract.Presenter" />
+            type="org.fpandhis2.usescases.datasets.datasetInitial.DataSetInitialContract.Presenter" />
 
         <variable
             name="action"
-            type="org.dhis2.usescases.datasets.datasetInitial.DataSetInitialContract.Action" />
+            type="org.fpandhis2.usescases.datasets.datasetInitial.DataSetInitialContract.Action" />
 
     </data>
 
@@ -36,9 +36,10 @@
 
             <ImageView
                 android:id="@+id/menu"
-                style="@style/ActionIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
                 android:onClick="@{()->presenter.onBackClick()}"
-                android:layout_marginStart="4dp"
+                android:layout_marginStart="16dp"
                 app:srcCompat="@drawable/ic_arrow_back"
                 tools:ignore="ContentDescription" />
 
@@ -46,7 +47,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:layout_marginStart="4dp"
+                android:layout_marginStart="12dp"
                 android:gravity="start|center"
                 android:text="@{dataSetModel.displayName()}"
                 android:textColor="@android:color/white"
@@ -79,7 +80,7 @@
                         android:layout_width="80dp"
                         android:layout_height="80dp"
                         android:padding="7dp"
-                        app:tint="?colorPrimaryDark"
+                        android:tint="?colorPrimaryDark"
                         app:imageBackground="@{ @drawable/photo_temp }"
                         app:srcCompat="@drawable/ic_clinical_f_outline"
                         tools:background="@drawable/photo_temp"

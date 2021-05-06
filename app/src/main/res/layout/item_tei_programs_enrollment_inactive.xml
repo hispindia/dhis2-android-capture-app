@@ -8,11 +8,11 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.teiDashboard.teiProgramList.TeiProgramListContract.Presenter" />
+            type="org.fpandhis2.usescases.teiDashboard.teiProgramList.TeiProgramListContract.Presenter" />
 
         <variable
             name="enrollment"
-            type="org.dhis2.usescases.teiDashboard.teiProgramList.EnrollmentViewModel" />
+            type="org.fpandhis2.usescases.teiDashboard.teiProgramList.EnrollmentViewModel" />
     </data>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -120,7 +120,7 @@
                 android:layout_weight="0.4"
                 android:alpha="0.5"
                 android:contentDescription='@{enrollment.uid()}'
-                app:tint="@color/colorGreyDefault"
+                android:tint="@color/colorGreyDefault"
                 app:srcCompat="@drawable/ic_keyboard_arrow_right" />
         </LinearLayout>
 

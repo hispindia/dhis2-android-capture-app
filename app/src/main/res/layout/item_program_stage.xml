@@ -8,7 +8,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.programStageSelection.ProgramStageSelectionContract.Presenter" />
+            type="org.fpandhis2.usescases.programStageSelection.ProgramStageSelectionContract.Presenter" />
 
         <variable
             name="programStage"
@@ -30,7 +30,7 @@
             android:layout_height="80dp"
             android:background="@drawable/photo_temp"
             android:padding="7dp"
-            app:tint="?colorPrimaryDark"
+            android:tint="?colorPrimaryDark"
             app:srcCompat="@drawable/ic_clinical_f_outline"
             tools:ignore="ContentDescription" />
 

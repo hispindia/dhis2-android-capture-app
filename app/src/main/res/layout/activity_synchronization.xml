@@ -9,7 +9,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.sync.SyncPresenter" />
+            type="org.fpandhis2.usescases.sync.SyncPresenter" />
 
     </data>
 

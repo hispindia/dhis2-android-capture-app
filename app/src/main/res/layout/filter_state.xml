@@ -7,15 +7,14 @@
 
         <import type="android.view.View" />
 
-        <import type="org.hisp.dhis.android.core.common.State" />
+        <variable
+            name="currentFilter"
+            type="androidx.databinding.ObservableField&lt;org.fpandhis2.utils.filters.Filters&gt;" />
 
         <variable
             name="filterType"
-            type="org.dhis2.utils.filters.Filters" />
+            type="org.fpandhis2.utils.filters.Filters" />
 
-        <variable
-            name="filterItem"
-            type="org.dhis2.utils.filters.SyncStateFilter" />
     </data>
 
     <LinearLayout
@@ -25,7 +24,7 @@
         android:orientation="vertical"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:visibility="@{filterItem.openFilter == filterType ? View.VISIBLE : View.GONE}"
+        android:visibility="@{currentFilter == filterType ? View.VISIBLE : View.GONE}"
         app:layout_constraintTop_toTopOf="parent">
 
         <!--SYNCED-->
@@ -55,9 +54,7 @@
                 android:id="@+id/stateSynced"
                 style="@style/filterCheckBox"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="@{filterItem.observeSyncState(State.SYNCED)}"
-                android:onCheckedChanged="@{(switch, checked)->filterItem.setSyncStatus(checked,State.SYNCED)}" />
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <!--NOT SYNCED-->
@@ -88,8 +85,6 @@
                 style="@style/filterCheckBox"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:checked="@{filterItem.observeSyncState(State.TO_POST) }"
-                android:onCheckedChanged="@{(switch, checked)->filterItem.setSyncStatus(checked,State.TO_UPDATE,State.TO_POST,State.UPLOADING)}"
                 tools:checked="true" />
         </LinearLayout>
 
@@ -120,9 +115,7 @@
                 android:id="@+id/stateError"
                 style="@style/filterCheckBox"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="@{filterItem.observeSyncState(State.ERROR)}"
-                android:onCheckedChanged="@{(switch, checked)->filterItem.setSyncStatus(checked,State.ERROR,State.WARNING)}" />
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <!--SYNCED-->
@@ -152,9 +145,7 @@
                 android:id="@+id/stateSMS"
                 style="@style/filterCheckBox"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="@{filterItem.observeSyncState(State.SENT_VIA_SMS)}"
-                android:onCheckedChanged="@{(switch, checked)->filterItem.setSyncStatus(checked,State.SENT_VIA_SMS,State.SYNCED_VIA_SMS)}" />
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
     </LinearLayout>

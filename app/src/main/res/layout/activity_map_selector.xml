@@ -20,13 +20,12 @@
         android:gravity="center_vertical">
 
         <ImageView
-            app:tint="@color/blue_4fa"
+            android:tint="@color/blue_4fa"
             android:id="@+id/back"
-            style="@style/ActionIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:padding="15dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginStart="4dp"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:srcCompat="@drawable/ic_arrow_back"
             tools:ignore="ContentDescription" />
 

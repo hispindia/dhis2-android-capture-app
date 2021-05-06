@@ -11,11 +11,11 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.main.program.ProgramPresenter" />
+            type="org.fpandhis2.usescases.main.program.ProgramPresenter" />
 
         <variable
             name="program"
-            type="org.dhis2.usescases.main.program.ProgramViewModel" />
+            type="org.fpandhis2.usescases.main.program.ProgramViewModel" />
 
     </data>
 

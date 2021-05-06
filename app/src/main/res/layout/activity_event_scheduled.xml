@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-        <import type="org.dhis2.R" />
+        <import type="org.fpandhis2.R" />
 
         <import type="android.view.View" />
 
@@ -20,7 +20,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.events.ScheduledEventContract.Presenter" />
+            type="org.fpandhis2.usescases.events.ScheduledEventContract.Presenter" />
     </data>
 
     <LinearLayout
@@ -46,6 +46,16 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/ic_arrow_back"
+                tools:ignore="ContentDescription" />
+
+            <ImageView
+                android:id="@+id/moreOptions"
+                style="@style/ActionIcon"
+                android:onClick="showMoreOptions"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_more"
                 tools:ignore="ContentDescription" />
 
 
@@ -91,7 +101,7 @@
                         android:layout_height="80dp"
                         android:contentDescription='@{name}'
                         android:padding="7dp"
-                        app:tint="?colorPrimaryDark"
+                        android:tint="?colorPrimaryDark"
                         app:imageBackground="@{ @drawable/photo_temp }"
                         app:srcCompat="@drawable/ic_clinical_f_outline" />
 

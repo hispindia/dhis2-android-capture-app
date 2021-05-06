@@ -16,13 +16,12 @@
 
             <ImageView
                 android:id="@+id/menu"
-                style="@style/ActionIcon"
-                android:layout_marginStart="4dp"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="16dp"
                 android:onClick="onBackClick"
-                app:tint="?colorPrimary"
+                android:tint="?colorPrimary"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:srcCompat="@drawable/ic_arrow_back"
                 tools:ignore="ContentDescription" />
 
