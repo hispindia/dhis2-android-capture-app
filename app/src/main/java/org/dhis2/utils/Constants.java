@@ -139,4 +139,9 @@ public class Constants {
     private Constants() {
         // hide public constructor
     }
+
+    //Metdata Constants
+    public static final String PS_SCREENING = "n2GQ222TzKt";
+    public static final String PS_FOLLOW_UP = "Hfu4vyWoLmP";
+    public static final String MALNUTRITION = "Malnutrition";
 }
