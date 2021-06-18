@@ -36,7 +36,11 @@ import org.dhis2.utils.FileResourcesUtil;
 import org.dhis2.utils.ImageUtils;
 import org.dhis2.utils.customviews.CustomDialog;
 import org.dhis2.utils.customviews.FormBottomDialog;
+import org.hisp.dhis.android.core.D2Manager;
 import org.hisp.dhis.android.core.arch.helpers.FileResourceDirectoryHelper;
+import org.hisp.dhis.android.core.event.Event;
+import org.hisp.dhis.android.core.program.ProgramStage;
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityDataValue;
 
 import java.io.File;
 import java.util.Calendar;
@@ -46,9 +50,16 @@ import javax.inject.Inject;
 
 import kotlin.Unit;
 
+import static org.dhis2.utils.Constants.ENROLLMENT_UID;
+import static org.dhis2.utils.Constants.EVENT_CREATION_TYPE;
+import static org.dhis2.utils.Constants.EVENT_SCHEDULE_INTERVAL;
+import static org.dhis2.utils.Constants.MALNUTRITION;
+import static org.dhis2.utils.Constants.PROGRAM_STAGE_UID;
 import static org.dhis2.utils.Constants.PROGRAM_UID;
+import static org.dhis2.utils.Constants.PS_SCREENING;
 import static org.dhis2.utils.analytics.AnalyticsConstants.CLICK;
 import static org.dhis2.utils.analytics.AnalyticsConstants.DELETE_EVENT;
+import static org.dhis2.utils.analytics.AnalyticsConstants.FOLLOW_UP;
 import static org.dhis2.utils.analytics.AnalyticsConstants.SHOW_HELP;
 
 public class EventCaptureActivity extends ActivityGlobalAbstract implements EventCaptureContract.View {
@@ -276,6 +287,31 @@ public class EventCaptureActivity extends ActivityGlobalAbstract implements Even
             case COMPLETE:
                 isEventCompleted = true;
                 presenter.completeEvent(false);
+                finishDataEntry();
+
+                //@Sou schedule followup condition
+                if (programStageUid.equals(PS_SCREENING))
+                {
+                    if (D2Manager.getD2().trackedEntityModule().trackedEntityDataValues().byEvent().eq(getIntent().getStringExtra(Constants.EVENT_UID)).byDataElement().eq("QOVQxfwCCSp").blockingGet().size()>0)
+                    {
+                        TrackedEntityDataValue tedv= D2Manager.getD2().trackedEntityModule().trackedEntityDataValues().byEvent().eq(getIntent().getStringExtra(Constants.EVENT_UID)).byDataElement().eq("QOVQxfwCCSp").blockingGet().get(0);
+                        if (tedv!=null&&tedv.value().equals(MALNUTRITION))
+                        {
+                            Bundle bundle = new Bundle();
+                            bundle.putString(PROGRAM_UID, getIntent().getStringExtra(Constants.PROGRAM_UID));
+                            bundle.putString(PROGRAM_STAGE_UID, FOLLOW_UP);
+                            bundle.putString(EVENT_CREATION_TYPE, "SCHEDULE");
+                            ProgramStage ps=D2Manager.getD2().programModule().programStages().byUid().eq(FOLLOW_UP).blockingGet().get(0);
+                            Event ev=D2Manager.getD2().eventModule().events().byUid().eq(getIntent().getStringExtra(Constants.EVENT_UID)).blockingGet().get(0);
+                            bundle.putInt(EVENT_SCHEDULE_INTERVAL, ps.minDaysFromStart());
+                            bundle.putString(ENROLLMENT_UID,  ev.enrollment());
+                            startActivity(EventInitialActivity.class, bundle, true, true, null);
+                        }
+                    }
+
+
+                }
+
                 break;
             case COMPLETE_ADD_NEW:
                 presenter.completeEvent(true);
@@ -296,6 +332,29 @@ public class EventCaptureActivity extends ActivityGlobalAbstract implements Even
                 presenter.goToSection();
                 break;
             case FINISH:
+                //@Sou schedule followup condition
+                finishDataEntry();
+                if (programStageUid.equals(PS_SCREENING))
+                {
+                    if (D2Manager.getD2().trackedEntityModule().trackedEntityDataValues().byEvent().eq(getIntent().getStringExtra(Constants.EVENT_UID)).byDataElement().eq("QOVQxfwCCSp").blockingGet().size()>0)
+                    {
+                        TrackedEntityDataValue tedv= D2Manager.getD2().trackedEntityModule().trackedEntityDataValues().byEvent().eq(getIntent().getStringExtra(Constants.EVENT_UID)).byDataElement().eq("QOVQxfwCCSp").blockingGet().get(0);
+                        if (tedv!=null&&tedv.value().equals(MALNUTRITION))
+                        {
+                            Bundle bundle = new Bundle();
+                            bundle.putString(PROGRAM_UID, getIntent().getStringExtra(Constants.PROGRAM_UID));
+                            bundle.putString(PROGRAM_STAGE_UID, FOLLOW_UP);
+                            bundle.putString(EVENT_CREATION_TYPE, "SCHEDULE");
+                            ProgramStage ps=D2Manager.getD2().programModule().programStages().byUid().eq(FOLLOW_UP).blockingGet().get(0);
+                            Event ev=D2Manager.getD2().eventModule().events().byUid().eq(getIntent().getStringExtra(Constants.EVENT_UID)).blockingGet().get(0);
+                            bundle.putInt(EVENT_SCHEDULE_INTERVAL, ps.minDaysFromStart());
+                            bundle.putString(ENROLLMENT_UID,  ev.enrollment());
+                            startActivity(EventInitialActivity.class, bundle, true, true, null);
+                        }
+                    }
+
+
+                }
             default:
                 finishDataEntry();
                 break;
