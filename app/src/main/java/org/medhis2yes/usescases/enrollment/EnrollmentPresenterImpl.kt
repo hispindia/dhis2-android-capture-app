@@ -197,6 +197,11 @@ class EnrollmentPresenterImpl(
                 .doOnNext { view.showProgress() }
                 .observeOn(schedulerProvider.io())
                 .flatMap { rowAction ->
+                    if(rowAction.id==(PROJECT_DONOR))
+                    {
+                        val random_n = (0..1000000).random()
+                        prefix ="m-PLAN-"+rowAction.value+"-"+random_n
+                    }
                     Flowable.just(formRepository.processUserAction(rowAction))
                 }
                 .subscribeOn(schedulerProvider.io())
