@@ -11,7 +11,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.teiDashboard.TeiDashboardContracts.Presenter" />
+            type="org.medhis2yes.usescases.teiDashboard.TeiDashboardContracts.Presenter" />
 
         <variable
             name="trackEntity"
@@ -19,7 +19,7 @@
 
         <variable
             name="dashboardModel"
-            type="org.dhis2.usescases.teiDashboard.DashboardProgramModel" />
+            type="org.medhis2yes.usescases.teiDashboard.DashboardProgramModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -172,7 +172,7 @@
             app:layout_constraintStart_toEndOf="@id/guideline"
             app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
-        <org.dhis2.utils.customviews.DhisBottomNavigationBar
+        <org.medhis2yes.utils.customviews.DhisBottomNavigationBar
             android:id="@+id/navigationBar"
             style="@style/DhisBottomNavigationView"
             android:layout_width="0dp"

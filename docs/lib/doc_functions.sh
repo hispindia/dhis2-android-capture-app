@@ -148,7 +148,7 @@ include_submodules() {
               echo "git clone -b ${submodule_branch//\"} --depth 1 ${submodule_name//\"}"
               git clone -q -b ${submodule_branch//\"} --depth 1 ${submodule_name//\"}
             else
-              # only repository name is given - assume dhis2 project on github
+              # only repository name is given - assume medhis2yes project on github
               echo "git clone -b ${submodule_branch//\"} --depth 1 $GIT_BASE${submodule_name//\"}"
               git clone -q -b ${submodule_branch//\"} --depth 1 $GIT_BASE${submodule_name//\"}
             fi

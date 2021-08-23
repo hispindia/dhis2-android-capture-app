@@ -7,21 +7,21 @@
 
         <import type="android.view.View" />
 
-        <import type="org.dhis2.utils.filters.ProgramType" />
+        <import type="org.medhis2yes.utils.filters.ProgramType" />
 
         <import type="org.hisp.dhis.android.core.event.EventStatus" />
 
         <variable
             name="filterType"
-            type="org.dhis2.utils.filters.Filters" />
+            type="org.medhis2yes.utils.filters.Filters" />
 
         <variable
             name="programType"
-            type="org.dhis2.utils.filters.ProgramType" />
+            type="org.medhis2yes.utils.filters.ProgramType" />
 
         <variable
             name="filterItem"
-            type="org.dhis2.utils.filters.EventStatusFilter" />
+            type="org.medhis2yes.utils.filters.EventStatusFilter" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

@@ -9,7 +9,7 @@
 
         <variable
             name="filterItem"
-            type="org.dhis2.utils.filters.SyncStateFilter" />
+            type="org.medhis2yes.utils.filters.SyncStateFilter" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

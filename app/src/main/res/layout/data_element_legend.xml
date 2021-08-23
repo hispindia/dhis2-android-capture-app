@@ -7,7 +7,7 @@
 
         <variable
             name="legend"
-            type="org.dhis2.form.model.LegendValue" />
+            type="org.medhis2yes.form.model.LegendValue" />
     </data>
 
     <TextView

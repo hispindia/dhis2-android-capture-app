@@ -9,11 +9,11 @@
 
         <variable
             name="filterType"
-            type="org.dhis2.utils.filters.Filters" />
+            type="org.medhis2yes.utils.filters.Filters" />
 
         <variable
             name="filterItem"
-            type="org.dhis2.utils.filters.CatOptionComboFilter" />
+            type="org.medhis2yes.utils.filters.CatOptionComboFilter" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

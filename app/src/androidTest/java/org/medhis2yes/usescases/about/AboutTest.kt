@@ -1,0 +1,53 @@
+package org.medhis2yes.usescases.about
+
+import android.Manifest
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.ActivityTestRule
+import org.medhis2yes.Bindings.buildInfo
+import org.medhis2yes.BuildConfig
+import org.medhis2yes.R
+import org.medhis2yes.usescases.BaseTest
+import org.medhis2yes.usescases.main.MainActivity
+import org.medhis2yes.usescases.main.homeRobot
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+
+@RunWith(AndroidJUnit4::class)
+class AboutTest : BaseTest() {
+
+    @get:Rule
+    val rule = ActivityTestRule(MainActivity::class.java, false, false)
+
+    override fun getPermissionsToBeAccepted(): Array<String> {
+        return arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA)
+    }
+
+    @Test
+    fun shouldCheckVersionsWhenOpenAboutScreen() {
+        startActivity()
+        val appVersion = getAppVersionName()
+        val sdkVersion = getSDKVersionName()
+
+        homeRobot {
+            clickOnNavigationDrawerMenu()
+            clickAbout()
+        }
+
+        aboutRobot {
+            checkVersionNames(appVersion, sdkVersion)
+        }
+    }
+
+    private fun startActivity() {
+        rule.launchActivity(null)
+    }
+
+    private fun getAppVersionName(): String {
+        return context.buildInfo()
+    }
+
+    private fun getSDKVersionName() =
+        String.format(context.getString(R.string.about_sdk), BuildConfig.SDK_VERSION)
+
+}

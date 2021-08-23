@@ -7,13 +7,13 @@
 
         <import type="android.view.View" />
 
-        <import type="org.dhis2.utils.ColorUtils" />
+        <import type="org.medhis2yes.utils.ColorUtils" />
 
-        <import type="org.dhis2.utils.ColorUtils.ColorType" />
+        <import type="org.medhis2yes.utils.ColorUtils.ColorType" />
 
         <variable
             name="item"
-            type="org.dhis2.data.forms.dataentry.fields.age.AgeViewModel" />
+            type="org.medhis2yes.data.forms.dataentry.fields.age.AgeViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

@@ -5,7 +5,7 @@
 
     <data>
 
-        <import type="org.dhis2.R" />
+        <import type="org.medhis2yes.R" />
         <import type="android.view.View" />
 
         <variable
@@ -18,7 +18,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.main.MainPresenter" />
+            type="org.medhis2yes.usescases.main.MainPresenter" />
 
         <variable
             name="currentFragment"
@@ -157,7 +157,7 @@
                     app:layout_constraintVertical_bias="0.0"
                     tools:layout="@layout/fragment_program" />
 
-                <org.dhis2.utils.customviews.DhisBottomNavigationBar
+                <org.medhis2yes.utils.customviews.DhisBottomNavigationBar
                     android:id="@+id/navigationBar"
                     style="@style/DhisBottomNavigationView"
                     android:layout_width="match_parent"

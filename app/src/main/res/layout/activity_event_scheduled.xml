@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-        <import type="org.dhis2.R" />
+        <import type="org.medhis2yes.R" />
 
         <import type="android.view.View" />
 
@@ -20,7 +20,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.events.ScheduledEventContract.Presenter" />
+            type="org.medhis2yes.usescases.events.ScheduledEventContract.Presenter" />
     </data>
 
     <LinearLayout

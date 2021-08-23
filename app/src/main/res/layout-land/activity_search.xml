@@ -33,7 +33,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.searchTrackEntity.SearchTEContractsModule.Presenter" />
+            type="org.medhis2yes.usescases.searchTrackEntity.SearchTEContractsModule.Presenter" />
 
         <variable
             name="needsSearch"
@@ -315,7 +315,7 @@
                     app:layout_constraintTop_toBottomOf="@+id/filterOpen"
                     app:layout_constraintBottom_toBottomOf="parent"/>
 
-                <org.dhis2.uicomponents.map.views.CarouselView
+                <org.medhis2yes.uicomponents.map.views.CarouselView
                     android:id="@+id/map_carousel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -374,7 +374,7 @@
                         app:progressColor="@{@color/colorPrimary}" />
                 </RelativeLayout>
 
-                <org.dhis2.utils.customviews.DhisBottomNavigationBar
+                <org.medhis2yes.utils.customviews.DhisBottomNavigationBar
                     android:id="@+id/navigationBar"
                     style="@style/DhisBottomNavigationView"
                     android:layout_width="match_parent"
@@ -411,7 +411,7 @@
                 app:backgroundTint="@color/white"
                 app:elevation="12dp"
                 app:fabSize="normal"
-                app:layout_behavior="org.dhis2.utils.FixedBottomViewBehavior"
+                app:layout_behavior="org.medhis2yes.utils.FixedBottomViewBehavior"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="@id/backdropGuideDiv"
                 app:searchOrAdd='@{ needsSearch }'

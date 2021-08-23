@@ -8,7 +8,7 @@
 
         <variable
             name="item"
-            type="org.dhis2.data.forms.dataentry.fields.datetime.DateTimeViewModel" />
+            type="org.medhis2yes.data.forms.dataentry.fields.datetime.DateTimeViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -28,7 +28,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <org.dhis2.data.forms.dataentry.fields.datetime.DateTimeView
+        <org.medhis2yes.data.forms.dataentry.fields.datetime.DateTimeView
             android:id="@+id/dateTimeView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

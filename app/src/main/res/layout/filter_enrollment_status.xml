@@ -11,11 +11,11 @@
 
         <variable
             name="filterType"
-            type="org.dhis2.utils.filters.Filters" />
+            type="org.medhis2yes.utils.filters.Filters" />
 
         <variable
             name="filterItem"
-            type="org.dhis2.utils.filters.EnrollmentStatusFilter" />
+            type="org.medhis2yes.utils.filters.EnrollmentStatusFilter" />
 
     </data>
 

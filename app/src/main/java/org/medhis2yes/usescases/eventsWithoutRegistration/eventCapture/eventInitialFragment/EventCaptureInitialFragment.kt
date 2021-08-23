@@ -1,0 +1,5 @@
+package org.medhis2yes.usescases.eventsWithoutRegistration.eventCapture.eventInitialFragment
+
+import org.medhis2yes.usescases.general.FragmentGlobalAbstract
+
+class EventCaptureInitialFragment : FragmentGlobalAbstract()

@@ -4,10 +4,10 @@
     <data>
         <variable
             name="currentSelectedStyle"
-            type="androidx.databinding.ObservableField&lt;org.dhis2.uicomponents.map.layer.BaseMapType&gt;" />
+            type="androidx.databinding.ObservableField&lt;org.medhis2yes.uicomponents.map.layer.BaseMapType&gt;" />
         <variable
             name="itemStyle"
-            type="org.dhis2.uicomponents.map.layer.BaseMapType" />
+            type="org.medhis2yes.uicomponents.map.layer.BaseMapType" />
     </data>
     <androidx.constraintlayout.widget.ConstraintLayout
         xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="100dp"

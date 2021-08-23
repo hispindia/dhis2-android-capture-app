@@ -9,11 +9,11 @@
 
         <variable
             name="filterType"
-            type="org.dhis2.utils.filters.Filters" />
+            type="org.medhis2yes.utils.filters.Filters" />
 
         <variable
             name="filterItem"
-            type="org.dhis2.utils.filters.OrgUnitFilter" />
+            type="org.medhis2yes.utils.filters.OrgUnitFilter" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -69,7 +69,7 @@
                     android:layout_weight="1"
                     android:focusableInTouchMode="true">
 
-                    <org.dhis2.utils.customviews.TextInputAutoCompleteTextView
+                    <org.medhis2yes.utils.customviews.TextInputAutoCompleteTextView
                         android:id="@+id/orgUnitSearchEditText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

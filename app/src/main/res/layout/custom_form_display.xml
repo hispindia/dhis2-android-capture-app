@@ -6,7 +6,7 @@
 
         <variable
             name="item"
-            type="org.dhis2.data.forms.dataentry.fields.display.DisplayViewModel" />
+            type="org.medhis2yes.data.forms.dataentry.fields.display.DisplayViewModel" />
 
     </data>
 
@@ -15,7 +15,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
-        <org.dhis2.data.forms.dataentry.fields.display.DisplayCustomView
+        <org.medhis2yes.data.forms.dataentry.fields.display.DisplayCustomView
             android:id="@+id/formDisplayView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

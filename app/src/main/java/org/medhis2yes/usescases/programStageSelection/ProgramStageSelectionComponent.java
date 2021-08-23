@@ -1,0 +1,15 @@
+package org.medhis2yes.usescases.programStageSelection;
+
+import org.medhis2yes.data.dagger.PerActivity;
+
+import dagger.Subcomponent;
+
+/**
+ * Created by ppajuelo on 30/11/2017.
+ *
+ */
+@PerActivity
+@Subcomponent(modules = ProgramStageSelectionModule.class)
+public interface ProgramStageSelectionComponent {
+    void inject(ProgramStageSelectionActivity programStageSelectionActivity);
+}

@@ -11,7 +11,7 @@
 
         <variable
             name="chartModel"
-            type="org.dhis2.data.analytics.ChartModel" />
+            type="org.medhis2yes.data.analytics.ChartModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

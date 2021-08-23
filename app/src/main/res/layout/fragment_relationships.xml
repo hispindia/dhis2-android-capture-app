@@ -8,7 +8,7 @@
     </data>
 
 
-    <org.dhis2.utils.dialFloatingActionButton.DialFloatingActionButtonLayout
+    <org.medhis2yes.utils.dialFloatingActionButton.DialFloatingActionButtonLayout
         android:id="@+id/dialFabLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -57,7 +57,7 @@
             app:layout_constraintTop_toTopOf="@id/mapView"
             app:srcCompat="@drawable/ic_map_layers_ripple" />
 
-        <org.dhis2.uicomponents.map.views.CarouselView
+        <org.medhis2yes.uicomponents.map.views.CarouselView
             android:id="@+id/map_carousel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -71,5 +71,5 @@
             tools:listitem="@layout/item_carousel_tei"
             tools:visibility="visible" />
 
-    </org.dhis2.utils.dialFloatingActionButton.DialFloatingActionButtonLayout>
+    </org.medhis2yes.utils.dialFloatingActionButton.DialFloatingActionButtonLayout>
 </layout>

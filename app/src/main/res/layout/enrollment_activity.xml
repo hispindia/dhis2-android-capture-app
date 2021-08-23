@@ -7,11 +7,11 @@
 
         <variable
             name="mode"
-            type="org.dhis2.usescases.enrollment.EnrollmentActivity.EnrollmentMode" />
+            type="org.medhis2yes.usescases.enrollment.EnrollmentActivity.EnrollmentMode" />
 
         <variable
             name="view"
-            type="org.dhis2.usescases.enrollment.EnrollmentView" />
+            type="org.medhis2yes.usescases.enrollment.EnrollmentView" />
 
         <variable
             name="enrollmentStatus"

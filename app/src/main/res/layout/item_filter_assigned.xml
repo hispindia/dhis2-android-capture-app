@@ -8,11 +8,11 @@
 
         <variable
             name="filterItem"
-            type="org.dhis2.utils.filters.AssignedFilter" />
+            type="org.medhis2yes.utils.filters.AssignedFilter" />
 
         <variable
             name="workingListScope"
-            type="androidx.databinding.ObservableField&lt;org.dhis2.data.filter.WorkingListScope&gt;" />
+            type="androidx.databinding.ObservableField&lt;org.medhis2yes.data.filter.WorkingListScope&gt;" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

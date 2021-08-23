@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.evrencoskun.tableview.adapter.AbstractTableAdapter
 import com.evrencoskun.tableview.adapter.recyclerview.holder.AbstractViewHolder
-import dhis2.org.R
+import medhis2yes.org.R
 
 class GraphTableAdapter(context: Context) : AbstractTableAdapter<String, String, String>(context) {
 

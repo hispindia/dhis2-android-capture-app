@@ -10,7 +10,7 @@
 
         <variable
             name="dataset"
-            type="org.dhis2.usescases.datasets.datasetDetail.DataSetDetailModel" />
+            type="org.medhis2yes.usescases.datasets.datasetDetail.DataSetDetailModel" />
     </data>
 
     <com.google.android.material.card.MaterialCardView

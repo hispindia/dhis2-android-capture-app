@@ -7,11 +7,11 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.teiDashboard.teiProgramList.TeiProgramListContract.Presenter" />
+            type="org.medhis2yes.usescases.teiDashboard.teiProgramList.TeiProgramListContract.Presenter" />
 
         <variable
             name="program"
-            type="org.dhis2.usescases.main.program.ProgramViewModel" />
+            type="org.medhis2yes.usescases.main.program.ProgramViewModel" />
     </data>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

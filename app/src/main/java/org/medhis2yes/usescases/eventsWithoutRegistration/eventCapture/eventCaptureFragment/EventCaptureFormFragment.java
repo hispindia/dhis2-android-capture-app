@@ -1,0 +1,150 @@
+package org.medhis2yes.usescases.eventsWithoutRegistration.eventCapture.eventCaptureFragment;
+
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.FragmentTransaction;
+
+import org.medhis2yes.Bindings.ViewExtensionsKt;
+import org.medhis2yes.R;
+import org.medhis2yes.data.forms.dataentry.FormView;
+import org.medhis2yes.data.location.LocationProvider;
+import org.medhis2yes.databinding.SectionSelectorFragmentBinding;
+import org.medhis2yes.form.data.FormRepository;
+import org.medhis2yes.form.model.FieldUiModel;
+import org.medhis2yes.usescases.eventsWithoutRegistration.eventCapture.EventCaptureActivity;
+import org.medhis2yes.usescases.general.FragmentGlobalAbstract;
+import org.medhis2yes.utils.Constants;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import kotlin.Unit;
+
+public class EventCaptureFormFragment extends FragmentGlobalAbstract implements EventCaptureFormView {
+
+    @Inject
+    EventCaptureFormPresenter presenter;
+
+    @Inject
+    FormRepository formRepository;
+
+    @Inject
+    LocationProvider locationProvider;
+
+    private EventCaptureActivity activity;
+    private SectionSelectorFragmentBinding binding;
+    private FormView formView;
+
+    public static EventCaptureFormFragment newInstance(String eventUid) {
+        EventCaptureFormFragment fragment = new EventCaptureFormFragment();
+        Bundle args = new Bundle();
+        args.putString(Constants.EVENT_UID, eventUid);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onAttach(@NotNull Context context) {
+        super.onAttach(context);
+        this.activity = (EventCaptureActivity) context;
+        activity.eventCaptureComponent.plus(
+                new EventCaptureFormModule(
+                        this,
+                        getArguments().getString(Constants.EVENT_UID))
+        ).inject(this);
+        setRetainInstance(true);
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        binding = DataBindingUtil.inflate(inflater, R.layout.section_selector_fragment, container, false);
+        binding.setPresenter(activity.getPresenter());
+        binding.actionButton.setOnClickListener(view -> {
+            ViewExtensionsKt.closeKeyboard(view);
+            performSaveClick();
+        });
+
+        presenter.init();
+
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull @NotNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        formView = new FormView.Builder()
+                .persistence(formRepository)
+                .locationProvider(locationProvider)
+                .onItemChangeListener(action -> {
+                    activity.getPresenter().setValueChanged(action.getId());
+                    activity.getPresenter().nextCalculation(true);
+                    return Unit.INSTANCE;
+                })
+                .onLoadingListener(loading -> {
+                    if(loading){
+                        activity.showProgress();
+                    }else{
+                        activity.hideProgress();
+                    }
+                    return Unit.INSTANCE;
+                })
+                .build();
+
+        FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+        transaction.replace(R.id.formViewContainer, formView).commit();
+        formView.setScrollCallback(isSectionVisible -> {
+            animateFabButton(isSectionVisible);
+            return Unit.INSTANCE;
+        });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        presenter.onDetach();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void showFields(@NonNull List<FieldUiModel> updates) {
+        formView.render(updates);
+    }
+
+    private void animateFabButton(boolean sectionIsVisible) {
+        int translationX = 1000;
+        if (sectionIsVisible) translationX = 0;
+
+        binding.actionButton.animate().translationX(translationX).setDuration(500).start();
+    }
+
+    @Override
+    public void performSaveClick() {
+        if (activity.getCurrentFocus() instanceof EditText) {
+            presenter.setFinishing();
+            activity.getCurrentFocus().clearFocus();
+        } else {
+            presenter.onActionButtonClick();
+        }
+    }
+}

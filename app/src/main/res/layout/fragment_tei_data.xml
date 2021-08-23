@@ -19,11 +19,11 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.teiDashboard.dashboardfragments.teidata.TEIDataContracts.Presenter" />
+            type="org.medhis2yes.usescases.teiDashboard.dashboardfragments.teidata.TEIDataContracts.Presenter" />
 
         <variable
             name="dashboardModel"
-            type="org.dhis2.usescases.teiDashboard.DashboardProgramModel" />
+            type="org.medhis2yes.usescases.teiDashboard.DashboardProgramModel" />
 
         <variable
             name="program"
@@ -39,7 +39,7 @@
 
     </data>
 
-    <org.dhis2.utils.dialFloatingActionButton.DialFloatingActionButtonLayout
+    <org.medhis2yes.utils.dialFloatingActionButton.DialFloatingActionButtonLayout
         android:id="@+id/dialFabLayout"
         android:layout_width="match_parent"
         app:fab_visibility="@{enrollment==null || enrollment.status() != EnrollmentStatus.ACTIVE || isGrouping}"
@@ -116,5 +116,5 @@
             android:visibility="gone"
             android:textSize="@dimen/primaryTextSize" />
 
-    </org.dhis2.utils.dialFloatingActionButton.DialFloatingActionButtonLayout>
+    </org.medhis2yes.utils.dialFloatingActionButton.DialFloatingActionButtonLayout>
 </layout>

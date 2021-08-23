@@ -9,10 +9,10 @@
 
         <variable
             name="filterItem"
-            type="org.dhis2.utils.filters.EnrollmentStatusFilter" />
+            type="org.medhis2yes.utils.filters.EnrollmentStatusFilter" />
         <variable
             name="workingListScope"
-            type="androidx.databinding.ObservableField&lt;org.dhis2.data.filter.WorkingListScope&gt;" />
+            type="androidx.databinding.ObservableField&lt;org.medhis2yes.data.filter.WorkingListScope&gt;" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

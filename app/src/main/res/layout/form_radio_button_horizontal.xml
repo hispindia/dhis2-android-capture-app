@@ -15,7 +15,7 @@
 
         <variable
             name="item"
-            type="org.dhis2.data.forms.dataentry.fields.radiobutton.RadioButtonViewModel" />
+            type="org.medhis2yes.data.forms.dataentry.fields.radiobutton.RadioButtonViewModel" />
 
     </data>
 

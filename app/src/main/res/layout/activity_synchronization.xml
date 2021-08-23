@@ -9,7 +9,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.sync.SyncPresenter" />
+            type="org.medhis2yes.usescases.sync.SyncPresenter" />
 
     </data>
 

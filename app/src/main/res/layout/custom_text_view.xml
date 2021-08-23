@@ -29,11 +29,11 @@
 
         <variable
             name="legend"
-            type="org.dhis2.form.model.LegendValue" />
+            type="org.medhis2yes.form.model.LegendValue" />
 
         <variable
             name="keyboardActionType"
-            type="org.dhis2.form.model.KeyboardActionType" />
+            type="org.medhis2yes.form.model.KeyboardActionType" />
 
     </data>
 
@@ -104,7 +104,7 @@
                 android:theme="@style/loginInputText"
                 tools:hint="hint">
 
-                <org.dhis2.utils.customviews.TextInputAutoCompleteTextView
+                <org.medhis2yes.utils.customviews.TextInputAutoCompleteTextView
                     android:id="@+id/input_editText"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"

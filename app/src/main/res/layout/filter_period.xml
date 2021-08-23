@@ -9,7 +9,7 @@
 
         <variable
             name="filterItem"
-            type="org.dhis2.utils.filters.FilterItem" />
+            type="org.medhis2yes.utils.filters.FilterItem" />
 
     </data>
 

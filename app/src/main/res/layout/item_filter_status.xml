@@ -9,15 +9,15 @@
 
         <variable
             name="programType"
-            type="org.dhis2.utils.filters.ProgramType" />
+            type="org.medhis2yes.utils.filters.ProgramType" />
 
         <variable
             name="filterItem"
-            type="org.dhis2.utils.filters.EventStatusFilter" />
+            type="org.medhis2yes.utils.filters.EventStatusFilter" />
 
         <variable
             name="workingListScope"
-            type="androidx.databinding.ObservableField&lt;org.dhis2.data.filter.WorkingListScope&gt;" />
+            type="androidx.databinding.ObservableField&lt;org.medhis2yes.data.filter.WorkingListScope&gt;" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

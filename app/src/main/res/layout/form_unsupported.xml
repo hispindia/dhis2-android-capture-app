@@ -6,7 +6,7 @@
 
         <variable
             name="item"
-            type="org.dhis2.data.forms.dataentry.fields.unsupported.UnsupportedViewModel" />
+            type="org.medhis2yes.data.forms.dataentry.fields.unsupported.UnsupportedViewModel" />
 
     </data>
 

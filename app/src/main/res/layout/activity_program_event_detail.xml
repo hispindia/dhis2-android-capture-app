@@ -6,7 +6,7 @@
 
         <import type="android.view.View" />
 
-        <import type="org.dhis2.R" />
+        <import type="org.medhis2yes.R" />
 
         <variable
             name="name"
@@ -14,7 +14,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.programEventDetail.ProgramEventDetailContract.Presenter" />
+            type="org.medhis2yes.usescases.programEventDetail.ProgramEventDetailContract.Presenter" />
 
         <variable
             name="totalFilters"
@@ -216,7 +216,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:srcCompat="@drawable/ic_add_accent" />
 
-            <org.dhis2.utils.customviews.DhisBottomNavigationBar
+            <org.medhis2yes.utils.customviews.DhisBottomNavigationBar
                 android:id="@+id/navigationBar"
                 style="@style/DhisBottomNavigationView"
                 android:layout_width="match_parent"

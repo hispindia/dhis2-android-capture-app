@@ -8,11 +8,11 @@
 
         <variable
             name="filterItem"
-            type="org.dhis2.utils.filters.FilterItem" />
+            type="org.medhis2yes.utils.filters.FilterItem" />
 
         <variable
             name="workingListScope"
-            type="androidx.databinding.ObservableField&lt;org.dhis2.data.filter.WorkingListScope&gt;" />
+            type="androidx.databinding.ObservableField&lt;org.medhis2yes.data.filter.WorkingListScope&gt;" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -28,7 +28,7 @@
             app:filterItem="@{filterItem}"
             app:layout_constraintTop_toBottomOf="parent" />
 
-        <org.dhis2.utils.filters.dates.FilterPeriodView
+        <org.medhis2yes.utils.filters.dates.FilterPeriodView
             android:id="@+id/periodView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

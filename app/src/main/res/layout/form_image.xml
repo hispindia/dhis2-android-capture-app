@@ -9,7 +9,7 @@
 
         <variable
             name="viewModel"
-            type="org.dhis2.data.forms.dataentry.fields.visualOptionSet.MatrixOptionSetModel" />
+            type="org.medhis2yes.data.forms.dataentry.fields.visualOptionSet.MatrixOptionSetModel" />
 
         <variable
             name="option"

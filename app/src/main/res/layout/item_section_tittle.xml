@@ -9,7 +9,7 @@
 
         <variable
             name="sectionModel"
-            type="org.dhis2.data.analytics.SectionTitle" />
+            type="org.medhis2yes.data.analytics.SectionTitle" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

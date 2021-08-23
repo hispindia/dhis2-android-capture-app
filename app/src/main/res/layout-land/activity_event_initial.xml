@@ -5,7 +5,7 @@
 
     <data>
 
-        <import type="org.dhis2.R" />
+        <import type="org.medhis2yes.R" />
 
         <import type="org.hisp.dhis.android.core.common.FeatureType" />
 
@@ -21,7 +21,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.eventsWithoutRegistration.eventInitial.EventInitialPresenter" />
+            type="org.medhis2yes.usescases.eventsWithoutRegistration.eventInitial.EventInitialPresenter" />
     </data>
 
     <LinearLayout
@@ -61,7 +61,7 @@
                 app:layout_constraintStart_toEndOf="@id/menu"
                 tools:text="TITLE\ntest\n234" />
 
-            <org.dhis2.utils.customviews.CircularCompletionView
+            <org.medhis2yes.utils.customviews.CircularCompletionView
                 android:id="@+id/completion"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"

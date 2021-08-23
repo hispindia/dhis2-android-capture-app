@@ -1,7 +1,7 @@
 package dhis2.org.analytics.charts.data
 
 import androidx.annotation.DrawableRes
-import dhis2.org.R
+import medhis2yes.org.R
 import org.hisp.dhis.android.core.settings.WHONutritionChartType
 
 enum class ChartType(@DrawableRes val iconResource: Int) {

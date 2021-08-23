@@ -6,7 +6,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.datasets.dataSetTable.dataSetSection.DataValuePresenter" />
+            type="org.medhis2yes.usescases.datasets.dataSetTable.dataSetSection.DataValuePresenter" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

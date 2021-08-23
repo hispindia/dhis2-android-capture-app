@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <org.dhis2.utils.dialFloatingActionButton.DialFloatingActionButtonLayout
+    <org.medhis2yes.utils.dialFloatingActionButton.DialFloatingActionButtonLayout
         android:id="@+id/dialFabLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -204,5 +204,5 @@
                     android:layout_height="wrap_content" />
             </LinearLayout>
         </ScrollView>
-    </org.dhis2.utils.dialFloatingActionButton.DialFloatingActionButtonLayout>
+    </org.medhis2yes.utils.dialFloatingActionButton.DialFloatingActionButtonLayout>
 </layout>

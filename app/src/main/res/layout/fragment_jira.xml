@@ -7,7 +7,7 @@
         <import type="android.view.View" />
         <variable
             name="jiraViewModel"
-            type="org.dhis2.usescases.jira.JiraViewModel" />
+            type="org.medhis2yes.usescases.jira.JiraViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

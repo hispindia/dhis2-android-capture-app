@@ -5,14 +5,14 @@
     <data>
         <variable
             name="item"
-            type="org.dhis2.data.forms.dataentry.fields.visualOptionSet.MatrixOptionSetModel" />
+            type="org.medhis2yes.data.forms.dataentry.fields.visualOptionSet.MatrixOptionSetModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <org.dhis2.data.forms.dataentry.fields.visualOptionSet.VisualOptionSetView
+        <org.medhis2yes.data.forms.dataentry.fields.visualOptionSet.VisualOptionSetView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:matrixViewModel="@{item}" />

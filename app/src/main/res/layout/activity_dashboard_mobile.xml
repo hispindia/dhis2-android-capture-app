@@ -13,7 +13,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.teiDashboard.TeiDashboardContracts.Presenter" />
+            type="org.medhis2yes.usescases.teiDashboard.TeiDashboardContracts.Presenter" />
 
         <variable
             name="trackEntity"
@@ -21,7 +21,7 @@
 
         <variable
             name="dashboardModel"
-            type="org.dhis2.usescases.teiDashboard.DashboardProgramModel" />
+            type="org.medhis2yes.usescases.teiDashboard.DashboardProgramModel" />
 
         <variable
             name="totalFilters"
@@ -146,7 +146,7 @@
             app:layout_constraintTop_toBottomOf="@id/toolbar"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
-        <org.dhis2.utils.customviews.DhisBottomNavigationBar
+        <org.medhis2yes.utils.customviews.DhisBottomNavigationBar
             android:id="@+id/navigationBar"
             style="@style/DhisBottomNavigationView"
             android:layout_width="match_parent"

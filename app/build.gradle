@@ -37,20 +37,20 @@ android {
     compileSdkVersion versions.sdk
     buildToolsVersion versions.tools
     defaultConfig {
-        applicationId "com.dhis2"
+        applicationId "com.medhis2yes"
         minSdkVersion versions.minSdk
         targetSdkVersion versions.sdk
         versionCode versions.vCode
         versionName versions.vName
-        testInstrumentationRunner "org.dhis2.Dhis2Runner"
+        testInstrumentationRunner "org.medhis2yes.Dhis2Runner"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
 
-        setProperty("archivesBaseName", "dhis2-v" + versions.vName)
+        setProperty("archivesBaseName", "medhis2yes-v" + versions.vName)
 
         buildConfigField "String", "SDK_VERSION", "\"" + libraries.dhis2sdk + "\""
         buildConfigField "String", "MAPBOX_ACCESS_TOKEN", "\"pk.eyJ1Ijoib3Jpa2dnIiwiYSI6ImNqdWpqb24zYTFsOXo0M2xwcXRseGx3aXkifQ.6N9aqvpqdrrSBwO9GyfjUw\""
-        buildConfigField "String", "MATOMO_URL", "\"https://usage.analytics.dhis2.org/matomo.php\""
+        buildConfigField "String", "MATOMO_URL", "\"https://usage.analytics.medhis2yes.org/matomo.php\""
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -93,7 +93,7 @@ android {
             // Using dataentry.jks to sign debug build type.
             signingConfig = signingConfigs.debug
 
-            resValue "string", "content_provider", "com.dhis2.debug.provider"
+            resValue "string", "content_provider", "com.medhis2yes.debug.provider"
             buildConfigField "int", "MATOMO_ID", "2"
 
             applicationVariants.all { variant ->
@@ -115,7 +115,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 
             buildConfigField "int", "MATOMO_ID", "1"
-            resValue "string", "content_provider", "com.dhis2.provider"
+            resValue "string", "content_provider", "com.medhis2yes.provider"
 
             //Sentry variables
             manifestPlaceholders = [
@@ -131,21 +131,21 @@ android {
 
     productFlavors {
         dhis {
-            applicationId "com.dhis2"
+            applicationId "com.medhis2yes"
             dimension "default"
             versionCode versions.vCode
             versionName versions.vName
         }
 
         dhisNoSMS {
-            applicationId "com.dhis2"
+            applicationId "com.medhis2yes"
             dimension "default"
             versionCode versions.vCode
             versionName versions.vName
         }
 
         dhisUITesting {
-            applicationId "com.dhis2"
+            applicationId "com.medhis2yes"
             dimension "default"
             versionCode versions.vCode
             versionName versions.vName

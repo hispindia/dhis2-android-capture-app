@@ -6,10 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import dhis2.org.R
+import medhis2yes.org.R
 import dhis2.org.analytics.charts.data.ChartType
 import dhis2.org.analytics.charts.data.Graph
-import dhis2.org.databinding.ItemSingleValueBinding
+import medhis2yes.org.databinding.ItemSingleValueBinding
 
 class GraphToValue {
     fun map(context: Context, graph: Graph): View {
