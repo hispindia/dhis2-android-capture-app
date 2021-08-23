@@ -45,7 +45,14 @@ import org.hisp.dhis.rules.models.RuleEffect
 import timber.log.Timber
 
 private const val TAG = "EnrollmentPresenter"
-
+//@Sou ben constants
+var PROJECT_DONOR = "KLSVjftH2xS"
+var  prefix = ""
+var PER_ADD = "ecYfMLsHWUD"
+var BEN_UID = "L2doMQ7OtUB"
+var DOB_ROW = "Zgi47Dql2Ei"
+var AGE_ROW = "Xp8fcfaGdfk"
+var `val` = "" + ((Math.random() * 900).toInt() + 100000)
 class EnrollmentPresenterImpl(
     val view: EnrollmentView,
     val d2: D2,
@@ -202,6 +209,11 @@ class EnrollmentPresenterImpl(
                                     if (shouldShowDateEditionWarning(result.uid)) {
                                         view.showDateEditionWarning()
                                     }
+                                    if(result.uid==(PROJECT_DONOR))
+                                    {
+                                        valueStore.save(BEN_UID,  prefix )
+                                        populateList()
+                                    }
                                     fieldsFlowable.onNext(true)
                                     checkFinishing(true)
                                 }
@@ -213,15 +225,15 @@ class EnrollmentPresenterImpl(
                                 ValueStoreResult.VALUE_NOT_UNIQUE -> {
                                     uniqueFields.add(result.uid)
                                     view.showInfoDialog(
-                                        view.context.getString(R.string.error),
-                                        view.context.getString(R.string.unique_warning)
+                                            view.context.getString(R.string.error),
+                                            view.context.getString(R.string.unique_warning)
                                     )
                                     view.hideProgress()
                                     checkFinishing(false)
                                 }
                                 ValueStoreResult.UID_IS_NOT_DE_OR_ATTR -> {
                                     Timber.tag(TAG)
-                                        .d("${result.uid} is not a data element or attribute")
+                                            .d("${result.uid} is not a data element or attribute")
                                     view.hideProgress()
                                     checkFinishing(false)
                                 }
@@ -276,6 +288,10 @@ class EnrollmentPresenterImpl(
         val iterator = finalList.listIterator()
         while (iterator.hasNext()) {
             val field = iterator.next()
+            if(field.uid == BEN_UID)
+            {
+                field.setEditable(false)
+            }
             if (field is SectionViewModel) {
                 var sectionViewModel: SectionViewModel = field
                 val (values, totals) = getValueCount(
