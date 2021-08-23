@@ -4,7 +4,7 @@
     android:initialLayout="@layout/dhis_custom_launcher"
     android:minHeight="40dp"
     android:minWidth="40dp"
-    android:previewImage="@mipmap/ic_launcher"
+    android:previewImage="@drawable/yesme"
     android:updatePeriodMillis="86400000"
     android:resizeMode="horizontal"
     android:widgetCategory="home_screen" />
