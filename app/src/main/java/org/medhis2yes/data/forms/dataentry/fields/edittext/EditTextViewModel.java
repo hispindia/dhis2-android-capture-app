@@ -52,6 +52,12 @@ public abstract class EditTextViewModel extends EditTextModel<String> {
                                            @Nullable LegendValue legendValue) {
 
         KeyboardActionType keyboardActionType;
+        //@Sou disable ben id
+        if (uid.equals("L2doMQ7OtUB")&&isSearchMode==false)
+        {
+            editable=false;
+
+        }
         if (valueType == ValueType.LONG_TEXT) {
             keyboardActionType = KeyboardActionType.ENTER;
         } else if (isSearchMode) {

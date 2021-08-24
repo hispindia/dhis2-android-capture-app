@@ -293,10 +293,7 @@ class EnrollmentPresenterImpl(
         val iterator = finalList.listIterator()
         while (iterator.hasNext()) {
             val field = iterator.next()
-            if(field.uid == BEN_UID)
-            {
-                field.setEditable(false)
-            }
+
             if (field is SectionViewModel) {
                 var sectionViewModel: SectionViewModel = field
                 val (values, totals) = getValueCount(

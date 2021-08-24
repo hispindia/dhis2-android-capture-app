@@ -408,12 +408,6 @@ class EnrollmentActivity : ActivityGlobalAbstract(), EnrollmentView {
     /*region DATA ENTRY*/
     override fun showFields(fields: List<FieldUiModel>) {
         fields.filter {
-            if (it.uid=="L2doMQ7OtUB")
-            {
-                fields[fields.indexOf(it)].setEditable(false)
-                it.setEditable(false)
-
-            }
             it !is DisplayViewModel
         }
 
