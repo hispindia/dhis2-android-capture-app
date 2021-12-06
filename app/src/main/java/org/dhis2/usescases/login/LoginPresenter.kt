@@ -1,11 +1,15 @@
 package org.dhis2.usescases.login
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Build
+import android.util.Base64
+import android.util.Log
 import androidx.annotation.RestrictTo
 import androidx.annotation.RestrictTo.Scope
 import androidx.annotation.VisibleForTesting
 import co.infinum.goldfinger.Goldfinger
+import com.mapbox.mapboxsdk.Mapbox
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import org.dhis2.App
@@ -38,8 +42,15 @@ import org.hisp.dhis.android.core.maintenance.D2Error
 import org.hisp.dhis.android.core.maintenance.D2ErrorCode
 import org.hisp.dhis.android.core.systeminfo.SystemInfo
 import org.hisp.dhis.android.core.user.openid.OpenIDConnectConfig
+import org.jetbrains.anko.doAsync
 import retrofit2.Response
 import timber.log.Timber
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
+import java.net.HttpURLConnection
+import java.net.URL
+import java.net.URLEncoder
 
 class LoginPresenter(
     private val view: LoginContracts.View,
@@ -54,6 +65,10 @@ class LoginPresenter(
     var disposable: CompositeDisposable = CompositeDisposable()
 
     private var canHandleBiometrics: Boolean? = null
+
+    private var existing_uid: String? = null
+    private var rows_check: String? = null
+    private var existing_user_pass: String? = null
 
     fun init(userManager: UserManager?) {
         this.userManager = userManager
@@ -169,6 +184,288 @@ class LoginPresenter(
             view.showLoginProgress(true)
         }
     }
+    fun sendPostRequest(user:String,pass:String,serverUrl:String,userName:String, password:String) {
+        Log.d("sendPostRequest","");
+        existing_uid=null;
+        val pair = String.format("%s:%s", userName, password)
+        val creds = Base64.encodeToString(pair.toByteArray(), Base64.NO_WRAP)
+
+        var reqParam = URLEncoder.encode("username", "UTF-8") + "=" + URLEncoder.encode(userName, "UTF-8")
+        reqParam += "&" + URLEncoder.encode("password", "UTF-8") + "=" + URLEncoder.encode(password, "UTF-8")
+
+
+
+        val mURL1 = URL(serverUrl+"/api/trackedEntityInstances/query.json?ou=bpwodUz0F0c&ouMode=ACCESSIBLE&program=xV81JTF1M3C&attribute=stuluwAni9L:LIKE:"+user)
+        val mURL2 = URL(serverUrl+"/api/trackedEntityInstances/query.json?ou=bpwodUz0F0c&ouMode=ACCESSIBLE&program=xV81JTF1M3C&attribute=stuluwAni9L:eq:"+user+"-"+pass)
+        doAsync {
+            with(mURL2.openConnection() as HttpURLConnection) {
+                Log.d("method1-mURL2","");
+                // optional default is GET
+                requestMethod = "GET"
+                setRequestProperty("Authorization", "Basic $creds")
+                setRequestProperty("Content-Type", "application/json;charset=UTF-8")
+                val data = inputStream.bufferedReader().readText()
+                rows_check=data.substring(
+                    data.indexOf("rows") ,
+                    data.lastIndexOf("rows") + 10,
+                )
+                Log.d("method1-rows_check",rows_check.toString());
+                if(rows_check!!.contains("[]"))
+                {
+                    Log.d("inside rows--","");
+                    doAsync {
+                        with(mURL1.openConnection() as HttpURLConnection) {
+                            // optional default is GET
+
+                            requestMethod = "GET"
+                            setRequestProperty("Authorization", "Basic $creds")
+                            setRequestProperty("Content-Type", "application/json;charset=UTF-8")
+
+                            BufferedReader(InputStreamReader(inputStream)).use {
+                                val response = StringBuffer()
+
+                                var userpass=user+"-"+pass
+                                Log.d("inside rows--response",response.toString());
+                                if (response.contains(user))
+                                {
+                                    existing_user_pass=response.substring(
+                                        response.indexOf(user) ,
+                                        response.lastIndexOf(user) + 20,
+                                    )
+                                    existing_user_pass=existing_user_pass!!.substring(existing_user_pass!!.length-12);
+                                    existing_user_pass=existing_user_pass!!.substring(1,12)
+
+
+                                    val settings3: SharedPreferences = Mapbox.getApplicationContext()
+                                        .getSharedPreferences("user_uid", 0)
+                                    val editor = settings3.edit()
+                                    editor.putString("tei-uid", existing_uid)
+                                    editor.apply();
+                                    Log.d("tei-uid---",existing_uid.toString());
+
+                                    if(response.contains(userpass))
+                                    {
+                                        Log.d("tei-uid---userpass--",existing_uid.toString());
+                                        val settings2: SharedPreferences = Mapbox.getApplicationContext()
+                                            .getSharedPreferences("user_uid", 0)
+                                        val editor = settings2.edit()
+                                        editor.putString("tei-uid", existing_uid)
+                                        editor.apply();
+
+                                        println("Success---- : $userpass")
+                                    }
+                                    else if(!response.contains(userpass))
+                                    {
+                                        Log.d("tei-uid---not--up--",existing_uid.toString());
+                                        val settings1: SharedPreferences = Mapbox.getApplicationContext()
+                                            .getSharedPreferences("user_uid", 0)
+                                        val editor = settings1.edit()
+                                        editor.putString("tei-uid", "pwderror")
+                                        editor.apply();
+
+                                        println("Invalid pass for : $userpass")
+                                    }
+                                }
+
+                                else if (!response.contains(user))
+                                {
+
+                                    var body1="{\"attributes\":[{\"attribute\":\"stuluwAni9L\",\"value\":\""+userpass+"\"}],\"enrollments\":[{\"program\":\"xV81JTF1M3C\",\"orgUnit\":\"bpwodUz0F0c\",\"status\":\"ACTIVE\",\"events\":[{\"status\":\"ACTIVE\",\"programStage\":\"p7aXvRYiToO\",\"program\":\"xV81JTF1M3C\",\"orgUnit\":\"bpwodUz0F0c\"}]}],\"orgUnit\":\"bpwodUz0F0c\",\"trackedEntityType\":\"BL4SAWpbS5b\"}"
+
+                                    println("User createed---- for: $userpass")
+                                    val mURL = URL(serverUrl+"/api/trackedEntityInstances")
+                                    doAsync {
+                                        with(mURL.openConnection() as HttpURLConnection) {
+                                            // optional default is GET
+                                            requestMethod = "POST"
+                                            setRequestProperty("Authorization", "Basic $creds")
+                                            setRequestProperty("Content-Type", "application/json;charset=UTF-8")
+
+                                            val wr = OutputStreamWriter(getOutputStream());
+                                            wr.write(body1);
+                                            wr.flush();
+
+                                            println("URL : $url")
+                                            println("Response Code : $responseCode")
+
+                                            BufferedReader(InputStreamReader(inputStream)).use {
+                                                val response = StringBuffer()
+                                                var inputLine = it.readLine()
+
+                                                var new_uid=inputLine.substring(
+                                                    inputLine.indexOf("api/trackedEntityInstances/") ,
+                                                    inputLine.lastIndexOf("api/trackedEntityInstances/") + 38,
+                                                )
+
+                                                new_uid=new_uid.substring(new_uid.length-11);
+                                                val settings: SharedPreferences = Mapbox.getApplicationContext()
+                                                    .getSharedPreferences("user_uid", 0)
+                                                val editor = settings.edit()
+                                                editor.putString("tei-uid", new_uid)
+                                                editor.apply();
+                                                Log.d("new_uid-----",new_uid);
+                                                while (inputLine != null) {
+                                                    response.append(inputLine)
+                                                    inputLine = it.readLine()
+                                                }
+
+                                                println("Response : $response")
+                                            }
+                                        }
+                                    }
+                                }
+                                println("Response : $response")
+                            }
+
+
+                        }
+                    }
+
+                }
+                else
+                {
+
+                    existing_uid=data.substring(
+                        data.indexOf("rows") ,
+                        data.lastIndexOf("rows") + 20,
+                    )
+                    existing_uid=existing_uid!!.substring(existing_uid!!.length-12);
+                    existing_uid=existing_uid!!.substring(1,12)
+                    Log.d("existing_uid---rec-",existing_uid.toString());
+
+                    val settings3: SharedPreferences = Mapbox.getApplicationContext()
+                        .getSharedPreferences("user_uid", 0)
+                    val editor = settings3.edit()
+                    editor.putString("tei-uid", existing_uid)
+                    editor.apply();
+                }
+
+//                if (data!!.length.equals(0))
+//                {
+//                    doAsync {
+//                        with(mURL1.openConnection() as HttpURLConnection) {
+//                            // optional default is GET
+//
+//                            requestMethod = "GET"
+//                            setRequestProperty("Authorization", "Basic $creds")
+//                            setRequestProperty("Content-Type", "application/json;charset=UTF-8")
+//
+//                            BufferedReader(InputStreamReader(inputStream)).use {
+//                                val response = StringBuffer()
+//
+//                                var userpass=user+"-"+pass
+//
+//                                if (response.contains(user))
+//                                {
+//                                    existing_user_pass=response.substring(
+//                                        response.indexOf(user) ,
+//                                        response.lastIndexOf(user) + 20,
+//                                    )
+//                                    existing_user_pass=existing_user_pass!!.substring(existing_user_pass!!.length-12);
+//                                    existing_user_pass=existing_user_pass!!.substring(1,12)
+//                                    Log.d("test","tee");
+//
+//                                    val settings3: SharedPreferences = getApplicationContext().getSharedPreferences("user_uid", 0)
+//                                    val editor = settings3.edit()
+//                                    editor.putString("tei-uid", existing_uid)
+//                                    editor.apply();
+//
+//
+//                                    if(response.contains(userpass))
+//                                    {
+//                                        val settings2: SharedPreferences = getApplicationContext().getSharedPreferences("user_uid", 0)
+//                                        val editor = settings2.edit()
+//                                        editor.putString("tei-uid", existing_uid)
+//                                        editor.apply();
+//
+//                                        println("Success---- : $userpass")
+//                                    }
+//                                    else if(!response.contains(userpass))
+//                                    {
+//                                        val settings1: SharedPreferences = getApplicationContext().getSharedPreferences("user_uid", 0)
+//                                        val editor = settings1.edit()
+//                                        editor.putString("tei-uid", "pwderror")
+//                                        editor.apply();
+//
+//                                        println("Invalid pass for : $userpass")
+//                                    }
+//                                }
+//
+//                                else if (!response.contains(user))
+//                                {
+//
+//                                    var body1="{\"attributes\":[{\"attribute\":\"stuluwAni9L\",\"value\":\""+userpass+"\"}],\"enrollments\":[{\"program\":\"xV81JTF1M3C\",\"orgUnit\":\"bpwodUz0F0c\",\"status\":\"ACTIVE\",\"events\":[{\"status\":\"ACTIVE\",\"programStage\":\"p7aXvRYiToO\",\"program\":\"xV81JTF1M3C\",\"orgUnit\":\"bpwodUz0F0c\"}]}],\"orgUnit\":\"bpwodUz0F0c\",\"trackedEntityType\":\"BL4SAWpbS5b\"}"
+//                                    println("User createed---- for: $userpass")
+//                                    val mURL = URL(serverUrl+"/api/trackedEntityInstances")
+//                                    doAsync {
+//                                        with(mURL.openConnection() as HttpURLConnection) {
+//                                            // optional default is GET
+//                                            requestMethod = "POST"
+//                                            setRequestProperty("Authorization", "Basic $creds")
+//                                            setRequestProperty("Content-Type", "application/json;charset=UTF-8")
+//
+//                                            val wr = OutputStreamWriter(getOutputStream());
+//                                            wr.write(body1);
+//                                            wr.flush();
+//
+//                                            println("URL : $url")
+//                                            println("Response Code : $responseCode")
+//
+//                                            BufferedReader(InputStreamReader(inputStream)).use {
+//                                                val response = StringBuffer()
+//                                                var inputLine = it.readLine()
+//
+//                                                var new_uid=inputLine.substring(
+//                                                    inputLine.indexOf("api/trackedEntityInstances/") ,
+//                                                    inputLine.lastIndexOf("api/trackedEntityInstances/") + 38,
+//                                                )
+//                                                new_uid=new_uid.substring(new_uid.length-11);
+//                                                val settings: SharedPreferences = getApplicationContext().getSharedPreferences("user_uid", 0)
+//                                                val editor = settings.edit()
+//                                                editor.putString("tei-uid", new_uid)
+//                                                editor.apply();
+//
+//                                                while (inputLine != null) {
+//                                                    response.append(inputLine)
+//                                                    inputLine = it.readLine()
+//                                                }
+//                                                println("Response : $response")
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                                println("Response : $response")
+//                            }
+//
+//
+//                        }
+//                    }
+//                    Log.d("test","failw");
+//                }
+//                else
+//                {
+//                    existing_uid=data.substring(
+//                        data.indexOf("rows") ,
+//                        data.lastIndexOf("rows") + 20,
+//                    )
+//                    existing_uid=existing_uid!!.substring(existing_uid!!.length-12);
+//                    existing_uid=existing_uid!!.substring(1,12)
+//                    Log.d("test","tee");
+//
+//                    val settings3: SharedPreferences = getApplicationContext().getSharedPreferences("user_uid", 0)
+//                    val editor = settings3.edit()
+//                    editor.putString("tei-uid", existing_uid)
+//                    editor.apply();
+//                }
+
+            }
+        }
+
+
+
+
+    }
+
 
     fun logIn(serverUrl: String, userName: String, pass: String) {
         disposable.add(
