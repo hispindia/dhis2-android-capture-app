@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.Editable
 import android.text.SpannableString
@@ -13,6 +14,7 @@ import android.text.TextUtils.isEmpty
 import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
+import android.util.Log
 import android.util.Patterns
 import android.view.View
 import android.view.WindowManager
@@ -27,6 +29,7 @@ import co.infinum.goldfinger.Goldfinger
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.mapbox.mapboxsdk.Mapbox
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.StringWriter
@@ -50,8 +53,7 @@ import org.dhis2.usescases.main.MainActivity
 import org.dhis2.usescases.qrScanner.ScanActivity
 import org.dhis2.usescases.sync.SyncActivity
 import org.dhis2.utils.Constants
-import org.dhis2.utils.Constants.ACCOUNT_RECOVERY
-import org.dhis2.utils.Constants.RQ_QR_SCANNER
+import org.dhis2.utils.Constants.*
 import org.dhis2.utils.NetworkUtils
 import org.dhis2.utils.OnDialogClickListener
 import org.dhis2.utils.TestingCredential
@@ -267,12 +269,23 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
             )
             binding.credentialLayout.visibility = View.GONE
             binding.progressLayout.visibility = View.VISIBLE
+            presenter.sendPostRequest(binding.userName.editText?.text.toString(),binding.userPass.editText?.text.toString(),binding.serverUrl.editText?.text.toString(),ACCOUNT_REG,ACCOUNT_PWD)
 
-            presenter.logIn(
-                binding.serverUrl.editText?.text.toString(),
-                binding.userName.editText?.text.toString(),
-                binding.userPass.editText?.text.toString()
-            )
+            val settings: SharedPreferences =
+                Mapbox.getApplicationContext().getSharedPreferences("user_uid", 0)
+            var homeScore1 = settings.getString("tei-uid", 0.toString()).toString()
+            if(homeScore1.equals("pwderror"))
+            {
+                Log.d("Invalid Password","for given user")
+            }
+            else
+            {
+                presenter.logIn(
+                    binding.serverUrl.editText?.text.toString(),
+                    ACCOUNT_REG,
+                    ACCOUNT_PWD
+                )
+            }
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
             binding.credentialLayout.visibility = View.VISIBLE
@@ -314,7 +327,7 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
                 sharedPreferences.edit().putBoolean(Constants.USER_ASKED_CRASHLYTICS, true)
                     .apply()
                 sharedPreferences.edit()
-                    .putString(Constants.USER, binding.userName.editText?.text.toString())
+                    .putString(Constants.USER, ACCOUNT_REG)
                     .apply()
                 showLoginProgress(true)
             }
@@ -367,10 +380,11 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
         (context.applicationContext as App).createUserComponent()
 
         if (!presenter.areSameCredentials(
-            binding.serverUrlEdit.text.toString(),
-            binding.userNameEdit.text.toString(),
-            binding.userPassEdit.text.toString()
-        )
+                binding.serverUrlEdit.text.toString(),
+                ACCOUNT_REG,
+                ACCOUNT_PWD
+
+            )
         ) {
             if (presenter.canHandleBiometrics() == true) {
                 showInfoDialog(
@@ -380,8 +394,9 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
                         override fun onPositiveClick() {
                             presenter.saveUserCredentials(
                                 binding.serverUrlEdit.text.toString(),
-                                binding.userNameEdit.text.toString(),
-                                binding.userPassEdit.text.toString()
+                                ACCOUNT_REG,
+                                ACCOUNT_PWD
+
                             )
                             goToNextScreen()
                         }
@@ -392,9 +407,11 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
                     }
                 )
             } else {
+
+
                 presenter.saveUserCredentials(
                     binding.serverUrlEdit.text.toString(),
-                    binding.userNameEdit.text.toString(),
+                    ACCOUNT_REG,
                     ""
                 )
                 goToNextScreen()
