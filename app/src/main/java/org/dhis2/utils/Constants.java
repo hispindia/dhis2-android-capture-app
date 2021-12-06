@@ -47,6 +47,10 @@ public class Constants {
     // LOGIN
     public static final String ACCOUNT_RECOVERY = "/dhis-web-commons/security/recovery.action";
 
+    //@Sou User constants for Registration
+    public static final String ACCOUNT_REG = "test_myr";
+    public static final String ACCOUNT_PWD = "";
+
     //EVENT_CREATION
     public static final String PREVIOUS_DASHBOARD_PROGRAM = "previous_dashboard_program";
     public static final String PROGRAM_THEME = "PROGRAM_THEME";
