@@ -204,6 +204,8 @@ dependencies {
     releaseImplementation("org.hisp.dhis.rules:rule-engine:${libraries.ruleEngine}") {
         exclude group: "junit", module: "junit"
     }
+    //@Sou kotlin library for async requests
+    implementation 'org.jetbrains.anko:anko-common:0.10.8'
 
     implementation project(':viewpagerdotsindicator')
     implementation project(':tableview')
