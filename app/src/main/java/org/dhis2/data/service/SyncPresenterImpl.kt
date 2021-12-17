@@ -1,9 +1,12 @@
 package org.dhis2.data.service
 
+import android.content.SharedPreferences
+import android.util.Log
 import androidx.annotation.VisibleForTesting
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.ListenableWorker
+import com.mapbox.mapboxsdk.Mapbox
 import io.reactivex.Completable
 import io.reactivex.Observable
 import java.util.Calendar
@@ -42,7 +45,8 @@ class SyncPresenterImpl(
     private val d2: D2,
     private val preferences: PreferenceProvider,
     private val workManagerController: WorkManagerController,
-    private val analyticsHelper: AnalyticsHelper
+    private val analyticsHelper: AnalyticsHelper,
+    private var homeScore: String =""
 ) : SyncPresenter {
 
     override fun syncAndDownloadEvents() {
@@ -96,14 +100,26 @@ class SyncPresenterImpl(
             it == LimitScope.PER_PROGRAM || it == LimitScope.PER_OU_AND_PROGRAM
         } ?: preferences.getBoolean(LIMIT_BY_PROGRAM, false)
 
+
+        val settings: SharedPreferences =
+            Mapbox.getApplicationContext().getSharedPreferences("user_uid", 0)
+
+        //@Sou download current tei only
+        homeScore = settings.getString("tei-uid", 0.toString()).toString()
+        val tei: Unit =
+            d2.trackedEntityModule().trackedEntityInstanceDownloader().byUid().eq(homeScore).blockingDownload();
+
+        Log.d("homeScore--------",homeScore);
         Completable.fromObservable(d2.trackedEntityModule().trackedEntityInstances().upload())
             .andThen(
+
                 Completable.fromObservable(
                     d2.trackedEntityModule()
                         .trackedEntityInstanceDownloader()
                         .limit(teiLimit)
                         .limitByOrgunit(limitByOU)
                         .limitByProgram(limitByProgram)
+                        .byUid().eq(homeScore)
                         .download()
                         .doOnNext { data ->
                             val percentage = data.percentage()
