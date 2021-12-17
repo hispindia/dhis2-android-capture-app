@@ -1,0 +1,74 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="10dp"
+    android:fillViewport="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:textSize="30dp"
+            android:textColor="#5190DF"
+            android:background="@drawable/my_border"
+            android:layout_weight="1"
+            android:text="@string/tobbacco_title"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="271dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/my_border"
+            android:inputType="textMultiLine"
+            android:justificationMode="inter_word"
+            android:text="@string/para1_tob"
+            android:textColor="#C55A11"
+            android:textSize="22dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#3C3B3B"
+            android:background="@drawable/my_border"
+            android:textSize="18dp"
+            android:justificationMode="inter_word"
+            android:inputType="textMultiLine"
+            android:text="@string/tobacco_1" />
+
+
+        <!--        <ImageView-->
+<!--        android:id="@+id/imageView"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="200dp"-->
+<!--        android:scaleType="centerCrop"-->
+<!--        android:src="@drawable/afghanistan" />-->
+
+<!--        <Button-->
+<!--            android:id="@+id/button"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="KNOW MORE" />-->
+
+<!--        <TextView-->
+<!--            android:id="@+id/textView"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="@string/title"-->
+<!--            android:textAppearance="?android:attr/textAppearanceLarge" />-->
+
+<!--        <TextView-->
+<!--            android:id="@+id/textView2"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="@string/description"-->
+<!--            android:textAppearance="?android:attr/textAppearanceSmall" />-->
+    </LinearLayout>
+</ScrollView>
