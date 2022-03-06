@@ -36,6 +36,7 @@
 
     <string name="sync_error_title">Sync Error</string>
     <string name="sync_error_text">An error has occurred during synchronisation. Please retry.</string>
+    <string name="sync_incomplete_error_text">Sync finished but we did not receive server confirmation for all records. Those record are still marked as "offline" in the App. We recommend to retry the synchronization.</string>
     <string name="metadata_sync_error">FAIL: Something went wrong in the sync process. If you have connection please try again. If the error persist, contact your administrator.</string>
     <string name="data_sync_warning">WARNING: Most of your data is synced but some fields presented conflicts. Sync your configuration and try again. Check their sync status: programs, TEI\'s and events with conflicts are marked as @.</string>
     <string name="data_sync_warning_program">WARNING: Most of your data is synced but some fields presented conflicts. Sync your configuration and try again. If warning persists, check their sync status: programs, TEI\'s and events with conflicts are marked as @.</string>
@@ -54,7 +55,9 @@
     <string name="url_hint">Server url</string>
     <string name="user_hint">Username</string>
     <string name="password_hint">Password</string>
+    <string name="lang_hint">Select Language</string>
     <string name="log_in_button">Log In</string>
+    <string name="sup_log_in_button">Sign Up</string>
     <string name="unlock_button">Unlock session</string>
     <string name="syncing_configuration">Syncing your Configuration</string>
     <string name="syncing_data_shortly">Your Data will shortly be synced</string>
@@ -319,6 +322,7 @@
 
     <!-- QR -->
     <string name="QR_SCANNER">Import QR data</string>
+    <string name="COUNSELING">Counseling</string>
     <string name="SAVE">Save</string>
     <string name="button_ok">OK</string>
     <string name="qr_id">Identification</string>
@@ -359,7 +363,32 @@
     <string name="reserved_value">Reserved Values</string>
 
     <string name="downloaded_confirm">Do you want to add more data from QR?</string>
+<!--    <string name="popup_para2">-->
+<!--This screening activity is part of the SUNI- SEA research project, which aims to strengthen the prevention and management of non-communicable diseases. The purpose of the self-screening application is to assess if you are at risk for high blood pressure, diabetes or mental health issues.  In addition, when you use the application, you will receive information about healthy lifestyle practices. After completing the screening, if you are identified to be at risk, you can seek further advice from a health care provider.-->
+<!--Your participation in the self-care screening activity is voluntary. You can stop participating at any time before or during the screening without any repercussions. The screening is free of charge.-->
+<!--    </string>-->
 
+    <string name="about_pop">
+
+        This screening activity is part of the SUNI- SEA research project, which aims to strengthen the prevention and management of non-communicable diseases. The purpose of the self-screening application is to assess if you are at risk for high blood pressure, diabetes or mental health issues.  In addition, when you use the application, you will receive information about healthy lifestyle practices. After completing the screening, if you are identified to be at risk, you can seek further advice from a health care provider.
+Your participation in the self-care screening activity is voluntary. You can stop participating at any time before or during the screening without any repercussions. The screening is free of charge.
+If you agree your screening information will be shared with the SUNI SEA project research team. To ensure confidentiality your name will not be provided to the research team. The screening information will help to inform the design of improved services for prevention and treatment of high blood pressure, diabetes and mental health issues in Myanmar.  Access to the screening information is restricted to a limited number of approved SUNI -SEA project researchers.
+Do you agree that your screening information can be shared with SUNI – SEA Project researchers?
+    </string>
+    <string name="about_pop_my">
+        ဤစစ်ဆေးမှုသည် SUNI-SEA သုတေသနပရောဂျက် ၏ တစ်စိတ်တစ်ပိုင်းဖြစ်ပြီး မကူးစက်နိုင်သောရောဂါများ ကာကွယ်ရေးနှင့် စီမံခန့်ခွဲမှုကို အားကောင်းစေရန် ရည်ရွယ်ပါသည်။ မိမိကိုယ်တိုင်ကျန်းမာရေးစစ်ဆေးခြင်းအပလီကေးရှင်း၏ ရည်ရွယ်ချက်မှာ သင်သည် သွေးတိုး၊ ဆီးချို သို့မဟုတ် စိတ်ကျန်းမာရေးပြဿနာများ အတွက် အန္တရာယ်ဖြစ်နိုင်ချေရှိမရှိ အကဲဖြတ်ရန်ဖြစ်သည်။ ထို့အပြင် သင်သည် အပလီကေးရှင်းကိုအသုံးပြုသောအခါ ကျန်းမာသော လူနေမှုပုံစံစသည့် အလေ့အကျင့်ကောင်းများအကြောင်း သတင်းအချက်အလက်များကို ရရှိလိမ့်မည်။ စစ်ဆေးမှုပြီးဆုံးသောအခါ သင်သည် အန္တရာယ်ဖြစ်နိုင်ချေရှိကြောင်း တွေ့ရှိပါက ကျန်းမာရေးစောင့်ရှောက်မှုပေးသူထံမှ နောက်ထပ်အကြံဉာဏ်များကို ရယူနိုင်ပါသည်။
+မိမိကိုယ်ကိုကျန်းမာရေးစစ်ဆေးရေးအစီအစဉ်တွင် သင်၏ ပါဝင်မှုသည် ဆန္ဒအလျောက် ဖြစ်သည်။ စစ်ဆေးမှုမပြုလုပ်မီ သို့မဟုတ် စစ်ဆေးမှုအတွင်း မည်သည့်အချိန်တွင်မဆို ပါဝင်ခြင်းကို ရပ်တန့်နိုင်သည်။ စစ်ဆေးမှုသည် အခမဲ့ဖြစ်သည်။
+သင်သဘောတူပါက သင်၏စစ်ဆေးမှုအချက်အလက်များကို SUNI SEA ပရောဂျက်သုတေသနအဖွဲ့ထံ မျှဝေမည်ဖြစ်ပါသည်။ လျှို့ဝှက်သေချာစေရန်အတွက် သင့်အမည်ကို သုတေသနအဖွဲ့ထံ ပေးမည်မဟုတ်ပါ။ စစ်ဆေးခြင်းဆိုင်ရာ အချက်အလက်များသည် မြန်မာနိုင်ငံရှိ သွေးတိုး၊ ဆီးချိုနှင့် စိတ်ကျန်းမာရေးဆိုင်ရာ ပြဿနာများကို ကြိုတင်ကာကွယ်ခြင်းနှင့် ကုသခြင်းအတွက် ပိုမိုကောင်းမွန်သော ဝန်ဆောင်မှုများ ဒီဇိုင်းရေးဆွဲခြင်းအား အထောက်အပံဖြစ်ရန် ကူညီပေးမည်ဖြစ်ပါသည်။ စစ်ဆေးခြင်းဆိုင်ရာ အချက်အလက်သို့ ဝင်ရောက်ခွင့်ကို အတည်ပြုထားသော SUNI-SEA ပရောဂျက် သုတေသီများ၏ အရေအတွက် အကန့်အသတ်ဖြင့် သာ သတ်မှတ်ထားပါသည်။
+
+သင်၏ စစ်ဆေးမှုအချက်အလက်များကို SUNI-SEA စီမံချက်သုတေသီများ နှင့် မျှဝေနိုင်သည်ကို သဘောတူပါသလား?
+
+    </string>
+    <string name="yes_my">
+        ဟုတ်တယ်
+    </string>
+    <string name="no_my">
+        မဟုတ်ဘူး
+    </string>
     <!--ABOUT-->
     <string name="about_app">App Version: %s</string>
     <string name="about_sdk">SDK Version: %s</string>
@@ -367,6 +396,7 @@
     <string name="about_user">Current user: %s</string>
     <string name="about_more">More about this app: read <a href="https://drive.google.com/open?id=1YHRBk6LSp6uROfs19-wCfQGc-rgl2f5iDrhCDasTR8M">here</a> what\'s supported and what\'s not supported</string>
     <string name="about_git">This and previous versions of this application, as well as the source code are available at <a href="https://github.com/dhis2/dhis2-android-capture-app">GitHub</a>. DHIS2 Android Capture is licensed under the terms of the GNU General Public License as published by the Free Software Foundation - see <a href="http://www.gnu.org/licenses/gpl-3.0.html">http://www.gnu.org/licenses/gpl-3.0.html</a>.</string>
+
     <string name="about_dev">Developed and maintained by the <a href="https://www.dhis2.org/">DHIS2</a> project, part of University of Oslo, <a href="https://www.mn.uio.no/ifi/english/">department of informatics</a>.</string>
     <string name="about_contact">For more information or questions about this application, please write to <a href="mailto:android@dhis2.org">android@dhis2.org</a></string>
 
@@ -753,6 +783,13 @@
     <string name="dataset_data">Data</string>
     <string name="tei_type_has_no_attributes">%s has no public attributes. Please select a program</string>
     <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="nutrition_title">Nutrition Counseling</string>
+    <string name="alcohol_title">Alcohol Counseling</string>
+    <string name="diab_title">Diabetic Counseling</string>
+    <string name="counseling_title">Counseling</string>
+    <string name="mental_title">Mental Health Counseling</string>
+    <string name="physical_title">Physical Activity  Counseling</string>
+    <string name="tobacco_title">Tobacco Counseling</string>
     <string name="open_privacy_policy">Click here to check our <a href="">privacy policy</a> </string>
     <string name="coordinates_error">Coordinates values are not valid</string>
     <string name="break_glass_error">You cannot enroll TEIs from other org units in this program because it is protected.\nContact your administrator.</string>
@@ -771,6 +808,23 @@
     <string name="customactivityoncrash_error_activity_error_details_clipboard_label">Error information</string>
     <string name="metada_first_sync_error">We found an error when syncing with your server. Share the error with your system administrator if possible.</string>
     <string name="error_init_session">We could not init the session with your user</string>
+
+    <style name="LanguageSelector">
+        <item name="android:layout_width">340dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:layout_marginBottom">1px</item>
+        <item name="android:paddingLeft">2dp</item>
+        <item name="android:paddingTop">9dp</item>
+        <item name="android:paddingRight">9dp</item>
+        <item name="android:paddingBottom">9dp</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+    <string-array name="language_arrays">
+        <item>English</item>
+        <item>Burmese</item>
+    </string-array>
+
     <string name="enrollment_date_edition_warning">There are planned events that won\'t be re-scheduled</string>
     <string name="jira_issue_sent">Issue Sent</string>
     <string name="jira_issue_sent_error">Error sending issue</string>
@@ -791,6 +845,7 @@
     <string name="show_line_graph">View as Line</string>
     <string name="show_table_graph">View as Table</string>
     <string name="show_table_value">View as Value</string>
+    <string name="show_pie_value">View as Pie</string>
     <string name="working_list_default_label">Working list %s</string>
     <string name="filter_period_last_n_days">Last %d days</string>
     <string name="filter_period_this_year">This year</string>
@@ -835,6 +890,8 @@
     <string name="break_glass_hint">Describe the reason here</string>
     <string name="authenticating">Authenticating</string>
     <string name="login_error_no_dhis_instance">Provided server url is not a dhis instance</string>
+    <string name="login_error_bad_credentials">Wrong credentials</string>
+    <string name="login_error_unknown_host">Unknown server</string>
     <string name="invalid_integer">Value must be an integer</string>
     <string name="openid_session_expired">The session has expired</string>
     <string name="openid_session_expired_message">Your current session has expired. For security reasons you will need to provide your credentials again</string>
@@ -842,4 +899,167 @@
     <string name="period_span_default_label" translatable="false">%s - %s</string>
     <string name="week_period_span_default_label">Week %d %s to %s</string>
     <string name="biweek_period_span_default_label" translatable="false">%d %s - %d %s</string>
+    <string name="unsupported_field_description">This field is not available for mobile capture</string>
+    <string name="conf_error_value_to_assign_option_set">Program rule %s is trying to assign value %s which does not belongs to option set %s</string>
+    <string name="conf_error_value_option_set">Value for field %s does not belong to the option set in %s</string>
+    <string name="action_do_not_show_again">Do not show again</string>
+    <string name="feature_configuration">Feature Configuration</string>
+    <string name="show_radar_graph">Show as Radar</string>
+    <string name="coordinate_feature_type_error">Can not set coordinate type</string>
+    <string name="filter_follow_up_label">Followed up %s</string>
+    <string name="wrong_date_format">%s can\'t be parsed as a date</string>
+    <string name="update_field_error">This field could not be updated. Please try again</string>
+    <string name="edition">Edition</string>
+    <string name="available">Available</string>
+    <string name="blocked_by_completion">This data is not editable because is marked as completed</string>
+    <string name="edition_expired">This data is not editable because its edition time is expired</string>
+    <string name="edition_no_write_access">You do not have permission to edit this data</string>
+    <string name="event_date_not_in_orgunit_range">This data is not editable because the organization unit is closed</string>
+    <string name="edition_no_catcombo_access">You do not have permission to edit this data</string>
+    <string name="edition_enrollment_is_no_open">This data is not editable because the enrollment is completed or cancelled</string>
+    <string name="edition_orgunit_capture_scope">You cannot edit data from this organisation unit</string>
+    <string name="reload_list">Reset search</string>
+
+
+    <string name="tobbacco_title">Tobacco counseling</string>
+    <string name="para1_tob">
+      Tobacco smoking can lead to lung cancer, chronic bronchitis, and emphysema.
+        It increases the risk of heart disease, which can lead to stroke or heart attack.
+        Smoking has also been linked to other cancers, leukemia, cataracts, and pneumonia.
+        Smokeless tobacco increases the risk of cancer, especially mouth cancers.
+    </string>
+    <string name="nutri_para_1">
+Take 3 basic food groups in each meal everyday.
+Eat meat, fish, eggs , milk and milk products everyday
+Eat more fresh and organic fruit and vegetables instead of eating preserved food.
+Reduce eating fatty, salty and sweetened foods .
+
+    </string>
+    <string name="tobacco_1">
+        <br>
+            All non - smokers do not start smoking \n
+      </br>
+        <br>
+        All smokers try to stop smoking with their efforts \n
+      </br>
+        <br>
+         Individuals who use other forms of tobacco should be quit \n
+      </br>
+    </string>
+    <string name="title_activity_tob_counselling">Tob_Counselling</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="title_activity_tobacco">Tobacco</string>
+    <string name="large_text">
+        "Material is the metaphor.\n\n"
+
+        "A material metaphor is the unifying theory of a rationalized space and a system of motion."
+        "The material is grounded in tactile reality, inspired by the study of paper and ink, yet "
+        "technologically advanced and open to imagination and magic.\n"
+        "Surfaces and edges of the material provide visual cues that are grounded in reality. The "
+        "use of familiar tactile attributes helps users quickly understand affordances. Yet the "
+        "flexibility of the material creates new affordances that supercede those in the physical "
+        "world, without breaking the rules of physics.\n"
+        "The fundamentals of light, surface, and movement are key to conveying how objects move, "
+        "interact, and exist in space and in relation to each other. Realistic lighting shows "
+        "seams, divides space, and indicates moving parts.\n\n"
+
+        "Bold, graphic, intentional.\n\n"
+
+        "The foundational elements of print based design typography, grids, space, scale, color, "
+        "and use of imagery guide visual treatments. These elements do far more than please the "
+        "eye. They create hierarchy, meaning, and focus. Deliberate color choices, edge to edge "
+        "imagery, large scale typography, and intentional white space create a bold and graphic "
+        "interface that immerse the user in the experience.\n"
+        "An emphasis on user actions makes core functionality immediately apparent and provides "
+        "waypoints for the user.\n\n"
+
+        "Motion provides meaning.\n\n"
+
+        "Motion respects and reinforces the user as the prime mover. Primary user actions are "
+        "inflection points that initiate motion, transforming the whole design.\n"
+        "All action takes place in a single environment. Objects are presented to the user without "
+        "breaking the continuity of experience even as they transform and reorganize.\n"
+        "Motion is meaningful and appropriate, serving to focus attention and maintain continuity. "
+        "Feedback is subtle yet clear. Transitions are efﬁcient yet coherent.\n\n"
+
+        "3D world.\n\n"
+
+        "The material environment is a 3D space, which means all objects have x, y, and z "
+        "dimensions. The z-axis is perpendicularly aligned to the plane of the display, with the "
+        "positive z-axis extending towards the viewer. Every sheet of material occupies a single "
+        "position along the z-axis and has a standard 1dp thickness.\n"
+        "On the web, the z-axis is used for layering and not for perspective. The 3D world is "
+        "emulated by manipulating the y-axis.\n\n"
+
+        "Light and shadow.\n\n"
+
+        "Within the material environment, virtual lights illuminate the scene. Key lights create "
+        "directional shadows, while ambient light creates soft shadows from all angles.\n"
+        "Shadows in the material environment are cast by these two light sources. In Android "
+        "development, shadows occur when light sources are blocked by sheets of material at "
+        "various positions along the z-axis. On the web, shadows are depicted by manipulating the "
+        "y-axis only. The following example shows the card with a height of 6dp.\n\n"
+
+        "Resting elevation.\n\n"
+
+        "All material objects, regardless of size, have a resting elevation, or default elevation "
+        "that does not change. If an object changes elevation, it should return to its resting "
+        "elevation as soon as possible.\n\n"
+
+        "Component elevations.\n\n"
+
+        "The resting elevation for a component type is consistent across apps (e.g., FAB elevation "
+        "does not vary from 6dp in one app to 16dp in another app).\n"
+        "Components may have different resting elevations across platforms, depending on the depth "
+        "of the environment (e.g., TV has a greater depth than mobile or desktop).\n\n"
+
+        "Responsive elevation and dynamic elevation offsets.\n\n"
+
+        "Some component types have responsive elevation, meaning they change elevation in response "
+        "to user input (e.g., normal, focused, and pressed) or system events. These elevation "
+        "changes are consistently implemented using dynamic elevation offsets.\n"
+        "Dynamic elevation offsets are the goal elevation that a component moves towards, relative "
+        "to the component’s resting state. They ensure that elevation changes are consistent "
+        "across actions and component types. For example, all components that lift on press have "
+        "the same elevation change relative to their resting elevation.\n"
+        "Once the input event is completed or cancelled, the component will return to its resting "
+        "elevation.\n\n"
+
+        "Avoiding elevation interference.\n\n"
+
+        "Components with responsive elevations may encounter other components as they move between "
+        "their resting elevations and dynamic elevation offsets. Because material cannot pass "
+        "through other material, components avoid interfering with one another any number of ways, "
+        "whether on a per component basis or using the entire app layout.\n"
+        "On a component level, components can move or be removed before they cause interference. "
+        "For example, a floating action button (FAB) can disappear or move off screen before a "
+        "user picks up a card, or it can move if a snackbar appears.\n"
+        "On the layout level, design your app layout to minimize opportunities for interference. "
+        "For example, position the FAB to one side of stream of a cards so the FAB won’t interfere "
+        "when a user tries to pick up one of cards.\n\n"
+    </string>
+    <string name="action_settings">Settings</string>
+
+    <!-- Strings related to navigation -->
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">User name</string>
+    <string name="nav_header_subtitle">user@email.com</string>
+    <string name="session">Session</string>
+    <string name="data_entry">Data Entry</string>
+    <string name="log_out_custom">Log-Out and Exit</string>
+
+    <string-array name="sex_array">
+        <item>Cappuccino</item>
+        <item>Espresso</item>
+        <item>Mocha</item>
+        <item>Caffè Americano</item>
+        <item>Cafe Zorro</item>
+    </string-array>
 </resources>

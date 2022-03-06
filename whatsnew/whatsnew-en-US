@@ -1,10 +1,6 @@
-This new version includes the following features:
-- User experience and user interface improvements.
-- Indicator form event programs and data sets.
-- Local analytics at TEI level.
-- Display attributes and data elements on maps.
-- Navigate to selected location on maps.
-- Working lists.
-- Stability improvements.
-
-You can find all details in Jira and Github (github.com/dhis2/dhis2-android-capture-app).
+This is a patch version that fixes:
+- [ANDROAPP-4274](https://jira.dhis2.org/browse/ANDROAPP-4274) Wrong behavior of the selector of org units with open/close dates
+- [ANDROAPP-4273](https://jira.dhis2.org/browse/ANDROAPP-4273) App displays incorrect screen in "Notes" tab
+- [ANDROAPP-4269](https://jira.dhis2.org/browse/ANDROAPP-4269) Unable to select future dates when scheduling an event
+....
+You can find in Jira details on the [bugs fixed](https://jira.dhis2.org/issues/?filter=12099).

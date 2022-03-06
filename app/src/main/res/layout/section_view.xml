@@ -186,18 +186,35 @@
             android:paddingStart="16dp"
             android:paddingEnd="15dp"
             android:visibility="@{item.isClosingSection() ? View.VISIBLE : View.GONE}"
-            app:layout_constraintTop_toBottomOf="@id/section_details" />
+            app:layout_constraintTop_toBottomOf="@id/section_details" >
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        //@Sou set image for each section
+
 
         <ImageView
             android:id="@+id/shadow_top"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/form_field_background"
+            android:background="@drawable/shadow"
+            android:visibility="gone"
             android:scaleType="fitXY"
             android:src="@drawable/inner_shadow_top"
-            android:visibility="@{item.isOpen() ? View.VISIBLE : View.GONE}"
             app:layout_constraintTop_toBottomOf="@id/last_section_details"
-            tools:visibility="visible" />
+            tools:visibility="gone" />
+
+<!--        <ImageView-->
+<!--            android:id="@+id/shadow_top"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:background="@drawable/smoking"-->
+<!--            android:scaleType="fitXY"-->
+<!--            android:src="@drawable/inner_shadow_top"-->
+<!--            android:visibility="@{item.isOpen() ? View.VISIBLE : View.GONE}"-->
+<!--            app:layout_constraintTop_toBottomOf="@id/last_section_details"-->
+<!--            tools:visibility="visible" />-->
 
         <View
             android:id="@+id/shadow_end"
@@ -207,6 +224,8 @@
             android:visibility="@{item.isClosingSection() ? View.VISIBLE : View.GONE}"
             app:layout_constraintTop_toBottomOf="@id/last_section_details"
             tools:visibility="visible" />
+
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </layout>

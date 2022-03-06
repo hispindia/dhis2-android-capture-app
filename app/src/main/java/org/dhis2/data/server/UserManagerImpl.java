@@ -6,20 +6,28 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.hisp.dhis.android.core.D2;
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.android.core.user.User;
 import org.hisp.dhis.android.core.user.UserCredentials;
 import org.hisp.dhis.android.core.user.openid.IntentWithRequestCode;
 import org.hisp.dhis.android.core.user.openid.OpenIDConnectConfig;
 
+import java.util.List;
+
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import kotlin.Pair;
 
 public class UserManagerImpl implements UserManager {
     private final D2 d2;
+    private final ServerSettingsRepository repository;
 
-    public UserManagerImpl(@NonNull D2 d2) {
+    public UserManagerImpl(@NonNull D2 d2, ServerSettingsRepository repository) {
         this.d2 = d2;
+        this.repository = repository;
     }
+
 
     @NonNull
     @Override
@@ -75,5 +83,20 @@ public class UserManagerImpl implements UserManager {
     @Override
     public D2 getD2() {
         return d2;
+    }
+
+    @NonNull
+    @Override
+    public Single<Pair<String, Integer>> getTheme() {
+        return repository.getTheme();
+    }
+
+    public Completable logout() {
+        return d2.userModule().logOut();
+    }
+
+    @Override
+    public boolean allowScreenShare() {
+        return repository.allowScreenShare();
     }
 }

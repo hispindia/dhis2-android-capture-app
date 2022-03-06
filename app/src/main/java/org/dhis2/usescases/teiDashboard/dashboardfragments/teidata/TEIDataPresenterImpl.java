@@ -1,7 +1,9 @@
 package org.dhis2.usescases.teiDashboard.dashboardfragments.teidata;
 
 import android.content.Intent;
+import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityOptionsCompat;
@@ -10,11 +12,11 @@ import com.google.gson.reflect.TypeToken;
 
 import org.dhis2.Bindings.ExtensionsKt;
 import org.dhis2.R;
-import org.dhis2.data.filter.FilterRepository;
+import org.dhis2.commons.prefs.Preference;
+import org.dhis2.commons.prefs.PreferenceProvider;
+import org.dhis2.commons.filters.data.FilterRepository;
 import org.dhis2.data.forms.dataentry.RuleEngineRepository;
-import org.dhis2.data.prefs.Preference;
-import org.dhis2.data.prefs.PreferenceProvider;
-import org.dhis2.data.schedulers.SchedulerProvider;
+import org.dhis2.commons.schedulers.SchedulerProvider;
 import org.dhis2.data.tuples.Pair;
 import org.dhis2.data.tuples.Trio;
 import org.dhis2.usescases.enrollment.EnrollmentActivity;
@@ -30,14 +32,16 @@ import org.dhis2.utils.EventCreationType;
 import org.dhis2.utils.EventMode;
 import org.dhis2.utils.Result;
 import org.dhis2.utils.analytics.AnalyticsHelper;
-import org.dhis2.utils.filters.FilterManager;
+import org.dhis2.commons.filters.FilterManager;
 import org.hisp.dhis.android.core.D2;
+import org.hisp.dhis.android.core.D2Manager;
 import org.hisp.dhis.android.core.enrollment.Enrollment;
 import org.hisp.dhis.android.core.event.Event;
 import org.hisp.dhis.android.core.event.EventStatus;
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnit;
 import org.hisp.dhis.android.core.program.Program;
 import org.hisp.dhis.android.core.program.ProgramStage;
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityAttributeValue;
 import org.hisp.dhis.rules.models.RuleActionHideProgramStage;
 import org.hisp.dhis.rules.models.RuleEffect;
 
@@ -81,6 +85,7 @@ public class TEIDataPresenterImpl implements TEIDataContracts.Presenter {
     private String programUid;
     private DashboardProgramModel dashboardModel;
     private String currentStage = null;
+    private List<String> stagesToHide;
 
     public TEIDataPresenterImpl(TEIDataContracts.View view, D2 d2,
                                 DashboardRepository dashboardRepository,
@@ -193,7 +198,11 @@ public class TEIDataPresenterImpl implements TEIDataContracts.Presenter {
                             .subscribeOn(schedulerProvider.io())
                             .observeOn(schedulerProvider.ui())
                             .subscribe(
-                                    view.setEvents(),
+                                    events ->
+                                            view.setEvents(
+                                                    events,
+                                                    canAddNewEvents()
+                                            ),
                                     Timber::d
                             )
             );
@@ -260,7 +269,7 @@ public class TEIDataPresenterImpl implements TEIDataContracts.Presenter {
             return events;
         }
 
-        List<String> stagesToHide = new ArrayList<>();
+        stagesToHide = new ArrayList<>();
         for (RuleEffect ruleEffect : calcResult.items()) {
             if (ruleEffect.ruleAction() instanceof RuleActionHideProgramStage) {
                 RuleActionHideProgramStage hideStageAction =
@@ -372,6 +381,7 @@ public class TEIDataPresenterImpl implements TEIDataContracts.Presenter {
         view.showQR(intent);
     }
 
+    //@Sou seedetails function
     @Override
     public void seeDetails(View sharedView, DashboardProgramModel dashboardProgramModel) {
         ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(view.getAbstractActivity(), sharedView, "user_info");
@@ -389,13 +399,31 @@ public class TEIDataPresenterImpl implements TEIDataContracts.Presenter {
         view.openEventDetails(intent, options.toBundle());
     }
 
+    //@Sou fill see details on event select
     @Override
     public void onEventSelected(String uid, EventStatus eventStatus, View sharedView) {
+
         if (eventStatus == EventStatus.ACTIVE || eventStatus == EventStatus.COMPLETED) {
-            Intent intent = new Intent(view.getContext(), EventCaptureActivity.class);
-            intent.putExtras(EventCaptureActivity.getActivityBundle(uid, programUid, EventMode.CHECK));
-            view.openEventCapture(intent);
+//            Boolean see_details=true;
+//            List<TrackedEntityAttributeValue> teav=D2Manager.getD2().trackedEntityModule().trackedEntityAttributeValues().byTrackedEntityInstance().eq(teiUid).blockingGet();
+//            if (teav.size()<6)
+//            {
+//                see_details=false;
+//            }
+
+//            if (see_details==true)
+//            {
+                Intent intent = new Intent(view.getContext(), EventCaptureActivity.class);
+                intent.putExtras(EventCaptureActivity.getActivityBundle(uid, programUid, EventMode.CHECK));
+                view.openEventCapture(intent);
+//            }
+//            else if (see_details==false)
+//            {
+//                Toast.makeText(view.getContext(), "Please fill all attribute details first from See Details", Toast.LENGTH_LONG).show();
+//            }
+
         } else {
+//            Toast.makeText(view.getContext(), "Event 2nd Selected", Toast.LENGTH_LONG).show();
             Event event = d2.eventModule().events().uid(uid).blockingGet();
             Intent intent = new Intent(view.getContext(), EventInitialActivity.class);
             intent.putExtras(EventInitialActivity.getBundle(
@@ -499,5 +527,24 @@ public class TEIDataPresenterImpl implements TEIDataContracts.Presenter {
                 .byOrganisationUnitScope(OrganisationUnit.Scope.SCOPE_DATA_CAPTURE)
                 .byUid().eq(enrollmentOrgUnit)
                 .blockingIsEmpty();
+    }
+
+    @Override
+    public void setOpeningFilterToNone() {
+        filterRepository.collapseAllFilters();
+    }
+
+    @Override
+    public void setOrgUnitFilters(List<OrganisationUnit> selectedOrgUnits) {
+        FilterManager.getInstance().addOrgUnits(selectedOrgUnits);
+    }
+
+    private boolean canAddNewEvents() {
+        return d2.enrollmentModule()
+                .enrollmentService()
+                .blockingGetAllowEventCreation(
+                        enrollmentUid,
+                        stagesToHide
+                );
     }
 }

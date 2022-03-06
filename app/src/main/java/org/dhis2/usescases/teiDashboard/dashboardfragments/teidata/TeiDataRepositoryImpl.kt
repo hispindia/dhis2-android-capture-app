@@ -4,13 +4,13 @@ import io.reactivex.Single
 import java.util.Locale
 import org.dhis2.Bindings.applyFilters
 import org.dhis2.Bindings.userFriendlyValue
+import org.dhis2.commons.filters.Filters
+import org.dhis2.commons.filters.sorting.SortingItem
+import org.dhis2.commons.filters.sorting.SortingStatus
 import org.dhis2.data.dhislogic.DhisPeriodUtils
 import org.dhis2.usescases.teiDashboard.dashboardfragments.teidata.teievents.EventViewModel
 import org.dhis2.usescases.teiDashboard.dashboardfragments.teidata.teievents.EventViewModelType
 import org.dhis2.utils.DateUtils
-import org.dhis2.utils.filters.Filters
-import org.dhis2.utils.filters.sorting.SortingItem
-import org.dhis2.utils.filters.sorting.SortingStatus
 import org.hisp.dhis.android.core.D2
 import org.hisp.dhis.android.core.arch.repositories.scope.RepositoryScope
 import org.hisp.dhis.android.core.category.CategoryOptionCombo
@@ -114,10 +114,11 @@ class TeiDataRepositoryImpl(
                     val isSelected = programStage.uid() == selectedStage
 
                     val canAddEventToEnrollment = enrollmentUid?.let {
-                        d2.eventModule().eventService().blockingCanAddEventToEnrollment(
-                            it,
-                            programStage.uid()
-                        )
+                        programStage.access()?.data()?.write() == true &&
+                            d2.eventModule().eventService().blockingCanAddEventToEnrollment(
+                                it,
+                                programStage.uid()
+                            )
                     } ?: false
 
                     eventViewModels.add(

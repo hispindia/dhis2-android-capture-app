@@ -1,12 +1,10 @@
 package org.dhis2.data.forms.dataentry.fields.visualOptionSet
 
 import com.google.auto.value.AutoValue
-import io.reactivex.processors.FlowableProcessor
-import org.dhis2.R
 import org.dhis2.data.forms.dataentry.DataEntryViewHolderTypes
-import org.dhis2.data.forms.dataentry.fields.ActionType
 import org.dhis2.data.forms.dataentry.fields.FieldViewModel
-import org.dhis2.data.forms.dataentry.fields.RowAction
+import org.dhis2.form.model.FieldUiModel
+import org.dhis2.form.ui.intent.FormIntent
 import org.hisp.dhis.android.core.common.ObjectStyle
 import org.hisp.dhis.android.core.option.Option
 
@@ -14,10 +12,6 @@ const val labelTag = "tag"
 
 @AutoValue
 abstract class MatrixOptionSetModel : FieldViewModel() {
-
-    override fun getLayoutId(): Int {
-        return R.layout.matrix_option_set
-    }
 
     abstract fun options(): List<Option>
 
@@ -29,6 +23,7 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
         @JvmStatic
         fun create(
             fieldUid: String,
+            layoutId: Int,
             fieldLabel: String,
             mandatory: Boolean,
             value: String?,
@@ -37,12 +32,12 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
             optionSetUid: String?,
             description: String?,
             style: ObjectStyle,
-            processor: FlowableProcessor<RowAction>?,
             options: List<Option>,
             numberOfColumns: Int
         ): MatrixOptionSetModel {
             return AutoValue_MatrixOptionSetModel(
                 fieldUid,
+                layoutId,
                 fieldLabel,
                 mandatory,
                 value,
@@ -56,8 +51,10 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
                 style,
                 null,
                 DataEntryViewHolderTypes.PICTURE,
-                processor,
+                null,
+                null,
                 false,
+                null,
                 options,
                 numberOfColumns,
                 emptyList()
@@ -68,6 +65,7 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
     override fun setMandatory(): FieldViewModel {
         return AutoValue_MatrixOptionSetModel(
             uid(),
+            layoutId(),
             label(),
             true,
             value(),
@@ -81,8 +79,10 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
             objectStyle(),
             fieldMask(),
             dataEntryViewType(),
-            processor(),
+            style(),
+            hint(),
             activated(),
+            valueType(),
             options(),
             numberOfColumns(),
             emptyList<String>()
@@ -92,6 +92,7 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
     override fun withError(error: String?): FieldViewModel {
         return AutoValue_MatrixOptionSetModel(
             uid(),
+            layoutId(),
             label(),
             mandatory(),
             value(),
@@ -105,8 +106,10 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
             objectStyle(),
             fieldMask(),
             dataEntryViewType(),
-            processor(),
+            style(),
+            hint(),
             activated(),
+            valueType(),
             options(),
             numberOfColumns(),
             emptyList<String>()
@@ -116,6 +119,7 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
     override fun withWarning(warning: String?): FieldViewModel {
         return AutoValue_MatrixOptionSetModel(
             uid(),
+            layoutId(),
             label(),
             mandatory(),
             value(),
@@ -129,8 +133,10 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
             objectStyle(),
             fieldMask(),
             dataEntryViewType(),
-            processor(),
+            style(),
+            hint(),
             activated(),
+            valueType(),
             options(),
             numberOfColumns(),
             emptyList<String>()
@@ -140,6 +146,7 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
     override fun withValue(data: String?): FieldViewModel {
         return AutoValue_MatrixOptionSetModel(
             uid(),
+            layoutId(),
             label(),
             mandatory(),
             data,
@@ -153,8 +160,10 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
             objectStyle(),
             fieldMask(),
             dataEntryViewType(),
-            processor(),
+            style(),
+            hint(),
             activated(),
+            valueType(),
             options(),
             numberOfColumns(),
             emptyList<String>()
@@ -164,6 +173,7 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
     override fun withEditMode(isEditable: Boolean): FieldViewModel {
         return AutoValue_MatrixOptionSetModel(
             uid(),
+            layoutId(),
             label(),
             mandatory(),
             value(),
@@ -177,8 +187,10 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
             objectStyle(),
             fieldMask(),
             dataEntryViewType(),
-            processor(),
+            style(),
+            hint(),
             activated(),
+            valueType(),
             options(),
             numberOfColumns(),
             emptyList<String>()
@@ -188,6 +200,7 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
     override fun withFocus(isFocused: Boolean): FieldViewModel {
         return AutoValue_MatrixOptionSetModel(
             uid(),
+            layoutId(),
             label(),
             mandatory(),
             value(),
@@ -201,8 +214,10 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
             objectStyle(),
             fieldMask(),
             dataEntryViewType(),
-            processor(),
+            style(),
+            hint(),
             isFocused,
+            valueType(),
             options(),
             numberOfColumns(),
             emptyList<String>()
@@ -219,11 +234,13 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
         } else {
             selectedOption.code()
         }
-        processor()?.onNext(
-            RowAction(
-                id = uid(),
-                value = nextValue,
-                type = ActionType.ON_SAVE
+
+        callback.intent(
+            FormIntent.OnSave(
+                uid(),
+                nextValue,
+                null,
+                fieldMask()
             )
         )
     }
@@ -243,6 +260,7 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
 
         return AutoValue_MatrixOptionSetModel(
             uid(),
+            layoutId(),
             label(),
             mandatory(),
             value(),
@@ -256,8 +274,10 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
             objectStyle(),
             fieldMask(),
             dataEntryViewType(),
-            processor(),
+            style(),
+            hint(),
             activated(),
+            valueType(),
             options(),
             numberOfColumns(),
             options
@@ -268,5 +288,12 @@ abstract class MatrixOptionSetModel : FieldViewModel() {
         return options().filter { option ->
             !optionsToHide().contains(option.uid())
         }
+    }
+
+    override fun equals(item: FieldUiModel): Boolean {
+        return super.equals(item) && item is MatrixOptionSetModel &&
+            this.options() == item.options() &&
+            this.numberOfColumns() == item.numberOfColumns() &&
+            this.optionsToHide() == item.optionsToHide()
     }
 }

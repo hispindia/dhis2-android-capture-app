@@ -8,8 +8,8 @@ import com.google.auto.value.AutoValue;
 
 import org.dhis2.R;
 import org.dhis2.data.forms.dataentry.DataEntryViewHolderTypes;
-import org.dhis2.data.forms.dataentry.fields.FieldUiModel;
 import org.dhis2.data.forms.dataentry.fields.FieldViewModel;
+import org.dhis2.form.model.FieldUiModel;
 import org.hisp.dhis.android.core.common.ObjectStyle;
 import org.hisp.dhis.android.core.program.ProgramStageSectionRenderingType;
 
@@ -25,7 +25,6 @@ public abstract class SectionViewModel extends FieldViewModel {
     private boolean showBottomShadow;
     private boolean lastPositionShouldChangeHeight;
 
-    @NonNull
     public abstract boolean isOpen();
 
     @NonNull
@@ -52,9 +51,10 @@ public abstract class SectionViewModel extends FieldViewModel {
 
     private int sectionNumber;
 
-    public static SectionViewModel create(String sectionUid, String sectionName, String description, boolean isOpen, Integer totalFields, Integer completedFields, String rendering, FlowableProcessor<String> sectionProcessor, ObservableField<String> currentSection) {
+    public static SectionViewModel create(String sectionUid, int layoutId, String sectionName, String description, boolean isOpen, Integer totalFields, Integer completedFields, String rendering, FlowableProcessor<String> sectionProcessor, ObservableField<String> currentSection) {
         return new AutoValue_SectionViewModel(
                 sectionUid,
+                layoutId,
                 sectionName,
                 false,
                 null,
@@ -69,7 +69,9 @@ public abstract class SectionViewModel extends FieldViewModel {
                 null,
                 DataEntryViewHolderTypes.SECTION,
                 null,
+                null,
                 false,
+                null,
                 isOpen,
                 totalFields,
                 completedFields,
@@ -81,9 +83,12 @@ public abstract class SectionViewModel extends FieldViewModel {
         );
     }
 
+
+    //sectionList.size == 1 @Sou fix section scroll
     public static SectionViewModel createClosingSection() {
         return new AutoValue_SectionViewModel(
                 SectionViewModel.CLOSING_SECTION_UID,
+                R.layout.form_section,
                 SectionViewModel.CLOSING_SECTION_UID,
                 false,
                 null,
@@ -98,7 +103,9 @@ public abstract class SectionViewModel extends FieldViewModel {
                 null,
                 DataEntryViewHolderTypes.SECTION,
                 null,
+                null,
                 false,
+                null,
                 false,
                 0,
                 0,
@@ -119,6 +126,7 @@ public abstract class SectionViewModel extends FieldViewModel {
     public SectionViewModel withErrors(@Nullable Integer errors) {
         return new AutoValue_SectionViewModel(
                 uid(),
+                layoutId(),
                 label(),
                 false,
                 null,
@@ -132,8 +140,10 @@ public abstract class SectionViewModel extends FieldViewModel {
                 objectStyle(),
                 null,
                 DataEntryViewHolderTypes.SECTION,
-                processor(),
+                style(),
+                hint(),
                 activated(),
+                valueType(),
                 isOpen(),
                 totalFields(),
                 completedFields(),
@@ -149,6 +159,7 @@ public abstract class SectionViewModel extends FieldViewModel {
     public SectionViewModel withErrorsAndWarnings(@Nullable Integer errors, @Nullable Integer warnings) {
         return new AutoValue_SectionViewModel(
                 uid(),
+                layoutId(),
                 label(),
                 false,
                 null,
@@ -162,8 +173,10 @@ public abstract class SectionViewModel extends FieldViewModel {
                 objectStyle(),
                 null,
                 DataEntryViewHolderTypes.SECTION,
-                processor(),
+                style(),
+                hint(),
                 activated(),
+                valueType(),
                 isOpen(),
                 totalFields(),
                 completedFields(),
@@ -179,6 +192,7 @@ public abstract class SectionViewModel extends FieldViewModel {
     public SectionViewModel withWarnings(@Nullable Integer warnings) {
         return new AutoValue_SectionViewModel(
                 uid(),
+                layoutId(),
                 label(),
                 false,
                 null,
@@ -192,8 +206,10 @@ public abstract class SectionViewModel extends FieldViewModel {
                 objectStyle(),
                 null,
                 DataEntryViewHolderTypes.SECTION,
-                processor(),
+                style(),
+                hint(),
                 activated(),
+                valueType(),
                 isOpen(),
                 totalFields(),
                 completedFields(),
@@ -238,6 +254,7 @@ public abstract class SectionViewModel extends FieldViewModel {
     public SectionViewModel setOpen(boolean isOpen) {
         return new AutoValue_SectionViewModel(
                 uid(),
+                layoutId(),
                 label(),
                 false,
                 null,
@@ -251,8 +268,10 @@ public abstract class SectionViewModel extends FieldViewModel {
                 objectStyle(),
                 null,
                 DataEntryViewHolderTypes.SECTION,
-                processor(),
+                style(),
+                hint(),
                 activated(),
+                valueType(),
                 isOpen,
                 totalFields(),
                 completedFields(),
@@ -267,6 +286,7 @@ public abstract class SectionViewModel extends FieldViewModel {
     public SectionViewModel setTotalFields(Integer totalFields) {
         return new AutoValue_SectionViewModel(
                 uid(),
+                layoutId(),
                 label(),
                 false,
                 null,
@@ -280,8 +300,10 @@ public abstract class SectionViewModel extends FieldViewModel {
                 objectStyle(),
                 null,
                 DataEntryViewHolderTypes.SECTION,
-                processor(),
+                style(),
+                hint(),
                 activated(),
+                valueType(),
                 isOpen(),
                 totalFields,
                 completedFields(),
@@ -296,6 +318,7 @@ public abstract class SectionViewModel extends FieldViewModel {
     public SectionViewModel setCompletedFields(Integer completedFields) {
         return new AutoValue_SectionViewModel(
                 uid(),
+                layoutId(),
                 label(),
                 false,
                 null,
@@ -309,8 +332,10 @@ public abstract class SectionViewModel extends FieldViewModel {
                 objectStyle(),
                 null,
                 DataEntryViewHolderTypes.SECTION,
-                processor(),
+                style(),
+                hint(),
                 activated(),
+                valueType(),
                 isOpen(),
                 totalFields(),
                 completedFields,
@@ -325,11 +350,6 @@ public abstract class SectionViewModel extends FieldViewModel {
     public boolean hasToShowDescriptionIcon(boolean isTitleEllipsized) {
         return (description() != null && !Objects.requireNonNull(description()).isEmpty()) ||
                 isTitleEllipsized;
-    }
-
-    @Override
-    public int getLayoutId() {
-        return R.layout.form_section;
     }
 
     public boolean isClosingSection() {

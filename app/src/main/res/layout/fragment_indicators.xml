@@ -6,7 +6,7 @@
     <data>
 
     </data>
-
+<!--@Sou Indicators Width text wrap-->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -15,31 +15,32 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/indicators_recycler"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:paddingBottom="200dp"
+            android:layout_height="wrap_content"
             android:clipToPadding="false"
+            android:paddingBottom="200dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0"
+            tools:layout_editor_absoluteX="16dp"
             tools:listitem="@layout/item_indicator" />
 
         <TextView
             android:id="@+id/empty_indicators"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="@string/empty_indicators"
-            android:textSize="@dimen/primaryTextSize"
+            android:textSize="5sp"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="MissingConstraints" />
 
         <ProgressBar
             android:id="@+id/spinner"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             app:layout_constraintBottom_toTopOf="@id/empty_indicators"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

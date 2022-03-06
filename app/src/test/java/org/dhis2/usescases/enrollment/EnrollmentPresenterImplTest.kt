@@ -1,6 +1,5 @@
 package org.dhis2.usescases.enrollment
 
-import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.never
@@ -11,15 +10,14 @@ import com.nhaarman.mockitokotlin2.whenever
 import io.reactivex.Flowable
 import io.reactivex.processors.FlowableProcessor
 import io.reactivex.processors.PublishProcessor
+import org.dhis2.commons.schedulers.SchedulerProvider
 import org.dhis2.data.forms.dataentry.EnrollmentRepository
-import org.dhis2.data.forms.dataentry.StoreResult
 import org.dhis2.data.forms.dataentry.ValueStore
-import org.dhis2.data.forms.dataentry.ValueStoreImpl
-import org.dhis2.data.forms.dataentry.fields.ActionType
-import org.dhis2.data.forms.dataentry.fields.RowAction
 import org.dhis2.data.forms.dataentry.fields.edittext.EditTextViewModel
-import org.dhis2.data.schedulers.SchedulerProvider
 import org.dhis2.data.schedulers.TrampolineSchedulerProvider
+import org.dhis2.form.model.StoreResult
+import org.dhis2.form.model.ValueStoreResult
+import org.dhis2.utils.Result
 import org.dhis2.utils.analytics.AnalyticsHelper
 import org.dhis2.utils.analytics.matomo.MatomoAnalyticsController
 import org.hisp.dhis.android.core.D2
@@ -38,6 +36,8 @@ import org.hisp.dhis.android.core.program.Program
 import org.hisp.dhis.android.core.program.ProgramStage
 import org.hisp.dhis.android.core.trackedentity.TrackedEntityAttributeValue
 import org.hisp.dhis.android.core.trackedentity.TrackedEntityInstanceObjectRepository
+import org.hisp.dhis.rules.models.RuleActionShowError
+import org.hisp.dhis.rules.models.RuleEffect
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -45,7 +45,7 @@ import org.mockito.Mockito
 
 class EnrollmentPresenterImplTest {
 
-    private val formRepository: EnrollmentFormRepository = mock()
+    private val enrollmentFormRepository: EnrollmentFormRepository = mock()
     private val programRepository: ReadOnlyOneObjectRepositoryFinalImpl<Program> = mock()
     private val teiRepository: TrackedEntityInstanceObjectRepository = mock()
     private val dataEntryRepository: EnrollmentRepository = mock()
@@ -56,7 +56,6 @@ class EnrollmentPresenterImplTest {
     private val schedulers: SchedulerProvider = TrampolineSchedulerProvider()
     private val valueStore: ValueStore = mock()
     private val analyticsHelper: AnalyticsHelper = mock()
-    private val onRowActionProcessor: FlowableProcessor<RowAction> = PublishProcessor.create()
     private val sectionProcessor: FlowableProcessor<String> = mock()
     private val matomoAnalyticsController: MatomoAnalyticsController = mock()
 
@@ -70,33 +69,13 @@ class EnrollmentPresenterImplTest {
             teiRepository,
             programRepository,
             schedulers,
-            formRepository,
+            enrollmentFormRepository,
             valueStore,
             analyticsHelper,
             "This field is mandatory",
-            onRowActionProcessor,
             sectionProcessor,
             matomoAnalyticsController
         )
-    }
-
-    @Test
-    fun `Should delete option value if selected in group to hide`() {
-        whenever(formRepository.getOptionsFromGroups(arrayListOf("optionGroupToHide"))) doReturn
-            arrayListOf("option1", "option2")
-        presenter.setOptionGroupToHide("optionGroupToHide", true, "field")
-        verify(valueStore)
-            .deleteOptionValueIfSelectedInGroup(
-                "field",
-                "optionGroupToHide",
-                true
-            )
-    }
-
-    @Test
-    fun `Should delete option value if selected not in group to hide`() {
-        presenter.setOptionGroupToHide("optionGroupToHide", false, "field")
-        verify(valueStore).deleteOptionValueIfSelectedInGroup("field", "optionGroupToHide", false)
     }
 
     @Test
@@ -153,40 +132,26 @@ class EnrollmentPresenterImplTest {
 
     @Test
     fun `Error fields should show mandatory fields dialog`() {
-        val fields = arrayListOf(
-            dummyEditTextViewModel("uid1", "error_field").withError("Error")
+        val fields = arrayListOf(dummyEditTextViewModel("uid1", "error_field"))
+        val calcResult = Result.success(
+            listOf(
+                RuleEffect.create(
+                    "ruleUid",
+                    RuleActionShowError.create("content", "error_field", "uid1"),
+                    "data"
+                )
+            )
         )
-
         mockTrackedEntityAttributes()
         whenever(
             d2.trackedEntityModule().trackedEntityAttributes().uid("uid1").blockingGet().unique()
         ) doReturn false
 
-        presenter.setFieldsToShow("testSection", fields)
+        presenter.applyRuleEffects(fields, calcResult)
         val checkWthErrors = presenter.dataIntegrityCheck()
 
         Assert.assertFalse(checkWthErrors)
-        verify(enrollmentView, times(1)).showErrorFieldsMessage(arrayListOf("error_field"))
-    }
-
-    @Test
-    fun `Should show dialog if an unique field has a coincidence in a unique attribute`() {
-        whenever(valueStore.save(any(), any())) doReturn Flowable.just(
-            StoreResult(
-                "fieldUid",
-                ValueStoreImpl.ValueStoreResult.VALUE_NOT_UNIQUE
-            )
-        )
-        whenever(enrollmentView.context) doReturn mock()
-
-        presenter.listenToActions()
-        onRowActionProcessor.onNext(
-            RowAction("fieldUid", "123", false, null, null, null, null, ActionType.ON_SAVE)
-        )
-        val checkUnique = presenter.dataIntegrityCheck()
-
-        Assert.assertFalse(checkUnique)
-        verify(enrollmentView, times(2)).showInfoDialog(null, null)
+        verify(enrollmentView, times(1)).showErrorFieldsMessage(arrayListOf("content data"))
     }
 
     @Test
@@ -272,7 +237,7 @@ class EnrollmentPresenterImplTest {
         whenever(valueStore.save("uid", "fileValue")) doReturn Flowable.just(
             StoreResult(
                 "uid",
-                ValueStoreImpl.ValueStoreResult.VALUE_CHANGED
+                ValueStoreResult.VALUE_CHANGED
             )
         )
         presenter.saveFile("uid", "fileValue")
@@ -311,7 +276,7 @@ class EnrollmentPresenterImplTest {
     @Test
     fun `Should show a profile picture image`() {
         val path = "route/image"
-        whenever(formRepository.getProfilePicture()) doReturn path
+        whenever(enrollmentFormRepository.getProfilePicture()) doReturn path
         presenter.onTeiImageHeaderClick()
         verify(enrollmentView).displayTeiPicture(path)
     }
@@ -319,7 +284,7 @@ class EnrollmentPresenterImplTest {
     @Test
     fun `Should not show a profile picture image`() {
         val path = ""
-        whenever(formRepository.getProfilePicture()) doReturn path
+        whenever(enrollmentFormRepository.getProfilePicture()) doReturn path
         presenter.onTeiImageHeaderClick()
         verify(enrollmentView, never()).displayTeiPicture(path)
     }
@@ -360,6 +325,7 @@ class EnrollmentPresenterImplTest {
     ) =
         EditTextViewModel.create(
             uid,
+            1,
             label,
             mandatory,
             value,
@@ -375,7 +341,6 @@ class EnrollmentPresenterImplTest {
             "any",
             false,
             false,
-            null,
             null
         )
 

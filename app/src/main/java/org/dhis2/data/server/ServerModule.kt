@@ -10,10 +10,10 @@ import okhttp3.Interceptor
 import org.dhis2.Bindings.app
 import org.dhis2.BuildConfig
 import org.dhis2.R
-import org.dhis2.data.dagger.PerServer
+import org.dhis2.commons.di.dagger.PerServer
+import org.dhis2.commons.filters.data.GetFiltersApplyingWebAppConfig
+import org.dhis2.commons.schedulers.SchedulerProvider
 import org.dhis2.data.dhislogic.DhisPeriodUtils
-import org.dhis2.data.filter.GetFiltersApplyingWebAppConfig
-import org.dhis2.data.schedulers.SchedulerProvider
 import org.dhis2.utils.RulesUtilsProvider
 import org.dhis2.utils.RulesUtilsProviderImpl
 import org.dhis2.utils.analytics.AnalyticsHelper
@@ -34,8 +34,8 @@ class ServerModule {
 
     @Provides
     @PerServer
-    fun configurationRepository(d2: D2?): UserManager {
-        return UserManagerImpl(d2!!)
+    fun configurationRepository(d2: D2?, repository: ServerSettingsRepository): UserManager {
+        return UserManagerImpl(d2!!, repository)
     }
 
     @Provides
@@ -71,6 +71,12 @@ class ServerModule {
             context.getString(R.string.week_period_span_default_label),
             context.getString(R.string.biweek_period_span_default_label)
         )
+    }
+
+    @Provides
+    @PerServer
+    fun providesRepository(d2: D2, systemStyleMapper: SystemStyleMapper): ServerSettingsRepository {
+        return ServerSettingsRepository(d2, systemStyleMapper)
     }
 
     companion object {

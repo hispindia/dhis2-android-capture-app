@@ -7,24 +7,39 @@
 
         <variable
             name="legend"
-            type="org.dhis2.data.forms.dataentry.fields.LegendValue" />
+            type="org.dhis2.form.model.LegendValue" />
     </data>
 
+<!--    &lt;!&ndash;set legend @Sou set legend&ndash;&gt;-->
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="26dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:background="@drawable/data_element_legend_background"
-        android:drawablePadding="5dp"
         android:ellipsize="end"
         android:gravity="center"
-        android:maxLines="1"
-        android:paddingStart="5dp"
-        android:paddingEnd="13dp"
         android:text="@{legend.label}"
         android:textColor="@color/textPrimary"
-        android:textSize="10sp"
+        android:textSize="7sp"
         app:legendValue="@{legend}"
         app:drawableStartCompat="@drawable/data_element_legend_badge"
-        tools:text="Good level" />
+        tools:text="Please ensure these details are filled: Gender, Diabetes details, blood pressure (systolic),smoking status and age." />
+
+<!--    <TextView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="26dp"-->
+<!--        android:layout_gravity="center_vertical"-->
+<!--        android:background="@drawable/data_element_legend_background"-->
+<!--        android:drawablePadding="5dp"-->
+<!--        android:ellipsize="end"-->
+<!--        android:gravity="center"-->
+<!--        android:maxLines="1"-->
+<!--        android:paddingStart="5dp"-->
+<!--        android:paddingEnd="13dp"-->
+<!--        android:text="@{legend.label}"-->
+<!--        android:textColor="@color/textPrimary"-->
+<!--        android:textSize="10sp"-->
+<!--        app:legendValue="@{legend}"-->
+<!--        app:drawableStartCompat="@drawable/data_element_legend_badge"-->
+<!--        tools:text="Good level" />-->
 </layout>

@@ -19,7 +19,6 @@ http://developer.android.com/guide/topics/appwidgets/index.html#CreatingLayout
     <dimen name="sectionSelectorWidth">150dp</dimen>
     <dimen name="itemSectionSelectorHeight">48dp</dimen>
     <dimen name="chip_minHeight">32dp</dimen>
-    <dimen name="field_label_size">11sp</dimen>
     <dimen name="padding_5">5dp</dimen>
     <dimen name="padding_8">8dp</dimen>
     <dimen name="rounded_16">16dp</dimen>
@@ -27,5 +26,14 @@ http://developer.android.com/guide/topics/appwidgets/index.html#CreatingLayout
     <dimen name="item_carousel_height">72dp</dimen>
     <dimen name="item_carousel_corner_radius">6dp</dimen>
     <dimen name="padding_16">16dp</dimen>
-    <dimen name="form_edit_text_size">12sp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="app_bar_height">180dp</dimen>
+    <dimen name="text_margin">16dp</dimen>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="fab_margin_with_text">48dp</dimen>
+    <dimen name="nav_header_vertical_spacing">8dp</dimen>
+    <dimen name="nav_header_height">176dp</dimen>
+
 </resources>

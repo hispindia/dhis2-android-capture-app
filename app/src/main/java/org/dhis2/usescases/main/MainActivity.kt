@@ -1,46 +1,51 @@
 package org.dhis2.usescases.main
 
-import android.app.Activity
+import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
 import android.transition.ChangeBounds
 import android.transition.TransitionManager
+import android.util.Log
 import android.view.View
-import android.view.View.GONE
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.constraintlayout.widget.ConstraintSet
+import androidx.core.view.ViewCompat
 import androidx.databinding.DataBindingUtil
-import androidx.databinding.ObservableInt
 import androidx.drawerlayout.widget.DrawerLayout
+import com.mapbox.mapboxsdk.Mapbox
 import javax.inject.Inject
 import org.dhis2.Bindings.app
 import org.dhis2.BuildConfig
 import org.dhis2.R
-import org.dhis2.data.prefs.Preference
+import org.dhis2.commons.filters.FilterItem
+import org.dhis2.commons.filters.FilterManager
+import org.dhis2.commons.filters.FiltersAdapter
+import org.dhis2.commons.prefs.Preference
 import org.dhis2.databinding.ActivityMainBinding
-import org.dhis2.usescases.about.AboutFragment
+import org.dhis2.usescases.about.CounselingView
+import org.dhis2.usescases.about.MentalView
+import org.dhis2.usescases.about.PhysicalView
 import org.dhis2.usescases.development.DevelopmentActivity
 import org.dhis2.usescases.general.ActivityGlobalAbstract
-import org.dhis2.usescases.general.FragmentGlobalAbstract
-import org.dhis2.usescases.jira.JiraFragment
 import org.dhis2.usescases.login.LoginActivity
-import org.dhis2.usescases.main.program.ProgramFragment
-import org.dhis2.usescases.qrReader.QrReaderFragment
-import org.dhis2.usescases.settings.SyncManagerFragment
-import org.dhis2.usescases.teiDashboard.nfcdata.NfcDataWriteActivity
+import org.dhis2.usescases.searchTrackEntity.SearchTEPresenter
 import org.dhis2.utils.Constants
 import org.dhis2.utils.DateUtils
+import org.dhis2.utils.WebViewActivity
 import org.dhis2.utils.analytics.BLOCK_SESSION
 import org.dhis2.utils.analytics.CLICK
 import org.dhis2.utils.analytics.CLOSE_SESSION
+import org.dhis2.utils.customviews.navigationbar.NavigationPageConfigurator
 import org.dhis2.utils.extension.navigateTo
-import org.dhis2.utils.filters.FilterItem
-import org.dhis2.utils.filters.FilterManager
-import org.dhis2.utils.filters.FiltersAdapter
 import org.dhis2.utils.session.PIN_DIALOG_TAG
 import org.dhis2.utils.session.PinDialog
+import org.hisp.dhis.android.core.D2Manager
+import java.lang.Exception
 
 private const val FRAGMENT = "Fragment"
 
@@ -48,24 +53,41 @@ class MainActivity :
     ActivityGlobalAbstract(),
     MainView,
     DrawerLayout.DrawerListener {
+
     private lateinit var binding: ActivityMainBinding
     lateinit var mainComponent: MainComponent
+
     @Inject
     lateinit var presenter: MainPresenter
 
     @Inject
     lateinit var newAdapter: FiltersAdapter
 
-    private var programFragment: ProgramFragment? = null
+    @Inject
+    lateinit var pageConfigurator: NavigationPageConfigurator
 
-    var activeFragment: FragmentGlobalAbstract? = null
+    private val getDevActivityContent =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            binding.navigationBar.pageConfiguration(pageConfigurator)
+        }
 
-    private var currentFragment = ObservableInt(R.id.menu_home)
     private var isPinLayoutVisible = false
 
-    private var fragId: Int = 0
     private var prefs: SharedPreferences? = null
     private var backDropActive = false
+    private var elevation = 0f
+    private val mainNavigator = MainNavigator(
+        supportFragmentManager,
+        {
+            if (backDropActive) {
+                showHideFilter()
+            }
+        }
+    ) { titleRes, showFilterButton, showBottomNavigation ->
+        setTitle(getString(titleRes))
+        setFilterButtonVisibility(showFilterButton)
+        setBottomNavigationVisibility(showBottomNavigation)
+    }
 
     //region LIFECYCLE
 
@@ -82,21 +104,11 @@ class MainActivity :
         } else {
             navigateTo<LoginActivity>(true)
         }
+
         binding.navView.setNavigationItemSelectedListener { item ->
             changeFragment(item.itemId)
             false
         }
-
-        if (savedInstanceState != null) {
-            val frag = savedInstanceState.getInt(FRAGMENT)
-            currentFragment.set(frag)
-            binding.currentFragment = currentFragment
-            changeFragment(frag)
-        } else {
-            binding.currentFragment = currentFragment
-            changeFragment(R.id.menu_home)
-        }
-        initCurrentScreen()
 
         binding.mainDrawerLayout.addDrawerListener(this)
 
@@ -106,32 +118,43 @@ class MainActivity :
 
         binding.filterRecycler.adapter = newAdapter
 
+        binding.navigationBar.pageConfiguration(pageConfigurator)
         binding.navigationBar.setOnNavigationItemSelectedListener {
             when (it.itemId) {
-                R.id.navigation_tasks -> {}
-                R.id.navigation_programs -> {}
-                R.id.navigation_analytics -> {}
-                else -> {}
+                R.id.navigation_tasks -> {
+                }
+                R.id.navigation_programs -> {
+                    mainNavigator.openPrograms()
+                }
+                R.id.navigation_analytics -> {
+                    mainNavigator.openVisualizations()
+                }
             }
             true
         }
 
-        // TODO: remove to display BottomNavigationView
-        binding.fragmentContainer.setPadding(0, 0, 0, 0)
-        binding.navigationBar.visibility = View.GONE
-        // end
-
         if (BuildConfig.DEBUG) {
             binding.menu.setOnLongClickListener {
-                startActivity(DevelopmentActivity::class.java, null, false, false, null)
+                getDevActivityContent.launch(Intent(this, DevelopmentActivity::class.java))
                 false
             }
+        }
+
+        elevation = ViewCompat.getElevation(binding.toolbar)
+
+        val restoreScreenName = savedInstanceState?.getString(FRAGMENT)
+        if (restoreScreenName != null) {
+            changeFragment(mainNavigator.currentNavigationViewItemId(restoreScreenName))
+            mainNavigator.restoreScreen(restoreScreenName)
+        } else {
+            changeFragment(R.id.menu_home)
+            initCurrentScreen()
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(FRAGMENT, fragId)
+        outState.putString(FRAGMENT, mainNavigator.currentScreenName())
     }
 
     override fun onResume() {
@@ -144,6 +167,7 @@ class MainActivity :
     }
 
     override fun onPause() {
+        presenter.setOpeningFilterToNone()
         presenter.onDetach()
         super.onPause()
     }
@@ -178,6 +202,7 @@ class MainActivity :
                 ConstraintSet.BOTTOM,
                 50
             )
+            binding.navigationBar.hide()
         } else {
             initSet.connect(
                 R.id.fragment_container,
@@ -186,9 +211,10 @@ class MainActivity :
                 ConstraintSet.BOTTOM,
                 0
             )
+            binding.navigationBar.show()
         }
         initSet.applyTo(binding.backdropLayout)
-        programFragment!!.openFilter(backDropActive)
+        mainNavigator.getCurrentIfProgram()?.openFilter(backDropActive)
     }
 
     override fun onLockClick() {
@@ -208,22 +234,18 @@ class MainActivity :
 
     override fun onBackPressed() {
         when {
-            fragId != R.id.menu_home -> presenter.onNavigateBackToHome()
+            !mainNavigator.isHome() -> presenter.onNavigateBackToHome()
             isPinLayoutVisible -> isPinLayoutVisible = false
             else -> super.onBackPressed()
         }
     }
 
     override fun goToHome() {
-        changeFragment(R.id.menu_home)
-        initCurrentScreen()
+        mainNavigator.openPrograms()
     }
 
     override fun changeFragment(id: Int) {
-        fragId = id
         binding.navView.setCheckedItem(id)
-        activeFragment = null
-
         binding.mainDrawerLayout.closeDrawers()
     }
 
@@ -234,7 +256,7 @@ class MainActivity :
     override fun showPeriodRequest(periodRequest: FilterManager.PeriodRequest) {
         if (periodRequest == FilterManager.PeriodRequest.FROM_TO) {
             DateUtils.getInstance()
-                .showFromToSelector(this) { FilterManager.getInstance().addPeriod(it) }
+                .fromCalendarSelector(this) { FilterManager.getInstance().addPeriod(it) }
         } else {
             DateUtils.getInstance()
                 .showPeriodDialog(
@@ -249,19 +271,20 @@ class MainActivity :
         binding.title.text = title
     }
 
-    override fun showTutorial(shaked: Boolean) {
-        when (fragId) {
-            R.id.menu_home -> (activeFragment as ProgramFragment).setTutorial()
-            R.id.sync_manager -> (activeFragment as SyncManagerFragment).showTutorial()
-            else -> showToast(getString(R.string.no_intructions))
+    private fun setFilterButtonVisibility(showFilterButton: Boolean) {
+        binding.filterActionButton.visibility = if (showFilterButton) {
+            View.VISIBLE
+        } else {
+            View.GONE
         }
     }
 
-    public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == FilterManager.OU_TREE && resultCode == Activity.RESULT_OK) {
-            updateFilters(FilterManager.getInstance().totalFilters)
+    private fun setBottomNavigationVisibility(showBottomNavigation: Boolean) {
+        if (showBottomNavigation) {
+            binding.navigationBar.show()
+        } else {
+            binding.navigationBar.hide()
         }
-        super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun setFilters(filters: List<FilterItem>) {
@@ -269,7 +292,7 @@ class MainActivity :
     }
 
     override fun hideFilters() {
-        binding.filterActionButton.visibility = GONE
+        binding.filterActionButton.visibility = View.GONE
     }
 
     override fun onDrawerStateChanged(newState: Int) {
@@ -279,84 +302,101 @@ class MainActivity :
     }
 
     override fun onDrawerClosed(drawerView: View) {
-        if (currentFragment.get() != fragId) {
-            initCurrentScreen()
-            if (fragId == R.id.menu_home) {
-                presenter.initFilters()
-            }
+        initCurrentScreen()
+        if (mainNavigator.isPrograms()) {
+            presenter.initFilters()
         }
     }
 
     override fun onDrawerOpened(drawerView: View) {
     }
 
+    @SuppressLint("NewApi")
     private fun initCurrentScreen() {
-        var tag: String? = null
-        when (fragId) {
+        when (binding.navView.checkedItem?.itemId) {
             R.id.sync_manager -> {
                 presenter.onClickSyncManager()
-                activeFragment = SyncManagerFragment()
-                tag = getString(R.string.SYNC_MANAGER)
-                binding.filterActionButton.visibility = View.GONE
+                mainNavigator.openSettings()
             }
             R.id.qr_scan -> {
-                activeFragment = QrReaderFragment()
-                tag = getString(R.string.QR_SCANNER)
-                binding.filterActionButton.visibility = View.GONE
+                mainNavigator.openQR()
             }
-            R.id.nfc_scan -> {
-                val intentNfc = Intent(this, NfcDataWriteActivity::class.java)
-                startActivity(intentNfc)
+            R.id.counseling -> {
+                val intent = Intent(
+                    context,
+                    CounselingView::class.java
+                )
+                context.startActivity(intent)
             }
             R.id.menu_jira -> {
-                activeFragment = JiraFragment()
-                tag = getString(R.string.jira_report)
-                binding.filterActionButton.visibility = View.GONE
+                mainNavigator.openJira()
             }
             R.id.menu_about -> {
-                activeFragment = AboutFragment()
-                tag = getString(R.string.about)
-                binding.filterActionButton.visibility = View.GONE
+                mainNavigator.openAbout()
             }
             R.id.block_button -> {
                 analyticsHelper.setEvent(BLOCK_SESSION, CLICK, BLOCK_SESSION)
                 onLockClick()
             }
             R.id.logout_button -> {
+                //@Sou clear sharedpreference on logout
+
+                clearAppData()
+                val settings: SharedPreferences =
+                    binding.navView.context.getSharedPreferences("user_uid", Context.MODE_PRIVATE)
+                val homeScore1 = settings.getString("tei-uid", 0.toString()).toString()
+                val homeScore2 = settings.getString("user_uid", 0.toString()).toString()
+                Log.d("homeScore1----before--",homeScore1);
+                Log.d("homeScore2----before--",homeScore2);
+                settings.edit().remove("tei-uid").commit();
+                settings.edit().clear().commit()
+                val homeScore11 = settings.getString("tei-uid", 0.toString()).toString()
+                val homeScore22 = settings.getString("user_uid", 0.toString()).toString()
+                Log.d("homeScore1----",homeScore11);
+                Log.d("homeScore2----",homeScore22);
                 analyticsHelper.setEvent(CLOSE_SESSION, CLICK, CLOSE_SESSION)
-                presenter.logOut()
+//                context.cacheDir.deleteRecursively()
+                context.dataDir.deleteRecursively()
+//                finishAndRemoveTask()
+                activity.finish()
+                System.exit(0)
+//                val intent = Intent(this, LoginActivity::class.java)
+//                startActivity(intent)
+//                D2Manager.getD2().userModule().logOut()
+//                presenter.logOut()
             }
             R.id.menu_home -> {
-                activeFragment = ProgramFragment()
-                programFragment = activeFragment as ProgramFragment?
-                tag = getString(R.string.done_task)
-                binding.filterActionButton.visibility = View.VISIBLE
-            }
-            else -> {
-                activeFragment = ProgramFragment()
-                programFragment = activeFragment as ProgramFragment?
-                tag = getString(R.string.done_task)
-                binding.filterActionButton.visibility = View.VISIBLE
+                //@Sou open dashboard direct on login
+//                val settings: SharedPreferences =
+//                    Mapbox.getApplicationContext().getSharedPreferences("user_uid", 0)
+//                val intent = Intent(this, SearchTEPresenter::class.java)
+//                intent.putExtra("tei-uid", settings.getString("tei-uid", 0.toString()).toString())
+//                startActivity(intent)
+                mainNavigator.openPrograms()
             }
         }
 
-        if (activeFragment != null) {
-            currentFragment.set(fragId)
-            val transaction = supportFragmentManager.beginTransaction()
-            transaction.setCustomAnimations(
-                R.anim.fragment_enter_right,
-                R.anim.fragment_exit_left,
-                R.anim.fragment_enter_left,
-                R.anim.fragment_exit_right
-            )
-
-            transaction.replace(R.id.fragment_container, activeFragment!!, tag)
-                .commitAllowingStateLoss()
-            binding.title.text = tag
-        }
-
-        if (backDropActive && activeFragment !is ProgramFragment) {
+        if (backDropActive && mainNavigator.isPrograms()) {
             showHideFilter()
+        }
+    }
+
+    //
+    //    private void openDashboard(String teiUid, String enrollmentUid) {
+    //        WorkingList.openDashboard(teiUid, selectedProgram != null ? selectedProgram.uid() : null, enrollmentUid);
+    //    }
+    private fun clearAppData() {
+        try {
+            // clearing app data
+            if (Build.VERSION_CODES.KITKAT <= Build.VERSION.SDK_INT) {
+                (getSystemService(ACTIVITY_SERVICE) as ActivityManager).clearApplicationUserData() // note: it has a return value!
+            } else {
+                val packageName = applicationContext.packageName
+                val runtime = Runtime.getRuntime()
+                runtime.exec("pm clear $packageName")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }

@@ -504,7 +504,7 @@ class SyncStatusDialog : BottomSheetDialogFragment(), GranularSyncContracts.View
         presenter.initGranularSync().observe(
             this,
             Observer { workInfo ->
-                if (workInfo != null && workInfo.size > 0) {
+                if (workInfo != null && workInfo.isNotEmpty()) {
                     manageWorkInfo(workInfo[0])
                 }
             }
@@ -548,8 +548,16 @@ class SyncStatusDialog : BottomSheetDialogFragment(), GranularSyncContracts.View
                 dismissListenerDialog!!.onDismiss(true)
             }
             WorkInfo.State.FAILED -> {
-                val listStatusLog = ArrayList<StatusLogItem>()
+                if (workInfo.outputData.keyValueMap["incomplete"] != null) {
+                    adapter?.addItem(
+                        StatusLogItem.create(
+                            Calendar.getInstance().time,
+                            getString(R.string.sync_incomplete_error_text)
+                        )
+                    )
+                }
                 if (workInfo.outputData.keyValueMap["conflict"] != null) {
+                    val listStatusLog = ArrayList<StatusLogItem>()
                     for (tracker in workInfo.outputData.getStringArray("conflict")!!) {
                         try {
                             listStatusLog.add(
@@ -572,11 +580,13 @@ class SyncStatusDialog : BottomSheetDialogFragment(), GranularSyncContracts.View
                     }
 
                     adapter!!.addAllItems(listStatusLog)
-                } else {
+                }
+                //@Sou hack to fix sync error
+                else {
                     adapter!!.addItem(
                         StatusLogItem.create(
                             Calendar.getInstance().time,
-                            getString(R.string.error_sync_check_logs),
+                            getString(R.string.end_sync_granular),
                             true
                         )
                     )

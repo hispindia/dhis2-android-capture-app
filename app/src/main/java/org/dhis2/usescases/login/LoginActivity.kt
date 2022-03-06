@@ -2,8 +2,10 @@ package org.dhis2.usescases.login
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.Editable
 import android.text.SpannableString
@@ -13,10 +15,12 @@ import android.text.TextUtils.isEmpty
 import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
+import android.util.Log
 import android.util.Patterns
 import android.view.View
 import android.view.WindowManager
 import android.webkit.URLUtil
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -27,6 +31,7 @@ import co.infinum.goldfinger.Goldfinger
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.mapbox.mapboxsdk.Mapbox
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.StringWriter
@@ -61,12 +66,14 @@ import org.dhis2.utils.analytics.CLICK
 import org.dhis2.utils.analytics.FORGOT_CODE
 import org.dhis2.utils.session.PIN_DIALOG_TAG
 import org.dhis2.utils.session.PinDialog
+import org.hisp.dhis.android.core.D2
+import org.hisp.dhis.android.core.D2Manager
 import org.hisp.dhis.android.core.user.openid.IntentWithRequestCode
 import timber.log.Timber
 
 const val EXTRA_SKIP_SYNC = "SKIP_SYNC"
 
-class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
+class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View ,AdapterView.OnItemSelectedListener{
 
     private lateinit var binding: ActivityLoginBinding
     private lateinit var loginViewModel: LoginViewModel
@@ -82,6 +89,7 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
 
     private var testingCredentials: List<TestingCredential> = ArrayList()
     var userManager: UserManager? = null
+    var lang_sel:String="English"
     private var skipSync = false
 
     companion object {
@@ -111,6 +119,18 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
         skipSync = intent.getBooleanExtra(EXTRA_SKIP_SYNC, false)
         loginViewModel = ViewModelProviders.of(this).get(LoginViewModel::class.java)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_login)
+
+        val adapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.language_arrays,
+            android.R.layout.simple_spinner_item
+        )
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+
+        binding.spinner1!!.adapter = adapter
+        binding.spinner1!!.onItemSelectedListener = this
+
 
         binding.presenter = presenter
         binding.loginModel = loginViewModel
@@ -264,17 +284,37 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
             )
             binding.credentialLayout.visibility = View.GONE
             binding.progressLayout.visibility = View.VISIBLE
+           // @Sou register user to tei
 
-            presenter.logIn(
-                binding.serverUrl.editText?.text.toString(),
-                binding.userName.editText?.text.toString(),
-                binding.userPass.editText?.text.toString()
-            )
+
+//            presenter.sendPostRequest(lang_sel,binding.serverUrl.editText?.text.toString(),binding.userName.editText?.text.toString(),binding.userPass.editText?.text.toString())
+            presenter.sendPostRequest(lang_sel,binding.serverUrl.editText?.text.toString(),"test_myr","District1#")
+
+            presenter.sendPostRequest(binding.userName.editText?.text.toString(),binding.userPass.editText?.text.toString(),binding.serverUrl.editText?.text.toString(),"test_myr","District1#")
+
+            val settings: SharedPreferences =
+                Mapbox.getApplicationContext().getSharedPreferences("user_uid", 0)
+           var homeScore1 = settings.getString("tei-uid", 0.toString()).toString()
+            if(homeScore1.equals("pwderror"))
+            {
+                Log.d("Invalid Password","for given user")
+            }
+            else
+            {
+                presenter.logIn(
+                    binding.serverUrl.editText?.text.toString(),
+                    "test_myr",
+                    "District1#"
+                )
+            }
+            //@Sou user fix for login
+
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
             binding.credentialLayout.visibility = View.VISIBLE
             binding.progressLayout.visibility = View.GONE
         }
+//        openDashboard(teiUid, enrollmentUid)
     }
 
     override fun alreadyAuthenticated() {
@@ -310,7 +350,8 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
                 sharedPreferences.edit().putBoolean(Constants.USER_ASKED_CRASHLYTICS, true)
                     .apply()
                 sharedPreferences.edit()
-                    .putString(Constants.USER, binding.userName.editText?.text.toString())
+                    .putString(Constants.USER, "test_myr")
+//                    .putString(Constants.USER, binding.userName.editText?.text.toString())
                     .apply()
                 showLoginProgress(true)
             }
@@ -339,6 +380,9 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
     }
 
     override fun onLogoutClick(android: View) {
+        val settings: SharedPreferences =
+            android.context.getSharedPreferences("user_uid", Context.MODE_PRIVATE)
+        settings.edit().clear().commit()
         presenter.logOut()
     }
 
@@ -364,8 +408,10 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
 
         if (!presenter.areSameCredentials(
             binding.serverUrlEdit.text.toString(),
-            binding.userNameEdit.text.toString(),
-            binding.userPassEdit.text.toString()
+                "test_myr",
+                "District1#"
+//            binding.userNameEdit.text.toString(),
+//            binding.userPassEdit.text.toString()
         )
         ) {
             if (presenter.canHandleBiometrics() == true) {
@@ -376,8 +422,10 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
                         override fun onPositiveClick() {
                             presenter.saveUserCredentials(
                                 binding.serverUrlEdit.text.toString(),
-                                binding.userNameEdit.text.toString(),
-                                binding.userPassEdit.text.toString()
+                                "test_myr",
+                                "District1#"
+//                                binding.userNameEdit.text.toString(),
+//                                binding.userPassEdit.text.toString()
                             )
                             goToNextScreen()
                         }
@@ -388,9 +436,13 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
                     }
                 )
             } else {
+//                D2Manager.getD2().trackedEntityModule().trackedEntityInstances().uid("tei_uid").setOrganisationUnitUid("orgunit_uid");
+//                D2Manager.getD2().enrollmentModule().enrollments().uid("enrollment_uid").set("orgunit_uid");
+
                 presenter.saveUserCredentials(
                     binding.serverUrlEdit.text.toString(),
-                    binding.userNameEdit.text.toString(),
+                    "test_myr",
+//                    binding.userNameEdit.text.toString(),
                     ""
                 )
                 goToNextScreen()
@@ -494,5 +546,14 @@ class LoginActivity : ActivityGlobalAbstract(), LoginContracts.View {
         activity?.let {
             startActivity(Intent(it, PolicyView::class.java))
         }
+    }
+
+    override fun onNothingSelected(p0: AdapterView<*>?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+    override fun onItemSelected(p0: AdapterView<*>?, view: View?, position: Int, id: Long) {
+        lang_sel= p0?.getItemAtPosition(position).toString()
+
+//        Log.d("spinner1---",lang_sel)
     }
 }

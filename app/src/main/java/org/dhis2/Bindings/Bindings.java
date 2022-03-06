@@ -11,22 +11,18 @@ import android.graphics.drawable.AnimatedVectorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
-import android.text.method.ScrollingMovementMethod;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import androidx.annotation.DrawableRes;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.core.content.ContextCompat;
@@ -39,22 +35,18 @@ import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.dhis2.R;
-import org.dhis2.animations.ViewAnimationsKt;
-import org.dhis2.data.forms.dataentry.fields.KeyboardActionType;
-import org.dhis2.data.forms.dataentry.fields.LegendValue;
+import org.dhis2.commons.animations.ViewAnimationsKt;
+import org.dhis2.form.model.LegendValue;
 import org.dhis2.data.forms.dataentry.fields.radiobutton.RadioButtonViewModel;
 import org.dhis2.databinding.DataElementLegendBinding;
 import org.dhis2.usescases.datasets.dataSetTable.dataSetSection.DataSetTableAdapter;
 import org.dhis2.usescases.programEventDetail.ProgramEventViewModel;
 import org.dhis2.utils.CatComboAdapter;
-import org.dhis2.utils.ColorUtils;
+import org.dhis2.commons.resources.ColorUtils;
 import org.dhis2.utils.DateUtils;
 import org.dhis2.utils.NetworkUtils;
-import org.dhis2.utils.filters.CatOptionComboFilter;
-import org.dhis2.utils.filters.Filters;
-import org.dhis2.utils.filters.cat_opt_comb.CatOptCombFilterAdapter;
-import org.dhis2.utils.filters.sorting.SortingItem;
-import org.dhis2.utils.resources.ResourceManager;
+import org.dhis2.commons.filters.CatOptionComboFilter;
+import org.dhis2.commons.resources.ResourceManager;
 import org.hisp.dhis.android.core.category.CategoryOptionCombo;
 import org.hisp.dhis.android.core.common.ObjectStyle;
 import org.hisp.dhis.android.core.common.State;
@@ -71,22 +63,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import timber.log.Timber;
-
-import static android.view.inputmethod.EditorInfo.IME_ACTION_DONE;
-import static android.view.inputmethod.EditorInfo.IME_ACTION_NEXT;
-import static android.view.inputmethod.EditorInfo.IME_FLAG_NO_ENTER_ACTION;
 import static org.dhis2.Bindings.ViewExtensionsKt.openKeyboard;
 
 
 public class Bindings {
-
-    @BindingAdapter("scrollingTextView")
-    public static void setScrollingTextView(TextView textView, boolean canScroll) {
-        if (canScroll) {
-            textView.setMovementMethod(new ScrollingMovementMethod());
-        }
-    }
 
     @BindingAdapter("date")
     public static void parseDate(TextView textView, Date date) {
@@ -130,15 +110,6 @@ public class Bindings {
                 }
             });
         }
-    }
-
-    @BindingAdapter("progressColor")
-    public static void setProgressColor(ProgressBar progressBar, int color) {
-        TypedValue typedValue = new TypedValue();
-        TypedArray a = progressBar.getContext().obtainStyledAttributes(typedValue.data, new int[]{R.attr.colorPrimary});
-        int color2 = a.getColor(0, 0);
-        a.recycle();
-        progressBar.getIndeterminateDrawable().setColorFilter(color2, PorterDuff.Mode.SRC_IN);
     }
 
     @BindingAdapter("enrolmentIcon")
@@ -437,26 +408,30 @@ public class Bindings {
                 case UPLOADING:
                     imageView.setImageResource(R.drawable.ic_sync_problem_grey);
                     imageView.setVisibility(View.VISIBLE);
+                    imageView.setTag(R.drawable.ic_sync_problem_grey);
                     break;
                 case ERROR:
                     imageView.setImageResource(R.drawable.ic_sync_problem_red);
                     imageView.setVisibility(View.VISIBLE);
+                    imageView.setTag(R.drawable.ic_sync_problem_red);
                     break;
                 case SYNCED:
                     imageView.setImageResource(R.drawable.ic_sync);
                     if (!showSynced) {
                         imageView.setVisibility(View.GONE);
                     }
+                    imageView.setTag(R.drawable.ic_sync);
                     break;
                 case WARNING:
                     imageView.setImageResource(R.drawable.ic_sync_warning);
                     imageView.setVisibility(View.VISIBLE);
+                    imageView.setTag(R.drawable.ic_sync_warning);
                     break;
                 case SENT_VIA_SMS:
                 case SYNCED_VIA_SMS:
                     imageView.setImageResource(R.drawable.ic_sync_sms);
                     imageView.setVisibility(View.VISIBLE);
-                    break;
+                    imageView.setTag(R.drawable.ic_sync_sms);
                 default:
                     break;
             }
@@ -652,62 +627,16 @@ public class Bindings {
         });
     }
 
-    @BindingAdapter("withCatComboFilterAdapter")
-    public static void setWithCatComboFilterAdapter(RecyclerView recyclerView, boolean setAdapter) {
-        if (setAdapter) {
-            recyclerView.setAdapter(new CatOptCombFilterAdapter());
-        }
-    }
-
-    @BindingAdapter("fromResource")
-    public static void setFromResource(ImageView imageView, @DrawableRes int resource) {
-        try {
-            imageView.setImageDrawable(AppCompatResources.getDrawable(imageView.getContext(), resource));
-        } catch (Exception e) {
-            Timber.e(e);
-        }
-    }
-
-    @BindingAdapter(value = {"sortingItem", "filterType"}, requireAll = true)
-    public static void setSortingIcon(ImageView sortingIcon, SortingItem sortingItem, Filters filterType) {
-        if (sortingItem != null) {
-            if (sortingItem.component1() != filterType) {
-                sortingIcon.setImageDrawable(AppCompatResources.getDrawable(sortingIcon.getContext(), R.drawable.ic_sort_deactivated));
-            } else {
-                switch (sortingItem.component2()) {
-                    case ASC:
-                        sortingIcon.setImageDrawable(AppCompatResources.getDrawable(sortingIcon.getContext(), R.drawable.ic_sort_ascending));
-                        break;
-                    case DESC:
-                        sortingIcon.setImageDrawable(AppCompatResources.getDrawable(sortingIcon.getContext(), R.drawable.ic_sort_descending));
-                        break;
-                    case NONE:
-                    default:
-                        sortingIcon.setImageDrawable(AppCompatResources.getDrawable(sortingIcon.getContext(), R.drawable.ic_sort_deactivated));
-                        break;
-                }
-            }
-        }
-    }
-
-    @BindingAdapter(value = {"filterArrow", "filterType"})
-    public static void setFilterArrow(View view, Filters openFilter, Filters filterType) {
-        view.animate().scaleY(openFilter != filterType ? 1 : -1).setDuration(200).start();
-    }
-
     @BindingAdapter(value = {"dataSetStatus"})
     public static void setDataSetStatusIcon(ImageView view, Boolean isComplete) {
+        int drawableResource = isComplete ? R.drawable.ic_event_status_complete : R.drawable.ic_event_status_open;
         view.setImageDrawable(
                 AppCompatResources.getDrawable(
                         view.getContext(),
-                        isComplete ? R.drawable.ic_event_status_complete : R.drawable.ic_event_status_open
+                        drawableResource
                 )
         );
-    }
-
-    @BindingAdapter("iconResource")
-    public static void setIconResource(ImageView imageView, @DrawableRes int iconResource) {
-        imageView.setImageResource(iconResource);
+        view.setTag(drawableResource);
     }
 
     @BindingAdapter("textStyle")
@@ -720,15 +649,6 @@ public class Bindings {
                 textView.setTypeface(null, Typeface.NORMAL);
                 break;
 
-        }
-    }
-
-    @BindingAdapter("marginTop")
-    public static void setMarginTop(View view, int marginInDp) {
-        if (view.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
-            ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
-            p.setMargins(p.leftMargin, ExtensionsKt.getDp(marginInDp), p.rightMargin, p.bottomMargin);
-            view.requestLayout();
         }
     }
 
@@ -756,6 +676,11 @@ public class Bindings {
             radioButton.setButtonTintList(getColorStateViewChecked(radioButton.getContext(), isBg));
             radioButton.invalidate();
         }
+    }
+
+    @BindingAdapter("setTextColor")
+    public static void setTextColor(TextView textView, boolean isBgTransparent) {
+        textView.setTextColor(getColorStateViewChecked(textView.getContext(), isBgTransparent));
     }
 
     private static ColorStateList getColorStateViewChecked(Context context, boolean isBackground) {
@@ -789,28 +714,14 @@ public class Bindings {
     public static void requestFocus(EditText editText, boolean focused) {
         if (focused) {
             editText.requestFocus();
+            editText.setCursorVisible(true);
             openKeyboard(editText);
         } else {
             editText.clearFocus();
+            editText.setCursorVisible(false);
         }
     }
 
-    @BindingAdapter("setImeOption")
-    public static void setImeOption(EditText editText, KeyboardActionType type) {
-        if (type != null) {
-            switch (type) {
-                case NEXT:
-                    editText.setImeOptions(IME_ACTION_NEXT);
-                    break;
-                case DONE:
-                    editText.setImeOptions(IME_ACTION_DONE);
-                    break;
-                case ENTER:
-                    editText.setImeOptions(IME_FLAG_NO_ENTER_ACTION);
-                    break;
-            }
-        }
-    }
 
     @BindingAdapter("checkListener")
     public static void checkListener(RadioGroup radioGroup, RadioButtonViewModel viewModel) {
@@ -834,6 +745,11 @@ public class Bindings {
     @BindingAdapter("clipCorners")
     public static void setClipCorners(View view, int cornerRadiusInDp) {
         ViewExtensionsKt.clipWithRoundedCorners(view, ExtensionsKt.getDp(cornerRadiusInDp));
+    }
+
+    @BindingAdapter("clipAllCorners")
+    public static void setAllClipCorners(View view, int cornerRadiusInDp) {
+        ViewExtensionsKt.clipWithAllRoundedCorners(view, ExtensionsKt.getDp(cornerRadiusInDp));
     }
 
     @BindingAdapter("legendValue")
@@ -868,11 +784,11 @@ public class Bindings {
     }
 
     @BindingAdapter("legendBadge")
-    public static void setLegendBadge(FrameLayout legendLayout, LegendValue legendValue){
+    public static void setLegendBadge(FrameLayout legendLayout, LegendValue legendValue) {
         legendLayout.setVisibility(
                 legendValue != null ? View.VISIBLE : View.GONE
         );
-        if(legendValue!=null){
+        if (legendValue != null) {
             DataElementLegendBinding legendBinding = DataElementLegendBinding.inflate(LayoutInflater.from(legendLayout.getContext()));
             legendBinding.setLegend(legendValue);
             legendLayout.removeAllViews();

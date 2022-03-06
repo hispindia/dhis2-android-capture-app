@@ -1,6 +1,7 @@
 package dhis2.org.analytics.charts
 
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.anyOrNull
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
@@ -10,6 +11,8 @@ import dhis2.org.analytics.charts.data.SerieData
 import dhis2.org.analytics.charts.mappers.AnalyticsTeiSettingsToGraph
 import dhis2.org.analytics.charts.mappers.DataElementToGraph
 import dhis2.org.analytics.charts.mappers.ProgramIndicatorToGraph
+import dhis2.org.analytics.charts.mappers.VisualizationToGraph
+import java.util.Date
 import org.hisp.dhis.android.core.D2
 import org.hisp.dhis.android.core.common.ValueType
 import org.hisp.dhis.android.core.dataelement.DataElement
@@ -24,15 +27,16 @@ import org.hisp.dhis.android.core.settings.ChartType
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito
-import java.util.Date
 
 class ChartsRepositoryTest {
     private val d2: D2 = Mockito.mock(D2::class.java, Mockito.RETURNS_DEEP_STUBS)
+    private val visualizationToGraph: VisualizationToGraph = mock()
     private val analyticsTeiSettingsToGraph: AnalyticsTeiSettingsToGraph = mock()
     private val dataElementToGraph: DataElementToGraph = mock()
     private val programIndicatorToGraph: ProgramIndicatorToGraph = mock()
     private val repository = ChartsRepositoryImpl(
         d2,
+        visualizationToGraph,
         analyticsTeiSettingsToGraph,
         dataElementToGraph,
         programIndicatorToGraph
@@ -61,15 +65,14 @@ class ChartsRepositoryTest {
         mockEnrollmentCall()
         mockAnalyticsSettingsCall(mockedAnalyticsSettings())
         whenever(
-            analyticsTeiSettingsToGraph.map(any(), any(), any(), any(), any())
+            analyticsTeiSettingsToGraph.map(any(), any(), any(), any(), any(), any(), any())
         ) doReturn mockedSettingsGraphs()
 
         val result = repository.getAnalyticsForEnrollment("enrollmentUid")
         assertTrue(
             result.isNotEmpty() &&
-                    result.size == mockedSettingsGraphs().size &&
-                    result[0].title == "settings_1"
-
+                result.size == mockedSettingsGraphs().size &&
+                result[0].title == "settings_1"
         )
     }
 
@@ -79,19 +82,22 @@ class ChartsRepositoryTest {
         mockAnalyticsSettingsCall(null)
         mockRepeatableStagesCall()
         mockNumericDataElements(false)
+        mockedVisualizationOrgUnitFilter()
+        mockedVisualizationOrgUnitFilterType()
+        mockedVisualizationPeriodFilter()
         whenever(
-            dataElementToGraph.map(any(), any(), any(), any())
+            dataElementToGraph.map(any(), any(), any(), any(), anyOrNull(), anyOrNull())
         ) doReturn mockedDataElementGraph()
         mockIndicators(false)
         whenever(
-            programIndicatorToGraph.map(any(), any(), any(), any())
+            programIndicatorToGraph.map(any(), any(), any(), any(), anyOrNull(), anyOrNull())
         ) doReturn mockedIndicatorGraph()
         val result = repository.getAnalyticsForEnrollment("enrollmentUid")
         assertTrue(
             result.isNotEmpty() &&
-                    result.size == 2 &&
-                    result[0].title == "de_graph_1" &&
-                    result[1].title == "indicator_graph_1"
+                result.size == 2 &&
+                result[0].title == "de_graph_1" &&
+                result[1].title == "indicator_graph_1"
         )
     }
 
@@ -102,14 +108,14 @@ class ChartsRepositoryTest {
         mockRepeatableStagesCall()
         mockNumericDataElements(false)
         whenever(
-            dataElementToGraph.map(any(), any(), any(), any())
+            dataElementToGraph.map(any(), any(), any(), any(), anyOrNull(), anyOrNull())
         ) doReturn mockedDataElementGraph()
         mockIndicators(true)
         val result = repository.getAnalyticsForEnrollment("enrollmentUid")
         assertTrue(
             result.isNotEmpty() &&
-                    result.size == 1 &&
-                    result[0].title == "de_graph_1"
+                result.size == 1 &&
+                result[0].title == "de_graph_1"
         )
     }
 
@@ -118,16 +124,19 @@ class ChartsRepositoryTest {
         mockEnrollmentCall()
         mockAnalyticsSettingsCall(null)
         mockRepeatableStagesCall()
+        mockedVisualizationOrgUnitFilter()
+        mockedVisualizationOrgUnitFilterType()
+        mockedVisualizationPeriodFilter()
         mockNumericDataElements(true)
         mockIndicators(false)
         whenever(
-            programIndicatorToGraph.map(any(), any(), any(), any())
+            programIndicatorToGraph.map(any(), any(), any(), any(), anyOrNull(), anyOrNull())
         ) doReturn mockedIndicatorGraph()
         val result = repository.getAnalyticsForEnrollment("enrollmentUid")
         assertTrue(
             result.isNotEmpty() &&
-                    result.size == 1 &&
-                    result[0].title == "indicator_graph_1"
+                result.size == 1 &&
+                result[0].title == "indicator_graph_1"
         )
     }
 
@@ -293,9 +302,8 @@ class ChartsRepositoryTest {
         return arrayListOf(
             Graph(
                 "settings_1",
-                false,
                 emptyList(),
-                "periodToDisplay",
+                null,
                 PeriodType.Daily,
                 0L,
                 dhis2.org.analytics.charts.data.ChartType.LINE_CHART
@@ -306,9 +314,8 @@ class ChartsRepositoryTest {
     private fun mockedDataElementGraph(): Graph {
         return Graph(
             "de_graph_1",
-            false,
             listOf(SerieData("de_field", listOf(GraphPoint(Date(), null, 30f)))),
-            "periodToDisplay",
+            null,
             PeriodType.Daily,
             0L,
             dhis2.org.analytics.charts.data.ChartType.LINE_CHART
@@ -318,13 +325,29 @@ class ChartsRepositoryTest {
     private fun mockedIndicatorGraph(): Graph {
         return Graph(
             "indicator_graph_1",
-            false,
             listOf(SerieData("indicator_field", listOf(GraphPoint(Date(), null, 30f)))),
-            "periodToDisplay",
+            null,
             PeriodType.Daily,
             0L,
             dhis2.org.analytics.charts.data.ChartType.LINE_CHART
         )
     }
 
+    private fun mockedVisualizationPeriodFilter() {
+        whenever(
+            d2.dataStoreModule().localDataStore().value(any()).blockingExists()
+        ) doReturn false
+    }
+
+    private fun mockedVisualizationOrgUnitFilterType() {
+        whenever(
+            d2.dataStoreModule().localDataStore().value(any()).blockingExists()
+        ) doReturn false
+    }
+
+    private fun mockedVisualizationOrgUnitFilter() {
+        whenever(
+            d2.dataStoreModule().localDataStore().value(any()).blockingExists()
+        ) doReturn false
+    }
 }

@@ -24,7 +24,7 @@ import org.dhis2.common.matchers.RecyclerviewMatchers.Companion.allElementsHave
 import org.dhis2.common.matchers.RecyclerviewMatchers.Companion.dateIsInRange
 import org.dhis2.common.matchers.RecyclerviewMatchers.Companion.hasItem
 import org.dhis2.common.viewactions.clickChildViewWithId
-import org.dhis2.utils.filters.FilterHolder
+import org.dhis2.commons.filters.FilterHolder
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.allOf
 import org.hamcrest.Matchers.containsString
@@ -96,8 +96,8 @@ class FilterRobot : BaseRobot() {
     }
 
     fun chooseDate(year: Int, monthOfYear: Int, dayOfMonth: Int) {
-        onView(withId(R.id.widget_datepicker)).perform(PickerActions.setDate(year, monthOfYear, dayOfMonth))
-        onView(withId(R.id.acceptButton)).perform(click())
+        onView(withId(R.id.datePicker)).perform(PickerActions.setDate(year, monthOfYear, dayOfMonth))
+        onView(withId(R.id.acceptBtn)).perform(click())
     }
 
     fun checkTEIsAreOpen() {

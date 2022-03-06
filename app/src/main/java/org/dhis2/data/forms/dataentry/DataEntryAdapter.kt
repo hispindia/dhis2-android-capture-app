@@ -1,30 +1,47 @@
 package org.dhis2.data.forms.dataentry
 
+import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.ListAdapter
-import java.util.ArrayList
-import java.util.LinkedHashMap
-import org.dhis2.data.forms.dataentry.fields.FieldUiModel
-import org.dhis2.data.forms.dataentry.fields.FieldViewModel
+import org.dhis2.R
 import org.dhis2.data.forms.dataentry.fields.FormViewHolder
 import org.dhis2.data.forms.dataentry.fields.FormViewHolder.FieldItemCallback
 import org.dhis2.data.forms.dataentry.fields.section.SectionViewModel
+import org.dhis2.form.model.FieldUiModel
+import org.dhis2.form.ui.DataEntryDiff
+import org.dhis2.form.ui.event.RecyclerViewUiEvents
+import org.dhis2.form.ui.intent.FormIntent
 
-class DataEntryAdapter :
+class DataEntryAdapter(private val searchStyle: Boolean) :
     ListAdapter<FieldUiModel, FormViewHolder>(DataEntryDiff()),
     FieldItemCallback {
 
-    var didItemShowDialog: ((title: String, message: String?) -> Unit)? = null
-    var onNextClicked: ((position: Int) -> Unit)? = null
+    private val refactoredViews = intArrayOf(
+        R.layout.form_age_custom,
+        R.layout.form_date_time, R.layout.form_scan
+    )
+
+    var onIntent: ((intent: FormIntent) -> Unit)? = null
+    var onRecyclerViewUiEvents: ((uiEvent: RecyclerViewUiEvents) -> Unit)? = null
 
     private val sectionHandler = SectionHandler()
     var sectionPositions: MutableMap<String, Int> = LinkedHashMap()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FormViewHolder {
-        val layoutInflater = LayoutInflater.from(parent.context)
+        val layoutInflater =
+            if (refactoredViews.contains(viewType) && searchStyle) {
+                LayoutInflater.from(
+                    ContextThemeWrapper(
+                        parent.context,
+                        R.style.searchFormInputText
+                    )
+                )
+            } else {
+                LayoutInflater.from(parent.context)
+            }
         val binding =
             DataBindingUtil.inflate<ViewDataBinding>(layoutInflater, viewType, parent, false)
         return FormViewHolder(binding)
@@ -34,7 +51,6 @@ class DataEntryAdapter :
         if (getItem(position) is SectionViewModel) {
             updateSectionData(position, false)
         }
-
         holder.bind(getItem(position), this)
     }
 
@@ -63,14 +79,14 @@ class DataEntryAdapter :
     }
 
     override fun getItemViewType(position: Int): Int {
-        return getItem(position)!!.getLayoutId()
+        return getItem(position)!!.layoutId
     }
 
-    fun swap(updates: List<FieldViewModel>, commitCallback: Runnable) {
+    fun swap(updates: List<FieldUiModel>, commitCallback: Runnable) {
         sectionPositions = LinkedHashMap()
         for (fieldViewModel in updates) {
             if (fieldViewModel is SectionViewModel) {
-                sectionPositions[fieldViewModel.getUid()] = updates.indexOf(fieldViewModel)
+                sectionPositions[fieldViewModel.uid] = updates.indexOf(fieldViewModel)
             }
         }
 
@@ -108,15 +124,15 @@ class DataEntryAdapter :
         }
     }
 
-    override fun onShowDialog(title: String, message: String?) {
-        didItemShowDialog?.let { action ->
-            action(title, message)
+    override fun intent(intent: FormIntent) {
+        onIntent?.let {
+            it(intent)
         }
     }
 
-    override fun onNext(layoutPosition: Int) {
-        onNextClicked?.let {
-            it(layoutPosition)
+    override fun recyclerViewEvent(uiEvent: RecyclerViewUiEvents) {
+        onRecyclerViewUiEvents?.let {
+            it(uiEvent)
         }
     }
 }

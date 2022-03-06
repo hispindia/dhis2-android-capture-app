@@ -10,21 +10,25 @@ class GraphCoordinatesToEntry {
         coordinates: List<GraphPoint>
     ): List<Entry> {
         return coordinates.mapIndexed { index, graphPoint ->
-            Entry(
-                if (index > 0) {
-                    graph.numberOfStepsToDate(graphPoint.eventDate)
+
+            val entryIndex = graphPoint.position
+                ?: if (index == 0) {
+                    0f
                 } else {
-                    index.toFloat()
-                },
+                    graph.numberOfStepsToDate(graphPoint.eventDate)
+                }
+
+            Entry(
+                entryIndex,
                 graphPoint.fieldValue
             )
         }
     }
 
     fun mapNutrition(coordinates: List<GraphPoint>): List<Entry> {
-        return coordinates.mapIndexed { index, graphPoint ->
+        return coordinates.map { graphPoint ->
             Entry(
-                graphPoint.position?.toFloat() ?: 0f,
+                graphPoint.position ?: 0f,
                 graphPoint.fieldValue
             )
         }

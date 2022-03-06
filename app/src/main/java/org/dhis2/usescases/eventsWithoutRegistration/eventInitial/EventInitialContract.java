@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import org.dhis2.data.forms.dataentry.fields.coordinate.CoordinateViewModel;
 import org.dhis2.usescases.general.AbstractActivityContracts;
 import org.dhis2.utils.EventCreationType;
 import org.hisp.dhis.android.core.category.CategoryCombo;
@@ -14,6 +15,7 @@ import org.hisp.dhis.android.core.category.CategoryOptionCombo;
 import org.hisp.dhis.android.core.common.Geometry;
 import org.hisp.dhis.android.core.common.ObjectStyle;
 import org.hisp.dhis.android.core.event.Event;
+import org.hisp.dhis.android.core.event.EventNonEditableReason;
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnit;
 import org.hisp.dhis.android.core.program.Program;
 import org.hisp.dhis.android.core.program.ProgramStage;
@@ -43,7 +45,7 @@ public class EventInitialContract {
 
         void setProgramStage(ProgramStage programStage);
 
-        void updatePercentage(float primaryValue, float secondaryValue);
+        void updatePercentage(float primaryValue);
 
         void showProgramStageSelection();
 
@@ -67,68 +69,14 @@ public class EventInitialContract {
 
         EventCreationType eventcreateionType();
 
+        void setGeometryModel(CoordinateViewModel geometryModel);
 
+        void setNewGeometry(String value);
+
+        void displayFeatureTypeError();
+
+        void setEditionStatus(String reason);
+
+        void hideEditionStatus();
     }
-
-    public interface Presenter extends AbstractActivityContracts.Presenter {
-        void init(String programId, String eventId, String orgUnitId, String programStageId);
-
-        void getProgramStage(String programStageUid);
-
-        void onBackClick();
-
-        void createEvent(String enrollmentUid, String programStageModel, Date date, String orgUnitUid,
-                         String catOption, String catOptionCombo,
-                         Geometry geometry, String trackedEntityInstance);
-
-        void scheduleEventPermanent(String enrollmentUid, String trackedEntityInstanceUid, String programStageModel, Date dueDate, String orgUnitUid,
-                                    String categoryOptionComboUid, String categoryOptionsUid,
-                                    Geometry geometry);
-
-        void scheduleEvent(String enrollmentUid, String programStageModel, Date dueDate, String orgUnitUid,
-                           String catOption, String catOptionCombo,
-                           Geometry geometry);
-
-        void editEvent(String trackedEntityInstance, String programStageModel, String eventUid, String date, String orgUnitUid,
-                       String catOption, String catOptionCombo,
-                       Geometry geometry);
-
-        void onDateClick(@Nullable DatePickerDialog.OnDateSetListener listener);
-
-        void onOrgUnitButtonClick();
-
-        void onFieldChanged(CharSequence s, int start, int before, int count);
-
-        @VisibleForTesting
-        String getCurrentOrgUnit(String orgUnitUid);
-
-        void onShareClick(android.view.View mView);
-
-        void deleteEvent(String trackedEntityInstance);
-
-        boolean isEnrollmentOpen();
-
-        void getStageObjectStyle(String uid);
-
-        String getCatOptionCombo(String uid, List<CategoryOptionCombo> categoryOptionCombos, List<CategoryOption> values);
-
-        Date getStageLastDate(String programStageUid, String enrollmentUid);
-
-        void getEventOrgUnit(String ouUid);
-
-        void initOrgunit(Date selectedDate);
-
-        CategoryOption getCatOption(String selectedOption);
-
-        int catOptionSize(String uid);
-
-        List<CategoryOption> getCatOptions(String categoryUid);
-
-        void setChangingCoordinates(boolean changingCoordinates);
-
-        boolean getCompletionPercentageVisibility();
-
-        void onEventCreated();
-    }
-
 }

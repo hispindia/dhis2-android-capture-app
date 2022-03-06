@@ -1,9 +1,5 @@
 package org.dhis2.usescases.datasets.datasetDetail;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.transition.ChangeBounds;
 import android.transition.Transition;
@@ -13,37 +9,42 @@ import android.view.View;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.view.ViewCompat;
 import androidx.databinding.DataBindingUtil;
-import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import org.dhis2.App;
 import org.dhis2.Bindings.ExtensionsKt;
 import org.dhis2.Bindings.ViewExtensionsKt;
 import org.dhis2.R;
 import org.dhis2.databinding.ActivityDatasetDetailBinding;
-import org.dhis2.usescases.datasets.dataSetTable.DataSetTableActivity;
-import org.dhis2.usescases.datasets.datasetInitial.DataSetInitialActivity;
+import org.dhis2.usescases.datasets.datasetDetail.datasetList.DataSetListFragment;
 import org.dhis2.usescases.general.ActivityGlobalAbstract;
-import org.dhis2.usescases.orgunitselector.OUTreeActivity;
+import org.dhis2.commons.orgunitselector.OUTreeFragment;
+import org.dhis2.commons.orgunitselector.OnOrgUnitSelectionFinished;
 import org.dhis2.utils.Constants;
 import org.dhis2.utils.DateUtils;
 import org.dhis2.utils.category.CategoryDialog;
-import org.dhis2.utils.filters.FilterItem;
-import org.dhis2.utils.filters.FilterManager;
-import org.dhis2.utils.filters.FiltersAdapter;
-import org.dhis2.utils.granularsync.SyncStatusDialog;
+import org.dhis2.utils.customviews.navigationbar.NavigationPageConfigurator;
+import org.hisp.dhis.android.core.organisationunit.OrganisationUnit;
+import org.jetbrains.annotations.NotNull;
+import org.dhis2.commons.filters.FilterItem;
+import org.dhis2.commons.filters.FilterManager;
+import org.dhis2.commons.filters.FiltersAdapter;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
 
+import dhis2.org.analytics.charts.ui.GroupAnalyticsFragment;
 
-public class DataSetDetailActivity extends ActivityGlobalAbstract implements DataSetDetailView {
 
-    private static String FRAGMENT_TAG = "SYNC";
+public class DataSetDetailActivity extends ActivityGlobalAbstract implements DataSetDetailView,
+        OnOrgUnitSelectionFinished {
 
     private ActivityDatasetDetailBinding binding;
     private String dataSetUid;
-    private Boolean accessWriteData;
+    public DataSetDetailComponent dataSetDetailComponent;
 
     @Inject
     DataSetDetailPresenter presenter;
@@ -54,62 +55,58 @@ public class DataSetDetailActivity extends ActivityGlobalAbstract implements Dat
     @Inject
     FiltersAdapter filtersAdapter;
 
-    DataSetDetailAdapter adapter;
+    @Inject
+    NavigationPageConfigurator pageConfigurator;
+
     private boolean backDropActive;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         dataSetUid = getIntent().getStringExtra("DATASET_UID");
-        ((App) getApplicationContext()).userComponent().plus(new DataSetDetailModule(this, dataSetUid)).inject(this);
+        dataSetDetailComponent = ((App) getApplicationContext()).userComponent().plus(new DataSetDetailModule(this, dataSetUid));
+        dataSetDetailComponent.inject(this);
         super.onCreate(savedInstanceState);
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_dataset_detail);
         binding.setName(getIntent().getStringExtra(Constants.DATA_SET_NAME));
-        accessWriteData = Boolean.valueOf(getIntent().getStringExtra(Constants.ACCESS_DATA));
+        boolean accessWriteData = Boolean.parseBoolean(getIntent().getStringExtra(Constants.ACCESS_DATA));
         binding.setPresenter(presenter);
-
-        adapter = new DataSetDetailAdapter(presenter);
 
         ViewExtensionsKt.clipWithRoundedCorners(binding.eventsLayout, ExtensionsKt.getDp(16));
         binding.filterLayout.setAdapter(filtersAdapter);
+        binding.navigationBar.pageConfiguration(pageConfigurator);
+        binding.navigationBar.setOnNavigationItemSelectedListener(item -> {
+            Fragment fragment = null;
+            switch (item.getItemId()) {
+                case R.id.navigation_list_view:
+                    fragment = DataSetListFragment.newInstance(dataSetUid, accessWriteData);
+                    break;
+                case R.id.navigation_analytics:
+                    fragment = GroupAnalyticsFragment.Companion.forDataSet(dataSetUid);
+                    break;
+            }
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            if (fragment != null) {
+                transaction.replace(R.id.fragmentContainer, fragment).commit();
+            }
+            return true;
+        });
+        binding.navigationBar.selectItemAt(0);
+        binding.fragmentContainer.setPadding(0, 0, 0, binding.navigationBar.isHidden() ? 0 : ExtensionsKt.getDp(56));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         presenter.init();
-        binding.addDatasetButton.setEnabled(true);
         binding.setTotalFilters(FilterManager.getInstance().getTotalFilters());
     }
 
     @Override
     protected void onPause() {
+        presenter.setOpeningFilterToNone();
         presenter.onDettach();
         super.onPause();
-    }
-
-    @Override
-    public void setData(List<DataSetDetailModel> datasets) {
-        binding.programProgress.setVisibility(View.GONE);
-        if (binding.recycler.getAdapter() == null) {
-            binding.recycler.setAdapter(adapter);
-        }
-        if (datasets.size() == 0) {
-            binding.emptyData.setVisibility(View.VISIBLE);
-            binding.recycler.setVisibility(View.GONE);
-        } else {
-            binding.emptyData.setVisibility(View.GONE);
-            binding.recycler.setVisibility(View.VISIBLE);
-            adapter.setDataSets(datasets);
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == FilterManager.OU_TREE && resultCode == Activity.RESULT_OK) {
-            updateFilters(filterManager.getTotalFilters());
-        }
-        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
@@ -144,14 +141,20 @@ public class DataSetDetailActivity extends ActivityGlobalAbstract implements Dat
 
     @Override
     public void openOrgUnitTreeSelector() {
-        Intent ouTreeIntent = new Intent(this, OUTreeActivity.class);
-        startActivityForResult(ouTreeIntent, FilterManager.OU_TREE);
+        OUTreeFragment ouTreeFragment = OUTreeFragment.Companion.newInstance(true, Collections.emptyList());
+        ouTreeFragment.setSelectionCallback(this);
+        ouTreeFragment.show(getSupportFragmentManager(), "OUTreeFragment");
+    }
+
+    @Override
+    public void onSelectionFinished(List<? extends OrganisationUnit> selectedOrgUnits) {
+        presenter.setOrgUnitFilters((List<OrganisationUnit>) selectedOrgUnits);
     }
 
     @Override
     public void showPeriodRequest(FilterManager.PeriodRequest periodRequest) {
         if (periodRequest == FilterManager.PeriodRequest.FROM_TO) {
-            DateUtils.getInstance().showFromToSelector(this, datePeriods -> filterManager.addPeriod(datePeriods));
+            DateUtils.getInstance().fromCalendarSelector(this, datePeriods -> filterManager.addPeriod(datePeriods));
         } else {
             DateUtils.getInstance().showPeriodDialog(
                     this,
@@ -159,55 +162,6 @@ public class DataSetDetailActivity extends ActivityGlobalAbstract implements Dat
                     true
             );
         }
-    }
-
-    @SuppressLint("RestrictedApi")
-    @Override
-    public void setWritePermission(Boolean canWrite) {
-        binding.emptyData.setText(
-                canWrite ? getString(R.string.dataset_empty_list_can_create) : getString(R.string.dataset_emtpy_list_can_not_create)
-        );
-        binding.addDatasetButton.setVisibility(canWrite ? View.VISIBLE : View.GONE);
-    }
-
-    @Override
-    public void startNewDataSet() {
-        binding.addDatasetButton.setEnabled(false);
-        Bundle bundle = new Bundle();
-        bundle.putString(Constants.DATA_SET_UID, dataSetUid);
-        startActivity(DataSetInitialActivity.class, bundle, false, false, null);
-    }
-
-    @Override
-    public void openDataSet(DataSetDetailModel dataSet) {
-        Bundle bundle = new Bundle();
-        bundle.putString(Constants.ORG_UNIT, dataSet.orgUnitUid());
-        bundle.putString(Constants.ORG_UNIT_NAME, dataSet.nameOrgUnit());
-        bundle.putString(Constants.PERIOD_TYPE_DATE, dataSet.namePeriod());
-        bundle.putString(Constants.PERIOD_TYPE, dataSet.periodType());
-        bundle.putString(Constants.PERIOD_ID, dataSet.periodId());
-        bundle.putString(Constants.CAT_COMB, dataSet.catOptionComboUid());
-        bundle.putString(Constants.DATA_SET_UID, dataSetUid);
-        bundle.putBoolean(Constants.ACCESS_DATA, accessWriteData);
-        startActivity(DataSetTableActivity.class, bundle, false, false, null);
-
-    }
-
-    @Override
-    public void showSyncDialog(DataSetDetailModel dataSet) {
-        SyncStatusDialog dialog = new SyncStatusDialog.Builder()
-                .setConflictType(SyncStatusDialog.ConflictType.DATA_VALUES)
-                .setUid(dataSetUid)
-                .setOrgUnit(dataSet.orgUnitUid())
-                .setAttributeOptionCombo(dataSet.catOptionComboUid())
-                .setPeriodId(dataSet.periodId())
-                .onDismissListener(hasChanged -> {
-                    if (hasChanged) {
-                        presenter.updateFilters();
-                    }
-                }).build();
-
-        dialog.show(getSupportFragmentManager(), FRAGMENT_TAG);
     }
 
     @Override
@@ -241,5 +195,9 @@ public class DataSetDetailActivity extends ActivityGlobalAbstract implements Dat
     protected void onDestroy() {
         presenter.clearFilterIfDatasetConfig();
         super.onDestroy();
+    }
+
+    public void setProgress(boolean active) {
+        binding.programProgress.setVisibility(active ? View.VISIBLE : View.GONE);
     }
 }

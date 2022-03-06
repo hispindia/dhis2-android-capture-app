@@ -3,10 +3,11 @@ package org.dhis2.usescases.eventsWithoutRegistration.eventCapture;
 import androidx.annotation.NonNull;
 
 import org.dhis2.data.forms.FormSectionViewModel;
-import org.dhis2.data.forms.dataentry.fields.FieldViewModel;
-import org.dhis2.data.forms.dataentry.fields.RowAction;
+import org.dhis2.form.model.FieldUiModel;
+import org.dhis2.form.model.RowAction;
 import org.dhis2.usescases.general.AbstractActivityContracts;
 import org.dhis2.utils.Result;
+import org.dhis2.utils.RulesUtilsProviderConfigurationError;
 import org.hisp.dhis.android.core.event.EventStatus;
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnit;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -22,9 +23,6 @@ import io.reactivex.Single;
 import io.reactivex.processors.FlowableProcessor;
 import io.reactivex.subjects.BehaviorSubject;
 
-/**
- * QUADRAM. Created by ppajuelo on 19/11/2018.
- */
 public class EventCaptureContract {
 
     public interface View extends AbstractActivityContracts.View {
@@ -33,9 +31,9 @@ public class EventCaptureContract {
 
         EventCaptureContract.Presenter getPresenter();
 
-        void updatePercentage(float primaryValue, float secondaryValue);
+        void updatePercentage(float primaryValue);
 
-        void showCompleteActions(boolean canComplete, String completeMessage, Map<String, String> errors, Map<String, FieldViewModel> emptyMandatoryFields);
+        void showCompleteActions(boolean canComplete, String completeMessage, Map<String, String> errors, Map<String, FieldUiModel> emptyMandatoryFields);
 
         void restartDataEntry();
 
@@ -70,19 +68,21 @@ public class EventCaptureContract {
         void showNavigationBar();
 
         void hideNavigationBar();
+
+        void displayConfigurationErrors(List<RulesUtilsProviderConfigurationError> configurationError);
     }
 
     public interface Presenter extends AbstractActivityContracts.Presenter {
 
         void init();
 
-        BehaviorSubject<List<FieldViewModel>> formFieldsFlowable();
+        BehaviorSubject<List<FieldUiModel>> formFieldsFlowable();
 
         void onBackClick();
 
         void nextCalculation(boolean doNextCalculation);
 
-        void attempFinish();
+        void attemptFinish();
 
         boolean isEnrollmentOpen();
 
@@ -115,6 +115,8 @@ public class EventCaptureContract {
         boolean getCompletionPercentageVisibility();
 
         void setValueChanged(@NotNull String uid);
+
+        void disableConfErrorMessage();
     }
 
     public interface EventCaptureRepository {
@@ -132,7 +134,7 @@ public class EventCaptureContract {
         Flowable<List<FormSectionViewModel>> eventSections();
 
         @NonNull
-        Flowable<List<FieldViewModel>> list(FlowableProcessor<RowAction> processor);
+        Flowable<List<FieldUiModel>> list(FlowableProcessor<RowAction> processor);
 
         @NonNull
         Flowable<Result<RuleEffect>> calculate();
@@ -172,6 +174,10 @@ public class EventCaptureContract {
         boolean showCompletionPercentage();
 
         void updateFieldValue(String uid);
+
+        boolean hasAnalytics();
+
+        boolean hasRelationships();
     }
 
 }

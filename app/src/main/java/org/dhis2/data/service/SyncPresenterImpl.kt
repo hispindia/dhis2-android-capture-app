@@ -1,26 +1,31 @@
 package org.dhis2.data.service
 
+import android.content.SharedPreferences
+import android.util.Base64
+import android.util.Log
 import androidx.annotation.VisibleForTesting
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.ListenableWorker
+import com.mapbox.mapboxsdk.Mapbox.getApplicationContext
 import io.reactivex.Completable
 import io.reactivex.Observable
+import io.reactivex.Single
 import java.util.Calendar
 import kotlin.math.ceil
 import org.dhis2.Bindings.toSeconds
-import org.dhis2.data.prefs.Preference.Companion.DATA
-import org.dhis2.data.prefs.Preference.Companion.EVENT_MAX
-import org.dhis2.data.prefs.Preference.Companion.EVENT_MAX_DEFAULT
-import org.dhis2.data.prefs.Preference.Companion.LIMIT_BY_ORG_UNIT
-import org.dhis2.data.prefs.Preference.Companion.LIMIT_BY_PROGRAM
-import org.dhis2.data.prefs.Preference.Companion.META
-import org.dhis2.data.prefs.Preference.Companion.TEI_MAX
-import org.dhis2.data.prefs.Preference.Companion.TEI_MAX_DEFAULT
-import org.dhis2.data.prefs.Preference.Companion.TIME_DAILY
-import org.dhis2.data.prefs.Preference.Companion.TIME_DATA
-import org.dhis2.data.prefs.Preference.Companion.TIME_META
-import org.dhis2.data.prefs.PreferenceProvider
+import org.dhis2.commons.prefs.Preference.Companion.DATA
+import org.dhis2.commons.prefs.Preference.Companion.EVENT_MAX
+import org.dhis2.commons.prefs.Preference.Companion.EVENT_MAX_DEFAULT
+import org.dhis2.commons.prefs.Preference.Companion.LIMIT_BY_ORG_UNIT
+import org.dhis2.commons.prefs.Preference.Companion.LIMIT_BY_PROGRAM
+import org.dhis2.commons.prefs.Preference.Companion.META
+import org.dhis2.commons.prefs.Preference.Companion.TEI_MAX
+import org.dhis2.commons.prefs.Preference.Companion.TEI_MAX_DEFAULT
+import org.dhis2.commons.prefs.Preference.Companion.TIME_DAILY
+import org.dhis2.commons.prefs.Preference.Companion.TIME_DATA
+import org.dhis2.commons.prefs.Preference.Companion.TIME_META
+import org.dhis2.commons.prefs.PreferenceProvider
 import org.dhis2.data.service.workManager.WorkManagerController
 import org.dhis2.data.service.workManager.WorkerItem
 import org.dhis2.data.service.workManager.WorkerType
@@ -36,7 +41,14 @@ import org.hisp.dhis.android.core.settings.GeneralSettings
 import org.hisp.dhis.android.core.settings.LimitScope
 import org.hisp.dhis.android.core.settings.ProgramSettings
 import org.hisp.dhis.android.core.systeminfo.DHISVersion
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityInstance
+import org.jetbrains.anko.doAsync
 import timber.log.Timber
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
+import java.net.HttpURLConnection
+import java.net.URL
 
 class SyncPresenterImpl(
     private val d2: D2,
@@ -44,7 +56,7 @@ class SyncPresenterImpl(
     private val workManagerController: WorkManagerController,
     private val analyticsHelper: AnalyticsHelper
 ) : SyncPresenter {
-
+    private var homeScore: String =""
     override fun syncAndDownloadEvents() {
         val (eventLimit, limitByOU, limitByProgram) = getDownloadLimits()
 
@@ -86,7 +98,6 @@ class SyncPresenterImpl(
     override fun syncAndDownloadTeis() {
         val programSettings = getProgramSetting()
         val globalProgramSettings = programSettings?.globalSettings()
-
         val teiLimit =
             globalProgramSettings?.teiDownload() ?: preferences.getInt(TEI_MAX, TEI_MAX_DEFAULT)
         val limitByOU = globalProgramSettings?.settingDownload()?.let {
@@ -96,14 +107,26 @@ class SyncPresenterImpl(
             it == LimitScope.PER_PROGRAM || it == LimitScope.PER_OU_AND_PROGRAM
         } ?: preferences.getBoolean(LIMIT_BY_PROGRAM, false)
 
+
+        val settings: SharedPreferences =
+            getApplicationContext().getSharedPreferences("user_uid", 0)
+
+        //@Sou download current tei only
+        homeScore = settings.getString("tei-uid", 0.toString()).toString()
+        val tei: Unit =
+            d2.trackedEntityModule().trackedEntityInstanceDownloader().byUid().eq(homeScore).blockingDownload();
+
+        Log.d("homeScore--------",homeScore);
         Completable.fromObservable(d2.trackedEntityModule().trackedEntityInstances().upload())
             .andThen(
-                Completable.fromObservable(
+
+                        Completable.fromObservable(
                     d2.trackedEntityModule()
                         .trackedEntityInstanceDownloader()
                         .limit(teiLimit)
                         .limitByOrgunit(limitByOU)
                         .limitByProgram(limitByProgram)
+                        .byUid().eq(homeScore)
                         .download()
                         .doOnNext { data ->
                             val percentage = data.percentage()
@@ -188,16 +211,36 @@ class SyncPresenterImpl(
             .blockingDownloadAllReservedValues(maxNumberOfValuesToReserve)
     }
 
-    override fun checkSyncStatus(): Boolean {
+    override fun checkSyncStatus(): SyncResult {
         val eventsOk =
             d2.eventModule().events().byState().notIn(State.SYNCED).blockingGet().isEmpty()
         val teiOk = d2.trackedEntityModule().trackedEntityInstances().byState()
             .notIn(State.SYNCED, State.RELATIONSHIP).blockingGet().isEmpty()
-        return eventsOk && teiOk
+
+        if (eventsOk && teiOk) {
+            return SyncResult.SYNC
+        }
+
+        val anyEventsToPostOrToUpdate = d2.eventModule()
+            .events()
+            .byState().`in`(State.TO_POST, State.TO_UPDATE)
+            .blockingGet().isNotEmpty()
+        val anyTeiToPostOrToUpdate = d2.trackedEntityModule()
+            .trackedEntityInstances()
+            .byState().`in`(State.TO_POST, State.TO_UPDATE)
+            .blockingGet().isNotEmpty()
+
+        if (anyEventsToPostOrToUpdate || anyTeiToPostOrToUpdate) {
+            return SyncResult.INCOMPLETE
+        }
+
+        return SyncResult.ERROR
     }
 
     override fun syncGranularEvent(eventUid: String): Observable<D2Progress> {
-        return d2.eventModule().events().byUid().eq(eventUid).upload()
+        Completable.fromObservable(d2.eventModule().events().byUid().eq(eventUid).upload())
+            .blockingAwait()
+        return d2.eventModule().eventDownloader().byUid().eq(eventUid).download()
     }
 
     override fun blockSyncGranularProgram(programUid: String): ListenableWorker.Result {
@@ -213,31 +256,46 @@ class SyncPresenterImpl(
     override fun blockSyncGranularTei(teiUid: String): ListenableWorker.Result {
         Completable.fromObservable(syncGranularTEI(teiUid))
             .blockingAwait()
-        if (!checkSyncTEIStatus(teiUid)) {
-            val trackerImportConflicts = messageTrackerImportConflict(teiUid)
-            val mergeDateConflicts = ArrayList<String>()
-            trackerImportConflicts?.forEach {
-                val calendar = Calendar.getInstance()
-                calendar.timeInMillis = it.created()?.time ?: 0
-                val date = DateUtils.databaseDateFormat().format(calendar.time)
-                mergeDateConflicts.add(date + "/" + it.displayDescription())
+        return when (checkSyncTEIStatus(teiUid)) {
+            SyncResult.SYNC -> {
+                ListenableWorker.Result.success()
             }
+            SyncResult.ERROR -> {
+                val trackerImportConflicts = messageTrackerImportConflict(teiUid)
+                val mergeDateConflicts = ArrayList<String>()
+                trackerImportConflicts?.forEach {
+                    val calendar = Calendar.getInstance()
+                    calendar.timeInMillis = it.created()?.time ?: 0
+                    val date = DateUtils.databaseDateFormat().format(calendar.time)
+                    mergeDateConflicts.add(date + "/" + it.displayDescription())
+                }
 
-            val data = Data.Builder()
-                .putStringArray("conflict", mergeDateConflicts.toTypedArray())
-                .build()
-            return ListenableWorker.Result.failure(data)
+                val data = Data.Builder()
+                    .putStringArray("conflict", mergeDateConflicts.toTypedArray())
+                    .build()
+                ListenableWorker.Result.failure(data)
+            }
+            SyncResult.INCOMPLETE -> {
+                val data = Data.Builder()
+                    .putStringArray("incomplete", arrayOf("INCOMPLETE"))
+                    .build()
+                ListenableWorker.Result.failure(data)
+            }
         }
-        return ListenableWorker.Result.success()
     }
 
     override fun blockSyncGranularEvent(eventUid: String): ListenableWorker.Result {
         Completable.fromObservable(syncGranularEvent(eventUid))
             .blockingAwait()
-        return if (!checkSyncEventStatus(eventUid)) {
-            ListenableWorker.Result.failure()
-        } else {
-            ListenableWorker.Result.success()
+        return when (checkSyncEventStatus(eventUid)) {
+            SyncResult.SYNC -> ListenableWorker.Result.success()
+            SyncResult.ERROR -> ListenableWorker.Result.failure()
+            SyncResult.INCOMPLETE -> {
+                val data = Data.Builder()
+                    .putStringArray("incomplete", arrayOf("INCOMPLETE"))
+                    .build()
+                ListenableWorker.Result.failure(data)
+            }
         }
     }
 
@@ -279,17 +337,31 @@ class SyncPresenterImpl(
         return d2.programModule().programs().uid(uid).get().toObservable()
             .flatMap { program ->
                 if (program.programType() == ProgramType.WITH_REGISTRATION) {
-                    d2.trackedEntityModule().trackedEntityInstances().byProgramUids(
-                        listOf(uid)
-                    ).upload()
+                    Completable.fromObservable(
+                        d2.trackedEntityModule().trackedEntityInstances().byProgramUids(listOf(uid))
+                            .upload()
+                    ).blockingAwait()
+
+                    d2.trackedEntityModule().trackedEntityInstanceDownloader().byUid().eq(homeScore).download()
+//                    d2.trackedEntityModule().trackedEntityInstanceDownloader().byProgramUid(uid)
+//                        .download()
                 } else {
-                    d2.eventModule().events().byProgramUid().eq(uid).upload()
+                    Completable.fromObservable(
+                        d2.eventModule().events().byProgramUid().eq(uid).upload()
+                    ).blockingAwait()
+                    d2.eventModule().eventDownloader().byProgramUid(uid).download()
                 }
             }
     }
 
     override fun syncGranularTEI(uid: String): Observable<D2Progress> {
-        return d2.trackedEntityModule().trackedEntityInstances().byUid().eq(uid).upload()
+        Completable.fromObservable(
+            d2.trackedEntityModule().trackedEntityInstances().byUid().eq(uid).upload()
+        ).blockingAwait()
+        return d2.trackedEntityModule().trackedEntityInstanceDownloader().byUid().eq(homeScore)
+            .download()
+//        return d2.trackedEntityModule().trackedEntityInstanceDownloader().byUid().eq(uid)
+//            .download()
     }
 
     override fun syncGranularDataSet(uid: String): Observable<D2Progress> {
@@ -337,18 +409,49 @@ class SyncPresenterImpl(
             .upload()
     }
 
-    override fun checkSyncEventStatus(uid: String): Boolean {
-        return d2.eventModule().events()
+    override fun checkSyncEventStatus(uid: String): SyncResult {
+        val eventsOk = d2.eventModule().events()
             .byUid().eq(uid)
             .byState().notIn(State.SYNCED)
             .blockingGet().isEmpty()
+
+        if (eventsOk) {
+            return SyncResult.SYNC
+        }
+
+        val anyEventsToPostOrToUpdate = d2.eventModule()
+            .events()
+            .byUid().eq(uid)
+            .byState().`in`(State.TO_POST, State.TO_UPDATE)
+            .blockingGet().isNotEmpty()
+
+        if (anyEventsToPostOrToUpdate) {
+            return SyncResult.INCOMPLETE
+        }
+
+        return SyncResult.ERROR
     }
 
-    override fun checkSyncTEIStatus(uid: String): Boolean {
-        return d2.trackedEntityModule().trackedEntityInstances()
+    override fun checkSyncTEIStatus(uid: String): SyncResult {
+        val teiOk = d2.trackedEntityModule().trackedEntityInstances()
             .byUid().eq(uid)
             .byState().notIn(State.SYNCED, State.RELATIONSHIP)
             .blockingGet().isEmpty()
+
+        if (teiOk) {
+            return SyncResult.SYNC
+        }
+
+        val anyTeiToPostOrToUpdate = d2.trackedEntityModule().trackedEntityInstances()
+            .byUid().eq(uid)
+            .byState().`in`(State.TO_POST, State.TO_UPDATE)
+            .blockingGet().isNotEmpty()
+
+        if (anyTeiToPostOrToUpdate) {
+            return SyncResult.INCOMPLETE
+        }
+
+        return SyncResult.ERROR
     }
 
     override fun checkSyncDataValueStatus(

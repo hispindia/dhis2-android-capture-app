@@ -7,11 +7,20 @@
             android:id="@+id/menu_home"
             android:icon="@drawable/ic_menu_home"
             android:title="@string/menu_home" />
+        <item
+            android:id="@+id/menu_home_visualizations"
+            android:visible="false"
+            android:icon="@drawable/ic_menu_home"
+            android:title="@string/menu_home" />
     </group>
 
     <group
         android:id="@+id/close_section"
         android:checkableBehavior="single">
+        <item
+            android:id="@+id/counseling"
+            android:icon="@drawable/ic_counseling"
+            android:title="@string/COUNSELING" />
         <item
             android:id="@+id/qr_scan"
             android:icon="@drawable/ic_qr"

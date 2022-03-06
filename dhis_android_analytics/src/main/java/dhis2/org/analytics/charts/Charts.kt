@@ -1,12 +1,33 @@
 package dhis2.org.analytics.charts
 
 import dhis2.org.analytics.charts.data.Graph
+import dhis2.org.analytics.charts.ui.OrgUnitFilterType
+import org.dhis2.commons.featureconfig.data.FeatureConfigRepository
 import org.hisp.dhis.android.core.D2
+import org.hisp.dhis.android.core.common.RelativePeriod
+import org.hisp.dhis.android.core.organisationunit.OrganisationUnit
+import org.hisp.dhis.android.core.settings.AnalyticsDhisVisualizationsGroup
 
 interface Charts {
     fun hasCharts(): Boolean
 
-    fun getCharts(enrollmentUid: String): List<Graph>
+    fun getVisualizationGroups(uid: String?): List<AnalyticsDhisVisualizationsGroup>
+
+    fun geEnrollmentCharts(enrollmentUid: String): List<Graph>
+
+    fun getProgramVisualizations(groupUid: String?, programUid: String): List<Graph>
+
+    fun getHomeVisualizations(groupUid: String?): List<Graph>
+
+    fun getDataSetVisualizations(groupUid: String?, dataSetUid: String): List<Graph>
+
+    fun setVisualizationPeriods(visualizationUid: String, periods: List<RelativePeriod>)
+
+    fun setVisualizationOrgUnits(
+        visualizationUid: String,
+        orgUnits: List<OrganisationUnit>,
+        orgUnitFilterType: OrgUnitFilterType
+    )
 
     interface Provider {
         fun get(dependencies: Dependencies): Charts
@@ -14,5 +35,6 @@ interface Charts {
 
     interface Dependencies {
         fun getD2(): D2
+        fun getFeatureConfigRepository(): FeatureConfigRepository
     }
 }

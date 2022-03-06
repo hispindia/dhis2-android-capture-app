@@ -1,29 +1,52 @@
 package org.dhis2.usescases.eventsWithoutRegistration.eventCapture;
 
+import static android.text.TextUtils.isEmpty;
+
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import org.dhis2.Bindings.ValueExtensionsKt;
+import org.dhis2.R;
+import org.dhis2.commons.resources.ResourceManager;
+import org.dhis2.data.dhislogic.AuthoritiesKt;
 import org.dhis2.data.forms.FormSectionViewModel;
 import org.dhis2.data.forms.dataentry.RuleEngineRepository;
-import org.dhis2.data.forms.dataentry.fields.FieldViewModel;
 import org.dhis2.data.forms.dataentry.fields.FieldViewModelFactory;
-import org.dhis2.data.forms.dataentry.fields.LegendValue;
-import org.dhis2.data.forms.dataentry.fields.RowAction;
 import org.dhis2.data.forms.dataentry.fields.orgUnit.OrgUnitViewModel;
+import org.dhis2.form.model.FieldUiModel;
+import org.dhis2.form.model.LegendValue;
+import org.dhis2.form.model.RowAction;
+import org.dhis2.usescases.about.AlcoholView;
+import org.dhis2.usescases.about.DiabeticView;
+import org.dhis2.usescases.about.MentalView;
+import org.dhis2.usescases.about.NutritionView;
+import org.dhis2.usescases.about.PhysicalView;
+import org.dhis2.usescases.about.TobaccoView;
+import org.dhis2.usescases.main.MainActivity;
+import org.dhis2.usescases.main.Tobacco;
 import org.dhis2.utils.DateUtils;
 import org.dhis2.utils.Result;
-import org.dhis2.utils.resources.ResourceManager;
 import org.hisp.dhis.android.core.D2;
+import org.hisp.dhis.android.core.D2Manager;
 import org.hisp.dhis.android.core.arch.helpers.UidsHelper;
 import org.hisp.dhis.android.core.arch.repositories.scope.RepositoryScope;
+import org.hisp.dhis.android.core.common.BaseIdentifiableObject;
+import org.hisp.dhis.android.core.common.FeatureType;
 import org.hisp.dhis.android.core.common.ObjectStyle;
 import org.hisp.dhis.android.core.common.ObjectWithUid;
 import org.hisp.dhis.android.core.common.ValueType;
 import org.hisp.dhis.android.core.common.ValueTypeDeviceRendering;
 import org.hisp.dhis.android.core.dataelement.DataElement;
+import org.hisp.dhis.android.core.datavalue.DataValue;
 import org.hisp.dhis.android.core.enrollment.Enrollment;
 import org.hisp.dhis.android.core.enrollment.EnrollmentStatus;
 import org.hisp.dhis.android.core.event.Event;
+import org.hisp.dhis.android.core.event.EventEditableStatus;
+import org.hisp.dhis.android.core.event.EventNonEditableReason;
 import org.hisp.dhis.android.core.event.EventStatus;
 import org.hisp.dhis.android.core.imports.TrackerImportConflict;
 import org.hisp.dhis.android.core.legendset.Legend;
@@ -32,20 +55,20 @@ import org.hisp.dhis.android.core.maintenance.D2Error;
 import org.hisp.dhis.android.core.option.Option;
 import org.hisp.dhis.android.core.option.OptionGroup;
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnit;
-import org.hisp.dhis.android.core.program.Program;
-import org.hisp.dhis.android.core.program.ProgramStage;
+import org.hisp.dhis.android.core.program.ProgramRule;
+import org.hisp.dhis.android.core.program.ProgramRuleAction;
+import org.hisp.dhis.android.core.program.ProgramRuleActionType;
 import org.hisp.dhis.android.core.program.ProgramStageDataElement;
 import org.hisp.dhis.android.core.program.ProgramStageSection;
-import org.hisp.dhis.android.core.program.ProgramStageSectionDeviceRendering;
-import org.hisp.dhis.android.core.program.ProgramStageSectionRendering;
 import org.hisp.dhis.android.core.program.ProgramStageSectionRenderingType;
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityDataValueCollectionRepository;
 import org.hisp.dhis.android.core.trackedentity.TrackedEntityDataValueObjectRepository;
 import org.hisp.dhis.rules.models.RuleEffect;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Objects;
@@ -56,54 +79,52 @@ import io.reactivex.Single;
 import io.reactivex.processors.FlowableProcessor;
 import timber.log.Timber;
 
-import static android.text.TextUtils.isEmpty;
-
 public class EventCaptureRepositoryImpl implements EventCaptureContract.EventCaptureRepository {
 
     private final FieldViewModelFactory fieldFactory;
 
     private final String eventUid;
+    private  Integer ptsd_count=0;
+    private  Integer tota_count=0;
+    private  Integer v1=0,v2=0,v3=0,v4=0,v5=0;
+    private  Integer ptsd_count_sub=0;
     private final Event currentEvent;
-    private final ProgramStage currentStage;
 
     private final RuleEngineRepository ruleEngineRepository;
     private final D2 d2;
     private final ResourceManager resourceManager;
     private boolean isEventEditable;
-    private final HashMap<String, ProgramStageSection> sectionMap;
-    private final HashMap<String, ProgramStageDataElement> stageDataElementsMap;
-    private List<FieldViewModel> sectionFields;
-
+    private final LinkedHashMap<String, ProgramStageSection> sectionMap;
+    private List<FieldUiModel> sectionFields;
+    private Context context;
+    private LegendValue legendValue;
     public EventCaptureRepositoryImpl(FieldViewModelFactory fieldFactory,
                                       RuleEngineRepository ruleEngineRepository,
                                       String eventUid,
                                       D2 d2,
-                                      ResourceManager resourceManager) {
+                                      ResourceManager resourceManager,Context context) {
+        ptsd_count=0;
+        ptsd_count_sub=0;
+        v1=0;v2=0;v3=0;v4=0;v5=0;
+        this.context = context;
         this.eventUid = eventUid;
         this.ruleEngineRepository = ruleEngineRepository;
         this.d2 = d2;
         this.resourceManager = resourceManager;
 
-        currentEvent = d2.eventModule().events().withTrackedEntityDataValues().uid(eventUid).blockingGet();
-        currentStage = d2.programModule().programStages().uid(currentEvent.programStage()).blockingGet();
-
+        currentEvent = d2.eventModule().events().uid(eventUid).blockingGet();
         this.fieldFactory = fieldFactory;
 
-        List<ProgramStageSection> sections = d2.programModule().programStageSections().byProgramStageUid().eq(currentStage.uid())
-                .withDataElements().withProgramIndicators().blockingGet();
-        sectionMap = new HashMap<>();
+        //@Sou XzDycWaOWDo tobacco section insert image
+        List<ProgramStageSection> sections = d2.programModule().programStageSections()
+                .byProgramStageUid().eq(currentEvent.programStage())
+                .withDataElements()
+                .blockingGet();
+        sectionMap = new LinkedHashMap<>();
         if (sections != null && !sections.isEmpty()) {
             for (ProgramStageSection section : sections) {
                 sectionMap.put(section.uid(), section);
             }
-        }
-
-        stageDataElementsMap = new HashMap<>();
-        List<ProgramStageDataElement> programStageDataElements = d2.programModule().programStageDataElements()
-                .byProgramStage().eq(currentStage.uid())
-                .blockingGet();
-        for (ProgramStageDataElement psDe : programStageDataElements) {
-            stageDataElementsMap.put(psDe.dataElement().uid(), psDe);
         }
 
         sectionFields = new ArrayList<>();
@@ -111,17 +132,19 @@ public class EventCaptureRepositoryImpl implements EventCaptureContract.EventCap
 
     @Override
     public boolean isEnrollmentOpen() {
-        Enrollment enrollment = d2.enrollmentModule().enrollments().uid(d2.eventModule().events().uid(eventUid).blockingGet().enrollment()).blockingGet();
-        return enrollment == null || enrollment.status() == EnrollmentStatus.ACTIVE;
+        ptsd_count=0;
+        ptsd_count_sub=0;
+        v1=0;v2=0;v3=0;v4=0;v5=0;
+        return currentEvent.enrollment() == null || d2.enrollmentModule().enrollmentService().blockingIsOpen(currentEvent.enrollment());
     }
 
     @Override
     public boolean isEnrollmentCancelled() {
-        Enrollment enrollment = d2.enrollmentModule().enrollments().uid(d2.eventModule().events().uid(eventUid).blockingGet().enrollment()).blockingGet();
+        Enrollment enrollment = d2.enrollmentModule().enrollments().uid(currentEvent.enrollment()).blockingGet();
         if (enrollment == null)
             return false;
         else
-            return d2.enrollmentModule().enrollments().uid(d2.eventModule().events().uid(eventUid).blockingGet().enrollment()).blockingGet().status() == EnrollmentStatus.CANCELLED;
+            return enrollment.status() == EnrollmentStatus.CANCELLED;
     }
 
     @Override
@@ -131,27 +154,27 @@ public class EventCaptureRepositoryImpl implements EventCaptureContract.EventCap
 
     @Override
     public Flowable<String> programStageName() {
-        return Flowable.just(d2.eventModule().events().uid(eventUid).blockingGet())
-                .map(event -> d2.programModule().programStages().uid(event.programStage()).blockingGet().displayName());
+        return d2.programModule().programStages().uid(currentEvent.programStage()).get()
+                .map(BaseIdentifiableObject::displayName)
+                .toFlowable();
     }
 
     @Override
     public Flowable<String> eventDate() {
-        return Flowable.just(d2.eventModule().events().uid(eventUid).blockingGet())
-                .map(event -> DateUtils.uiDateFormat().format(event.eventDate()));
+        return Flowable.just(
+                currentEvent.eventDate() != null ? DateUtils.uiDateFormat().format(currentEvent.eventDate()) : ""
+        );
     }
 
     @Override
     public Flowable<OrganisationUnit> orgUnit() {
-        return Flowable.just(d2.eventModule().events().uid(eventUid).blockingGet())
-                .map(event -> d2.organisationUnitModule().organisationUnits().uid(event.organisationUnit()).blockingGet());
+        return Flowable.just(d2.organisationUnitModule().organisationUnits().uid(currentEvent.organisationUnit()).blockingGet());
     }
 
 
     @Override
     public Flowable<String> catOption() {
-        return Flowable.just(d2.eventModule().events().uid(eventUid).blockingGet())
-                .map(event -> d2.categoryModule().categoryOptionCombos().uid(event.attributeOptionCombo()))
+        return Flowable.just(d2.categoryModule().categoryOptionCombos().uid(currentEvent.attributeOptionCombo()))
                 .map(categoryOptionComboRepo -> {
                     if (categoryOptionComboRepo.blockingGet() == null)
                         return "";
@@ -163,25 +186,32 @@ public class EventCaptureRepositoryImpl implements EventCaptureContract.EventCap
 
     @Override
     public Flowable<List<FormSectionViewModel>> eventSections() {
-        return d2.eventModule().events().uid(eventUid).get()
+        return Flowable.just(currentEvent)
                 .map(eventSingle -> {
                     List<FormSectionViewModel> formSection = new ArrayList<>();
                     if (eventSingle.deleted() == null || !eventSingle.deleted()) {
-                        ProgramStage stage = d2.programModule().programStages().uid(eventSingle.programStage()).blockingGet();
-                        List<ProgramStageSection> stageSections = d2.programModule().programStageSections().byProgramStageUid().eq(stage.uid()).blockingGet();
-                        if (stageSections.size() > 0) {
+                        List<ProgramStageSection> stageSections = new ArrayList<>(sectionMap.values());
+                        if (!stageSections.isEmpty()) {
                             Collections.sort(stageSections, (one, two) ->
                                     one.sortOrder().compareTo(two.sortOrder()));
 
-                            for (ProgramStageSection section : stageSections)
+                            for (ProgramStageSection section : stageSections) {
                                 formSection.add(FormSectionViewModel.createForSection(
+
                                         eventUid,
                                         section.uid(),
                                         section.displayName(),
-                                        section.renderType().mobile() != null ?
+                                        section.renderType() != null && section.renderType().mobile() != null ?
                                                 section.renderType().mobile().type().name() :
                                                 null)
+
                                 );
+                                if (section.uid().equals("")) {
+                                    if (sectionFields.get(0).getValue().equals("")) {
+
+                                    }
+                                }
+                            }
                         } else {
                             formSection.add(FormSectionViewModel.createForSection(
                                     eventUid,
@@ -191,35 +221,22 @@ public class EventCaptureRepositoryImpl implements EventCaptureContract.EventCap
                         }
                     }
                     return formSection;
-                }).toFlowable();
-    }
-
-
-    private ProgramStageSectionRenderingType renderingType(String sectionUid) {
-        ProgramStageSectionRenderingType renderingType = ProgramStageSectionRenderingType.LISTING;
-        if (sectionUid != null) {
-            ProgramStageSectionRendering sectionRendering = d2.programModule().programStageSections().uid(sectionUid).blockingGet().renderType();
-            ProgramStageSectionDeviceRendering stageSectionRendering = sectionRendering != null ? sectionRendering.mobile() : null;
-            if (stageSectionRendering != null)
-                renderingType = stageSectionRendering.type();
-        }
-
-        return renderingType;
+                });
     }
 
     @NonNull
     @Override
-    public Flowable<List<FieldViewModel>> list(FlowableProcessor<RowAction> processor) {
+    public Flowable<List<FieldUiModel>> list(FlowableProcessor<RowAction> processor) {
         isEventEditable = isEventEditable(eventUid);
         if (!sectionFields.isEmpty()) {
             return Flowable.just(sectionFields);
         } else {
             return Flowable.fromCallable(() -> {
                 List<ProgramStageDataElement> stageDataElements = d2.programModule().programStageDataElements()
-                        .byProgramStage().eq(currentStage.uid())
+                        .byProgramStage().eq(currentEvent.programStage())
                         .withRenderType().blockingGet();
                 List<ProgramStageSection> stageSections = d2.programModule().programStageSections()
-                        .byProgramStageUid().eq(currentStage.uid())
+                        .byProgramStageUid().eq(currentEvent.programStage())
                         .withDataElements()
                         .blockingGet();
                 if (!stageSections.isEmpty()) {
@@ -289,21 +306,63 @@ public class EventCaptureRepositoryImpl implements EventCaptureContract.EventCap
                             dataValue = friendlyValue;
                         }
 
-                        LegendValue legendValue = getColorByLegend(rawValue, uid);
+//                        if ((uid.equals("xPCoFalodsX")||uid.equals("FgJmi8GJAb0")||uid.equals("quqQkFUyeHy")||uid.equals("VXakmScH0Bi")||uid.equals("QbaPAEDrOXa")))
+//                        {
+//                            Log.d("fff",dataValue);
+//                            if (dataValue.equals("true"))
+//                            {
+//                                Log.d("fff--",dataValue);
+//                            }
+//                        }
+                        if (uid.equals("tODc1AS0kei"))
+                        {
+                            legendValue= getColorByLegend_sys("test");
+                        }
+                        else if (uid.equals("BGsi9NZxXwS"))
+                        {
+                            legendValue= getColorByLegend_dia("test");
+                        }
+                        else if (uid.equals("vn3lgKqqq9Z"))
+                        {
+                            legendValue= getColorByLegend_leg("test");
+                        }
+
+                        else
+                        {
+                            legendValue = getColorByLegend(rawValue, uid);
+                        }
+
+
+
+
 
                         ProgramStageSectionRenderingType renderingType = programStageSection != null && programStageSection.renderType() != null &&
                                 programStageSection.renderType().mobile() != null ?
                                 programStageSection.renderType().mobile().type() : null;
 
-                        FieldViewModel fieldViewModel =
-                                fieldFactory.create(uid, formName == null ? displayName : formName,
-                                        valueType, mandatory, optionSet, dataValue,
-                                        programStageSection != null ? programStageSection.uid() : null, allowFutureDates,
+                        FieldUiModel fieldViewModel =
+                                fieldFactory.create(uid,
+                                        formName == null ? displayName : formName,
+                                        valueType,
+                                        mandatory,
+                                        optionSet,
+                                        dataValue,
+                                        programStageSection != null ? programStageSection.uid() : null,
+                                        allowFutureDates,
                                         isEventEditable,
-                                        renderingType, description, fieldRendering, optionCount, objectStyle, de.fieldMask(), legendValue, processor, options);
+                                        renderingType,
+                                        description,
+                                        fieldRendering,
+                                        optionCount,
+                                        objectStyle,
+                                        de.fieldMask(),
+                                        legendValue,
+                                        options,
+                                        FeatureType.POINT
+                                );
 
                         if (!error.isEmpty()) {
-                            return fieldViewModel.withError(error);
+                            return fieldViewModel.setError(error);
                         } else {
                             return fieldViewModel;
                         }
@@ -329,6 +388,68 @@ public class EventCaptureRepositoryImpl implements EventCaptureContract.EventCap
             }
         }
         return error;
+    }
+
+    private LegendValue getColorByLegend_sys(String value) {
+
+        if (value == null) {
+            return null;
+        }
+        try {
+            if (value!=null)
+            {
+                return new LegendValue(R.color.dhis_color,
+                        "Systolic BP--->120 mmHg");
+            }
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    //ဤအသေးစိတ်အချက်အလက်များကို ဖြည့်သွင်းပါ- လိင်၊ ဆီးချိုရောဂါအသေးစိတ်၊ သွေးပေါင်ချိန်(Systolic)၊ ဆေးလိပ်သောက်သည့်အခြေအနေနှင့် အသက်
+
+    private LegendValue getColorByLegend_leg(String value) {
+        String msg="Please ensure these details are filled: Gender, Diabetes details, blood pressure (systolic), smoking status and age.";
+        //@Sou hack for check language select
+        if (d2.settingModule().userSettings().blockingGet().keyDbLocale().equals("en"))
+        {
+            msg="Please ensure these details are filled: Gender, Diabetes details, blood pressure (systolic), smoking status and age.";
+
+        }
+        else
+        {
+            msg="ဤအသေးစိတ်အချက်အလက်များကို ဖြည့်သွင်းပါ- လိင်၊ ဆီးချိုရောဂါအသေးစိတ်၊ သွေးပေါင်ချိန်(Systolic)၊ ဆေးလိပ်သောက်သည့်အခြေအနေနှင့် အသက်.";
+        }
+        if (value == null) {
+            return null;
+        }
+        try {
+            if (value!=null)
+            {
+                return new LegendValue(R.color.dhis_color,
+                        msg);
+            }
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    private LegendValue getColorByLegend_dia(String value) {
+
+        if (value == null) {
+            return null;
+        }
+        try {
+            if (value!=null)
+            {
+                return new LegendValue(R.color.dhis_color,
+                        "Diastolic BP--->90 mmHg");
+            }
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private LegendValue getColorByLegend(String value, String dataElementUid) {
@@ -403,7 +524,8 @@ public class EventCaptureRepositoryImpl implements EventCaptureContract.EventCap
 
     @Override
     public Observable<Boolean> deleteEvent() {
-        return d2.eventModule().events().uid(eventUid).delete().toObservable();
+        return d2.eventModule().events().uid(eventUid).delete()
+                .andThen(Observable.just(true));
     }
 
     @Override
@@ -429,35 +551,23 @@ public class EventCaptureRepositoryImpl implements EventCaptureContract.EventCap
 
     @Override
     public Observable<String> programStage() {
-        return Observable.defer(() -> Observable.just(currentEvent.programStage()));
+        return Observable.just(currentEvent.programStage());
     }
 
     @Override
     public boolean getAccessDataWrite() {
-        boolean canWrite;
-        canWrite =
-                d2.programModule().programs().uid(
-                        d2.eventModule().events().uid(eventUid).blockingGet().program()
-                ).blockingGet().access().data().write();
-        if (canWrite)
-            canWrite =
-                    d2.programModule().programStages().uid(
-                            d2.eventModule().events().uid(eventUid).blockingGet().programStage()
-                    ).blockingGet().access().data().write();
-        return canWrite;
+        return d2.eventModule().eventService().blockingHasDataWriteAccess(eventUid);
     }
 
     @Override
     public Flowable<EventStatus> eventStatus() {
-        return Flowable.just(d2.eventModule().events().uid(eventUid).blockingGet())
-                .map(Event::status);
+        return Flowable.just(currentEvent.status());
     }
 
     @Override
     public String getSectionFor(String field) {
         String sectionToReturn = "NO_SECTION";
-        List<ProgramStageSection> programStages = d2.programModule().programStageSections().byProgramStageUid().eq(currentEvent.programStage()).withDataElements().blockingGet();
-        for (ProgramStageSection section : programStages) {
+        for (ProgramStageSection section : sectionMap.values()) {
             if (UidsHelper.getUidsList(section.dataElements()).contains(field)) {
                 sectionToReturn = section.uid();
                 break;
@@ -468,36 +578,34 @@ public class EventCaptureRepositoryImpl implements EventCaptureContract.EventCap
 
     @Override
     public Single<Boolean> canReOpenEvent() {
-        return Single.defer(() -> Single.fromCallable(() -> d2.userModule().authorities()
-                .byName().in("F_UNCOMPLETE_EVENT", "ALL").one().blockingExists()
-        ));
-    }
-
-    private Observable<Program> getExpiryDateFromEvent(String eventUid) {
-        return d2.eventModule().events().uid(eventUid).get().
-                flatMap(event -> d2.programModule().programs().uid(event.program()).get())
-                .toObservable();
+        return Single.fromCallable(() -> d2.userModule().authorities()
+                .byName().in(AuthoritiesKt.AUTH_UNCOMPLETE_EVENT, AuthoritiesKt.AUTH_ALL).one().blockingExists()
+        );
     }
 
     @Override
     public Observable<Boolean> isCompletedEventExpired(String eventUid) {
-        return Observable.zip(d2.eventModule().events().uid(eventUid).get().toObservable(),
-                getExpiryDateFromEvent(eventUid),
-                ((event, program) -> DateUtils.getInstance().isEventExpired(null, event.completedDate(), program.completeEventsExpiryDays())));
+        return d2.eventModule().eventService().getEditableStatus(eventUid).map(editionStatus -> {
+            if (editionStatus instanceof EventEditableStatus.NonEditable) {
+                return ((EventEditableStatus.NonEditable) editionStatus).getReason() == EventNonEditableReason.EXPIRED;
+            } else {
+                return false;
+            }
+        }).toObservable();
     }
 
     @Override
     public Flowable<Boolean> eventIntegrityCheck() {
-        return d2.eventModule().events().uid(eventUid).get()
-                .map(event ->
-                        (event.status() == EventStatus.COMPLETED ||
-                                event.status() == EventStatus.ACTIVE) &&
-                                event.eventDate() != null && !event.eventDate().after(new Date())
-                ).toFlowable();
+        return Flowable.just(currentEvent).map(event ->
+                (event.status() == EventStatus.COMPLETED ||
+                        event.status() == EventStatus.ACTIVE) &&
+                        event.eventDate() != null && !event.eventDate().after(new Date())
+        );
     }
 
     @Override
     public Single<Integer> getNoteCount() {
+        Log.d("getNoteCount--",String.valueOf(d2.noteModule().notes().byEventUid().eq(eventUid).count()));
         return d2.noteModule().notes().byEventUid().eq(eventUid).count();
     }
 
@@ -519,20 +627,25 @@ public class EventCaptureRepositoryImpl implements EventCaptureContract.EventCap
     public boolean showCompletionPercentage() {
         if (d2.settingModule().appearanceSettings().blockingExists()) {
             return d2.settingModule().appearanceSettings().getCompletionSpinnerByUid(
-                    d2.eventModule().events().uid(eventUid).blockingGet().program()
+                    currentEvent.program()
             ).visible();
         }
         return true;
     }
 
+    @SuppressLint("TimberArgCount")
     @Override
     public void updateFieldValue(String uid) {
+        //@Sou open counselling screen on seclect
         Timber.d("UPDATING VALUE FOR FIELD %s", uid);
-        ListIterator<FieldViewModel> iterator = sectionFields.listIterator();
+
+
+        ListIterator<FieldUiModel> iterator = sectionFields.listIterator();
+
         boolean updated = false;
         while (iterator.hasNext() || !updated) {
-            FieldViewModel fieldViewModel = iterator.next();
-            if (fieldViewModel.uid().equals(uid)) {
+            FieldUiModel fieldViewModel = iterator.next();
+            if (fieldViewModel.getUid().equals(uid)) {
                 TrackedEntityDataValueObjectRepository valueRepository = d2.trackedEntityModule().trackedEntityDataValues().value(eventUid, uid);
 
                 String value = null;
@@ -547,25 +660,127 @@ public class EventCaptureRepositoryImpl implements EventCaptureContract.EventCap
                     } else {
                         value = friendlyValue;
                     }
+                    Log.d("value--ss",value);
                 }
 
                 String error = checkConflicts(uid, valueRepository.blockingExists() ? valueRepository.blockingGet().value() : null);
 
-                boolean editable = fieldViewModel.editable() != null ? fieldViewModel.editable() : true;
-                fieldViewModel = fieldViewModel.withValue(value).withEditMode(editable || isEventEditable);
+                fieldViewModel = fieldViewModel.setValue(value).setEditable(fieldViewModel.getEditable() || isEventEditable);
                 if (!error.isEmpty()) {
-                    fieldViewModel = fieldViewModel.withError(error);
+                    fieldViewModel = fieldViewModel.setError(error);
                 }
-                if (fieldViewModel.canHaveLegend()) {
-                    LegendValue legend = getColorByLegend(rawValue, fieldViewModel.uid());
-                    fieldViewModel = fieldViewModel.withLegend(legend);
+                if (fieldViewModel.getLegend() != null) {
+                    LegendValue legend = getColorByLegend(rawValue, fieldViewModel.getUid());
+                    fieldViewModel = fieldViewModel.setLegend(legend);
                 }
 
+                else if(fieldViewModel.getUid().equals("vn3lgKqqq9Z"))
+                {
+                    LegendValue legend2 = getColorByLegend_leg("test");
+                    fieldViewModel = fieldViewModel.setLegend(legend2);
+
+                }
                 iterator.set(fieldViewModel);
                 updated = true;
-                Timber.d("DONE FOR FIELD %s", uid);
+
+                Timber.d("DONE FOR FIELDs %s", fieldViewModel.getUid());
+
+                          if(uid.equals("zWm90YlQyIw")&&value.equals("true"))
+                                {
+
+                                    Log.d("selected--","tobacco");
+                                    Intent intent=new Intent(context, TobaccoView.class);
+                                    context.startActivity(intent);
+
+
+                                }
+
+                else if(uid.equals("PnR8FUQ3BtO")&&!value.equals(null))
+                                {
+
+                                    Log.d("selected--","tobacco");
+                                    Intent intent=new Intent(context, NutritionView.class);
+                                    context.startActivity(intent);
+
+                                }
+                else if(uid.equals("pfmv7gbIL88")&&value.equals("true"))
+                                {
+
+                                    Log.d("selected--","tobacco");
+                                    Intent intent=new Intent(context, AlcoholView.class);
+                                    context.startActivity(intent);
+
+                                }
+                      else if(uid.equals("tC3nBj57LL8")&&value.equals("true"))
+                                {
+
+                                    Log.d("selected--","tobacco");
+                                    Intent intent=new Intent(context, PhysicalView.class);
+                                    context.startActivity(intent);
+
+                                }
+                      //@Sou mental
+                else if (uid.equals("CkAaWopN8aP")&&(value.contains("Moderate")||value.contains("Severe")))
+                {
+                    Intent intent=new Intent(context, MentalView.class);
+                                    context.startActivity(intent);
+                }
+                else if (uid.equals("ZmbEiUBE3xf")&&(value.contains("Moderate")||value.contains("Severe")))
+                {
+                    Intent intent=new Intent(context, MentalView.class);
+                                    context.startActivity(intent);
+                }
+                else if (uid.equals("VdR8CJ5eYCd")&&!value.equals(null))
+                {
+                    Intent intent=new Intent(context, DiabeticView.class);
+                                    context.startActivity(intent);
+                }
+
+
+                else if (uid.equals("W3xB56TuA0T"))
+                {
+                    Log.d("risk--value",value);
+                    if (value.contains("Probable"))
+                    {
+                        Intent intent=new Intent(context, MentalView.class);
+                        context.startActivity(intent);
+                    }
+
+//                    String v1_= D2Manager.getD2().trackedEntityModule().trackedEntityDataValues().value(currentEvent.uid(),"xPCoFalodsX").blockingGet().value();
+
+                }
+
+
+            }
+    }
+    }
+
+    @Override
+    public boolean hasAnalytics() {
+        boolean hasProgramIndicators = d2.programModule().programIndicators().byProgramUid().eq(currentEvent.program()).blockingIsEmpty();
+        List<ProgramRule> programRules = d2.programModule().programRules().withProgramRuleActions()
+                .byProgramUid().eq(currentEvent.program()).blockingGet();
+        boolean hasProgramRules = false;
+        for (ProgramRule rule : programRules) {
+            for (ProgramRuleAction action : rule.programRuleActions()) {
+                if (action.programRuleActionType() == ProgramRuleActionType.DISPLAYKEYVALUEPAIR ||
+                        action.programRuleActionType() == ProgramRuleActionType.DISPLAYTEXT) {
+                    hasProgramRules = true;
+                }
             }
         }
+        return hasProgramIndicators || hasProgramRules;
     }
+
+    @Override
+    public boolean hasRelationships() {
+        return !d2.relationshipModule().relationshipTypes()
+                .byAvailableForEvent(eventUid)
+                .blockingIsEmpty();
+    }
+//    public void open301(EventCaptureContract.View view) {
+//        Intent openThree = new Intent(view.getContext(), Tob_Counselling.class);
+//        view.getContext().startActivity(openThree);
+//    }
 }
 

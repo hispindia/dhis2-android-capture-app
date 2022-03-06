@@ -3,6 +3,7 @@ package dhis2.org.analytics.charts.providers
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
+import java.util.Date
 import org.hisp.dhis.android.core.D2
 import org.hisp.dhis.android.core.analytics.linelist.LineListResponse
 import org.hisp.dhis.android.core.analytics.linelist.LineListResponseValue
@@ -10,11 +11,11 @@ import org.hisp.dhis.android.core.period.Period
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito
-import java.util.Date
 
 class ChartCoordinatesProviderImplTest {
     private val d2: D2 = Mockito.mock(D2::class.java, Mockito.RETURNS_DEEP_STUBS)
-    private val coordinatesProvider = ChartCoordinatesProviderImpl(d2)
+    private val periodStepProvider: PeriodStepProvider = mock()
+    private val coordinatesProvider = ChartCoordinatesProviderImpl(d2, periodStepProvider)
 
     @Test
     fun `Should get coordinates for data elements`() {
@@ -22,7 +23,9 @@ class ChartCoordinatesProviderImplTest {
         val result = coordinatesProvider.dataElementCoordinates(
             "stageUid",
             "teiUid",
-            "dataElementUid"
+            "dataElementUid",
+            null,
+            null
         )
         assertTrue(
             result.isNotEmpty()
@@ -35,7 +38,9 @@ class ChartCoordinatesProviderImplTest {
         val result = coordinatesProvider.dataElementCoordinates(
             "stageUid",
             "teiUid",
-            "dataElementUid"
+            "dataElementUid",
+            null,
+            null
         )
         assertTrue(
             result.isEmpty()
@@ -48,7 +53,9 @@ class ChartCoordinatesProviderImplTest {
         val result = coordinatesProvider.indicatorCoordinates(
             "stageUid",
             "teiUid",
-            "indicatorUid"
+            "indicatorUid",
+            null,
+            null
         )
         assertTrue(
             result.isNotEmpty()
@@ -61,7 +68,9 @@ class ChartCoordinatesProviderImplTest {
         val result = coordinatesProvider.indicatorCoordinates(
             "stageUid",
             "teiUid",
-            "indicatorUid"
+            "indicatorUid",
+            null,
+            null
         )
         assertTrue(
             result.isEmpty()
@@ -112,7 +121,7 @@ class ChartCoordinatesProviderImplTest {
                     "orgUnit",
                     "orgUnitUid",
                     listOf(
-                        LineListResponseValue("uid","field","125")
+                        LineListResponseValue("uid", "field", "125")
                     )
                 )
             )
@@ -163,11 +172,10 @@ class ChartCoordinatesProviderImplTest {
                     "orgUnit",
                     "orgUnitUid",
                     listOf(
-                        LineListResponseValue("uid","field","125")
+                        LineListResponseValue("uid", "field", "125")
                     )
                 )
             )
         }
     }
-
 }

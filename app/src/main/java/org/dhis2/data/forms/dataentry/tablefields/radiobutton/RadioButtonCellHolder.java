@@ -8,9 +8,10 @@ import org.dhis2.R;
 import org.dhis2.data.forms.dataentry.tablefields.FormViewHolder;
 import org.dhis2.data.forms.dataentry.tablefields.RowAction;
 import org.dhis2.databinding.CustomCellViewBinding;
-import org.dhis2.utils.DialogClickListener;
+import org.dhis2.commons.dialogs.DialogClickListener;
 import org.dhis2.utils.customviews.TableFieldDialog;
 import org.dhis2.data.forms.dataentry.fields.radiobutton.YesNoView;
+import org.hisp.dhis.android.core.D2Manager;
 import org.hisp.dhis.android.core.common.ValueTypeRenderingType;
 
 import io.reactivex.processors.FlowableProcessor;
@@ -44,9 +45,30 @@ public class RadioButtonCellHolder extends FormViewHolder {
 
         if (checkBoxViewModel.value() != null && !checkBoxViewModel.value().isEmpty()) {
             if (checkBoxViewModel.value().equals("true"))
-                textView.setText(context.getString(R.string.yes));
+            {
+                if (D2Manager.getD2().settingModule().userSettings().blockingGet().keyDbLocale().equals("en"))
+                {
+                    textView.setText(context.getString(R.string.yes));
+                }
+                else
+                {
+                    textView.setText("ဟုတ်တယ်");
+                }
+            }
+
             else
-                textView.setText(context.getString(R.string.no));
+            {
+                if (D2Manager.getD2().settingModule().userSettings().blockingGet().keyDbLocale().equals("en"))
+                {
+                    textView.setText(context.getString(R.string.no));
+                }
+                else
+                {
+                    textView.setText("မဟုတ်ဘူး");
+                }
+            }
+
+
         } else {
             textView.setText(null);
         }

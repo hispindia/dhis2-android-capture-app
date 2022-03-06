@@ -10,8 +10,8 @@
         android:icon="@drawable/ic_note_add"
         android:title="@string/add_new" />
 
-    <item
-        android:id="@+id/referral"
-        android:icon="@drawable/ic_arrow_forward"
-        android:title="@string/referral" />
+<!--    <item-->
+<!--        android:id="@+id/referral"-->
+<!--        android:icon="@drawable/ic_arrow_forward"-->
+<!--        android:title="@string/referral" />-->
 </menu>

@@ -17,10 +17,13 @@ import org.dhis2.App
 import org.dhis2.BuildConfig
 import org.dhis2.R
 import org.dhis2.databinding.ActivitySplashBinding
+import org.dhis2.usescases.about.PopUpView
 import org.dhis2.usescases.general.ActivityGlobalAbstract
 import org.dhis2.usescases.login.LoginActivity
 import org.dhis2.usescases.main.MainActivity
 import org.dhis2.usescases.sync.SyncActivity
+import org.hisp.dhis.android.core.D2Manager
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityAttributeValue
 
 class SplashActivity : ActivityGlobalAbstract(), SplashView {
     companion object {
@@ -117,7 +120,26 @@ class SplashActivity : ActivityGlobalAbstract(), SplashView {
         initialSyncDone: Boolean
     ) {
         if (isUserLogged && initialSyncDone && !sessionLocked) {
-            startActivity(MainActivity::class.java, null, true, true, null)
+            val teav: MutableList<TrackedEntityAttributeValue>? =
+                D2Manager.getD2().trackedEntityModule().trackedEntityAttributeValues()
+                    .byTrackedEntityAttribute().`in`("hRv7cihTHxT").blockingGet()
+            if (teav != null) {
+                startActivity(MainActivity::class.java, null, true, true, null)
+                if (teav.size>0) {
+                    if (teav!!.get(0).value().equals("true")) {
+                        startActivity(MainActivity::class.java, null, true, true, null)
+
+                    }
+                    else
+                    {
+                        startActivity(PopUpView::class.java, null, true, true, null)
+                    }
+                } else {
+                    startActivity(PopUpView::class.java, null, true, true, null)
+
+                }
+            }
+
         } else if (isUserLogged && !initialSyncDone) {
             startActivity(SyncActivity::class.java, null, true, true, null)
         } else {

@@ -7,17 +7,21 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.work.WorkInfo
 import javax.inject.Inject
+import org.dhis2.App
 import org.dhis2.Bindings.Bindings
 import org.dhis2.Bindings.drawableFrom
 import org.dhis2.Bindings.userComponent
 import org.dhis2.R
 import org.dhis2.databinding.ActivitySynchronizationBinding
+import org.dhis2.usescases.about.PopUpView
 import org.dhis2.usescases.general.ActivityGlobalAbstract
 import org.dhis2.usescases.login.LoginActivity
 import org.dhis2.usescases.main.MainActivity
 import org.dhis2.utils.OnDialogClickListener
 import org.dhis2.utils.extension.navigateTo
 import org.dhis2.utils.extension.share
+import org.hisp.dhis.android.core.D2Manager
+import org.hisp.dhis.android.core.trackedentity.TrackedEntityAttributeValue
 
 class SyncActivity : ActivityGlobalAbstract(), SyncView {
 
@@ -30,7 +34,8 @@ class SyncActivity : ActivityGlobalAbstract(), SyncView {
     lateinit var animations: SyncAnimations
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        userComponent()?.plus(SyncModule(this))?.inject(this) ?: finish()
+        val serverComponent = (applicationContext as App).serverComponent()
+        userComponent()?.plus(SyncModule(this, serverComponent))?.inject(this) ?: finish()
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_synchronization)
         binding.presenter = presenter
@@ -133,7 +138,28 @@ class SyncActivity : ActivityGlobalAbstract(), SyncView {
     }
 
     override fun goToMain() {
-        navigateTo<MainActivity>(true, flagsToApply = Intent.FLAG_ACTIVITY_NEW_TASK)
+        val teav: MutableList<TrackedEntityAttributeValue>? =
+            D2Manager.getD2().trackedEntityModule().trackedEntityAttributeValues()
+                .byTrackedEntityAttribute().`in`("hRv7cihTHxT").blockingGet()
+        if (teav != null) {
+            if (teav.size>0) {
+                if (teav!!.get(0).value().equals("true")) {
+                    navigateTo<MainActivity>(true, flagsToApply = Intent.FLAG_ACTIVITY_NEW_TASK)
+
+                }
+                else
+                {
+                    startActivity(PopUpView::class.java, null, true, true, null)
+                }
+            } else {
+                startActivity(PopUpView::class.java, null, true, true, null)
+
+            }
+        }
+        else if (teav==null)
+        {
+            startActivity(PopUpView::class.java, null, true, true, null)
+        }
     }
 
     override fun goToLogin() {

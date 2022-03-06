@@ -3,6 +3,11 @@ package org.dhis2.data.forms.dataentry.fields;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.dhis2.form.model.FieldUiModel;
+import org.dhis2.form.model.LegendValue;
+import org.dhis2.form.model.RowAction;
+import org.dhis2.form.ui.style.BasicFormUiModelStyle;
+import org.hisp.dhis.android.core.common.FeatureType;
 import org.hisp.dhis.android.core.common.ObjectStyle;
 import org.hisp.dhis.android.core.common.ValueType;
 import org.hisp.dhis.android.core.common.ValueTypeDeviceRendering;
@@ -20,44 +25,45 @@ import io.reactivex.processors.FlowableProcessor;
 public interface FieldViewModelFactory {
 
     @NonNull
-    FieldViewModel create(@NonNull String id,
-                          @NonNull String label,
-                          @NonNull ValueType valueType,
-                          @NonNull Boolean mandatory,
-                          @Nullable String optionSet,
-                          @Nullable String value,
-                          @Nullable String programStageSection,
-                          @Nullable Boolean AllowFutureDate,
-                          @NonNull Boolean editable,
-                          @Nullable ProgramStageSectionRenderingType renderingType,
-                          @Nullable String description,
-                          @Nullable ValueTypeDeviceRendering fieldRendering,
-                          @Nullable Integer optionCount,
-                          @NonNull ObjectStyle objectStyle,
-                          @Nullable String fieldMask,
-                          @Nullable LegendValue legendValue,
-                          FlowableProcessor<RowAction> processor,
-                          List<Option> options);
+    FieldUiModel create(@NonNull String id,
+                        @NonNull String label,
+                        @NonNull ValueType valueType,
+                        @NonNull Boolean mandatory,
+                        @Nullable String optionSet,
+                        @Nullable String value,
+                        @Nullable String programStageSection,
+                        @Nullable Boolean AllowFutureDate,
+                        @NonNull Boolean editable,
+                        @Nullable ProgramStageSectionRenderingType renderingType,
+                        @Nullable String description,
+                        @Nullable ValueTypeDeviceRendering fieldRendering,
+                        @Nullable Integer optionCount,
+                        @NonNull ObjectStyle objectStyle,
+                        @Nullable String fieldMask,
+                        @Nullable LegendValue legendValue,
+                        List<Option> options,
+                        @Nullable FeatureType featureType
+    );
 
     @Nullable
-    FieldViewModel createForAttribute(@$NonNull TrackedEntityAttribute trackedEntityAttribute,
-                                      @Nullable ProgramTrackedEntityAttribute programTrackedEntityAttribute,
-                                      @Nullable String value,
-                                      boolean editable);
+    FieldUiModel createForAttribute(@$NonNull TrackedEntityAttribute trackedEntityAttribute,
+                                    @Nullable ProgramTrackedEntityAttribute programTrackedEntityAttribute,
+                                    @Nullable String value,
+                                    boolean editable);
 
     @NonNull
-    FieldViewModel createSingleSection(String singleSectionName);
+    FieldUiModel createSingleSection(String singleSectionName);
 
     @NonNull
-    FieldViewModel createSection(String sectionUid, String sectionName, String description,
-                                 boolean isOpen, int totalFields, int completedFields, String rendering);
+    FieldUiModel createSection(String sectionUid, String sectionName, String description,
+                               boolean isOpen, int totalFields, int completedFields, String rendering);
 
     @NonNull
-    FieldViewModel createClosingSection();
+    FieldUiModel createClosingSection();
 
     @NonNull
     Flowable<String> sectionProcessor();
 
     @NonNull
-    Flowable<RowAction> fieldProcessor();
+    FlowableProcessor<RowAction> fieldProcessor();
 }

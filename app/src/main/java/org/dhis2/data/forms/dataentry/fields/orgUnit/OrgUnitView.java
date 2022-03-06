@@ -21,11 +21,11 @@ import org.dhis2.Bindings.Bindings;
 import org.dhis2.R;
 import org.dhis2.databinding.CustomTextViewAccentBinding;
 import org.dhis2.databinding.CustomTextViewBinding;
-import org.dhis2.utils.ColorUtils;
+import org.dhis2.commons.resources.ColorUtils;
 import org.dhis2.utils.Constants;
-import org.dhis2.utils.customviews.CustomDialog;
+import org.dhis2.commons.dialogs.CustomDialog;
 import org.dhis2.utils.customviews.FieldLayout;
-import org.dhis2.utils.customviews.TextInputAutoCompleteTextView;
+import org.dhis2.commons.customviews.TextInputAutoCompleteTextView;
 import org.dhis2.utils.customviews.orgUnitCascade.OrgUnitCascadeDialog;
 import org.hisp.dhis.android.core.common.ObjectStyle;
 import org.hisp.dhis.android.core.program.ProgramStageSectionRenderingType;
@@ -160,7 +160,7 @@ public class OrgUnitView extends FieldLayout implements OrgUnitCascadeDialog.Cas
     @Override
     public void textChangedConsumer(String selectedOrgUnitUid, String selectedOrgUnitName) {
         editText.setText(selectedOrgUnitName);
-        listener.onDataChanged(selectedOrgUnitUid);
+        listener.onDataChanged(selectedOrgUnitUid, selectedOrgUnitName);
     }
 
     @Override
@@ -192,7 +192,7 @@ public class OrgUnitView extends FieldLayout implements OrgUnitCascadeDialog.Cas
         new OrgUnitCascadeDialog(label, value, new OrgUnitCascadeDialog.CascadeOrgUnitCallbacks() {
             @Override
             public void textChangedConsumer(String selectedOrgUnitUid, String selectedOrgUnitName) {
-                listener.onDataChanged(selectedOrgUnitUid);
+                listener.onDataChanged(selectedOrgUnitUid, selectedOrgUnitName);
                 editText.setText(selectedOrgUnitName);
                 editText.setEnabled(true);
             }
@@ -204,7 +204,7 @@ public class OrgUnitView extends FieldLayout implements OrgUnitCascadeDialog.Cas
 
             @Override
             public void onClear() {
-                listener.onDataChanged(null);
+                listener.onDataChanged(null, null);
                 editText.setText(null);
                 editText.setEnabled(true);
             }
@@ -216,7 +216,7 @@ public class OrgUnitView extends FieldLayout implements OrgUnitCascadeDialog.Cas
     }
 
     public interface OnDataChanged {
-        void onDataChanged(String orgUnitUid);
+        void onDataChanged(String orgUnitUid, String orgUnitName);
     }
 
     public void setViewModel(OrgUnitViewModel viewModel) {

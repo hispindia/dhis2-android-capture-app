@@ -251,6 +251,9 @@ public class QRCodeGenerator implements QRInterface {
 
     @Override
     public Observable<Bitmap> getUncodedData(String teiUid) {
+
+
+
         return Observable.fromCallable(() -> getData(teiUid))
                 .map(this::compress)
                 .map(QRCodeGenerator::transform);

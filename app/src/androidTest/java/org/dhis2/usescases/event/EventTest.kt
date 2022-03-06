@@ -72,6 +72,7 @@ class EventTest: BaseTest() {
         prepareEventToShareIntentAndLaunchActivity(ruleEventDetail)
 
         eventRegistrationRobot {
+            openMenuMoreOptions()
             clickOnShare()
             clickOnAllQR(qrList)
         }
@@ -130,7 +131,7 @@ class EventTest: BaseTest() {
 
     private fun createEventDetails() = EventDetailsUIModel(
         "Alfa",
-        96,
+        95,
         "1/3/2020",
         "OU TEST PARENT"
     )

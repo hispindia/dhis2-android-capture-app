@@ -25,9 +25,9 @@ import org.dhis2.databinding.CustomCellViewBinding;
 import org.dhis2.databinding.FormSpinnerAccentBinding;
 import org.dhis2.databinding.FormSpinnerBinding;
 import org.dhis2.usescases.datasets.dataSetTable.dataSetSection.DataSetTableAdapter;
-import org.dhis2.utils.ColorUtils;
+import org.dhis2.commons.resources.ColorUtils;
 import org.dhis2.utils.Constants;
-import org.dhis2.utils.customviews.CustomDialog;
+import org.dhis2.commons.dialogs.CustomDialog;
 import org.dhis2.utils.customviews.FieldLayout;
 import org.dhis2.utils.customviews.OptionSetOnClickListener;
 import org.dhis2.utils.customviews.OptionSetPopUp;
@@ -107,7 +107,10 @@ public class OptionSetView extends FieldLayout implements OptionSetOnClickListen
         editText = findViewById(R.id.inputEditText);
         editText.setFocusable(false); //Makes editText not editable
         editText.setClickable(true);//  but clickable
-
+        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        editText.setLines(6);
+        editText.setHorizontallyScrolling(false);
+        editText.setMaxLines(6);
         editText.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus)
                 editText.performClick();
@@ -157,6 +160,13 @@ public class OptionSetView extends FieldLayout implements OptionSetOnClickListen
         editText.setEnabled(isEditable);
         editText.setFocusable(false);
         editText.setClickable(isEditable);
+
+        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        editText.setLines(6);
+        editText.setHorizontallyScrolling(false);
+        editText.setMaxLines(6);
+
+
         if (delete != null) {
             delete.setEnabled(isEditable);
         }
@@ -179,6 +189,10 @@ public class OptionSetView extends FieldLayout implements OptionSetOnClickListen
         if (inputLayout != null) {
             inputLayout.setHintAnimationEnabled(false);
         }
+        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        editText.setLines(6);
+        editText.setHorizontallyScrolling(false);
+        editText.setMaxLines(6);
         editText.setText(value);
         if (inputLayout != null) {
             inputLayout.setHintAnimationEnabled(true);

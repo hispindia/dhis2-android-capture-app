@@ -13,14 +13,15 @@ import org.dhis2.Bindings.ExtensionsKt;
 import org.dhis2.Bindings.TrackedEntityInstanceExtensionsKt;
 import org.dhis2.Bindings.ValueExtensionsKt;
 import org.dhis2.R;
+import org.dhis2.commons.filters.FilterManager;
+import org.dhis2.commons.filters.data.FilterPresenter;
+import org.dhis2.commons.filters.sorting.SortingItem;
+import org.dhis2.commons.resources.ResourceManager;
 import org.dhis2.data.dhislogic.DhisEnrollmentUtils;
 import org.dhis2.data.dhislogic.DhisPeriodUtils;
-import org.dhis2.data.filter.FilterPresenter;
 import org.dhis2.data.forms.dataentry.DataEntryStore;
-import org.dhis2.data.forms.dataentry.StoreResult;
 import org.dhis2.data.forms.dataentry.ValueStore;
 import org.dhis2.data.forms.dataentry.ValueStoreImpl;
-import org.dhis2.data.forms.dataentry.fields.FieldViewModel;
 import org.dhis2.data.forms.dataentry.fields.FieldViewModelFactory;
 import org.dhis2.data.forms.dataentry.fields.coordinate.CoordinateViewModel;
 import org.dhis2.data.forms.dataentry.fields.picture.PictureViewModel;
@@ -28,20 +29,23 @@ import org.dhis2.data.search.SearchParametersModel;
 import org.dhis2.data.sorting.SearchSortingValueSetter;
 import org.dhis2.data.tuples.Pair;
 import org.dhis2.data.tuples.Trio;
+import org.dhis2.form.model.FieldUiModel;
+import org.dhis2.form.model.StoreResult;
 import org.dhis2.usescases.searchTrackEntity.adapters.SearchTeiModel;
+import org.dhis2.usescases.teiDashboard.dashboardfragments.relationships.RelationshipDirection;
+import org.dhis2.usescases.teiDashboard.dashboardfragments.relationships.RelationshipOwnerType;
 import org.dhis2.usescases.teiDashboard.dashboardfragments.relationships.RelationshipViewModel;
 import org.dhis2.usescases.teiDashboard.dashboardfragments.teidata.teievents.EventViewModel;
 import org.dhis2.usescases.teiDashboard.dashboardfragments.teidata.teievents.EventViewModelType;
 import org.dhis2.utils.Constants;
 import org.dhis2.utils.DateUtils;
 import org.dhis2.utils.ValueUtils;
-import org.dhis2.utils.filters.FilterManager;
-import org.dhis2.utils.filters.sorting.SortingItem;
-import org.dhis2.utils.resources.ResourceManager;
+import org.dhis2.utils.reporting.CrashReportController;
 import org.hisp.dhis.android.core.D2;
 import org.hisp.dhis.android.core.arch.call.D2Progress;
 import org.hisp.dhis.android.core.arch.helpers.UidsHelper;
 import org.hisp.dhis.android.core.arch.repositories.scope.RepositoryScope;
+import org.hisp.dhis.android.core.common.FeatureType;
 import org.hisp.dhis.android.core.common.ObjectStyle;
 import org.hisp.dhis.android.core.common.State;
 import org.hisp.dhis.android.core.common.ValueType;
@@ -52,7 +56,6 @@ import org.hisp.dhis.android.core.event.Event;
 import org.hisp.dhis.android.core.event.EventCollectionRepository;
 import org.hisp.dhis.android.core.event.EventStatus;
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnit;
-import org.hisp.dhis.android.core.period.DatePeriod;
 import org.hisp.dhis.android.core.period.PeriodType;
 import org.hisp.dhis.android.core.program.Program;
 import org.hisp.dhis.android.core.program.ProgramStage;
@@ -78,6 +81,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import dhis2.org.analytics.charts.Charts;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -95,9 +99,20 @@ public class SearchRepositoryImpl implements SearchRepository {
     private FilterPresenter filterPresenter;
     private FieldViewModelFactory fieldFactory;
     private DhisPeriodUtils periodUtils;
+    private String currentProgram = null;
+    private final Charts charts;
+    private final CrashReportController crashReportController;
 
-    SearchRepositoryImpl(String teiType, D2 d2, FilterPresenter filterPresenter, ResourceManager resources, SearchSortingValueSetter sortingValueSetter, FieldViewModelFactory fieldFactory,
-                         DhisPeriodUtils periodUtils) {
+    SearchRepositoryImpl(String teiType,
+                         @Nullable String initialProgram,
+                         D2 d2,
+                         FilterPresenter filterPresenter,
+                         ResourceManager resources,
+                         SearchSortingValueSetter sortingValueSetter,
+                         FieldViewModelFactory fieldFactory,
+                         DhisPeriodUtils periodUtils,
+                         Charts charts,
+                         CrashReportController crashReportController) {
         this.teiType = teiType;
         this.d2 = d2;
         this.resources = resources;
@@ -105,10 +120,13 @@ public class SearchRepositoryImpl implements SearchRepository {
         this.filterPresenter = filterPresenter;
         this.fieldFactory = fieldFactory;
         this.periodUtils = periodUtils;
+        this.charts = charts;
+        this.crashReportController = crashReportController;
+        this.currentProgram = initialProgram;
     }
 
     @Override
-    public Observable<List<FieldViewModel>> searchFields(@Nullable String programUid, Map<String, String> currentSearchValues) {
+    public Observable<List<FieldUiModel>> searchFields(@Nullable String programUid, Map<String, String> currentSearchValues) {
         if (programUid == null || programUid.isEmpty()) {
             return trackedEntitySearchFields(currentSearchValues);
         } else {
@@ -116,7 +134,7 @@ public class SearchRepositoryImpl implements SearchRepository {
         }
     }
 
-    private Observable<List<FieldViewModel>> trackedEntitySearchFields(Map<String, String> currentSearchValues) {
+    private Observable<List<FieldUiModel>> trackedEntitySearchFields(Map<String, String> currentSearchValues) {
         return d2.trackedEntityModule().trackedEntityTypeAttributes()
                 .byTrackedEntityTypeUid().eq(teiType)
                 .get().toFlowable()
@@ -132,10 +150,14 @@ public class SearchRepositoryImpl implements SearchRepository {
                             true
                     );
                 })
-                .toList().toObservable();
+                .toList().map(list ->
+                        CollectionsKt.filter(list, item ->
+                                !(item instanceof PictureViewModel) &&
+                                        !(item instanceof CoordinateViewModel))
+                ).toObservable();
     }
 
-    private Observable<List<FieldViewModel>> programTrackedEntityAttributes(String programUid, Map<String, String> currentSearchValues) {
+    private Observable<List<FieldUiModel>> programTrackedEntityAttributes(String programUid, Map<String, String> currentSearchValues) {
         return d2.programModule().programTrackedEntityAttributes()
                 .withRenderType()
                 .byProgram().eq(programUid)
@@ -194,13 +216,11 @@ public class SearchRepositoryImpl implements SearchRepository {
             dataSource = trackedEntityInstanceQuery.allowOnlineCache().eq(allowCache).offlineFirst().getDataSource()
                     .mapByPage(this::filterDeleted)
                     .mapByPage(list -> TrackedEntityInstanceExtensionsKt.filterDeletedEnrollment(list, d2, searchParametersModel.getSelectedProgram() != null ? searchParametersModel.getSelectedProgram().uid() : null))
-                    .mapByPage(list -> TrackedEntityInstanceExtensionsKt.filterEvents(list, d2, FilterManager.getInstance().getPeriodFilters(), searchParametersModel.getSelectedProgram() != null ? searchParametersModel.getSelectedProgram().uid() : null))
                     .map(tei -> transform(tei, searchParametersModel.getSelectedProgram(), false, FilterManager.getInstance().getSortingItem()));
         } else {
             dataSource = trackedEntityInstanceQuery.allowOnlineCache().eq(allowCache).offlineOnly().getDataSource()
                     .mapByPage(this::filterDeleted)
                     .mapByPage(list -> TrackedEntityInstanceExtensionsKt.filterDeletedEnrollment(list, d2, searchParametersModel.getSelectedProgram() != null ? searchParametersModel.getSelectedProgram().uid() : null))
-                    .mapByPage(list -> TrackedEntityInstanceExtensionsKt.filterEvents(list, d2, FilterManager.getInstance().getPeriodFilters(), searchParametersModel.getSelectedProgram() != null ? searchParametersModel.getSelectedProgram().uid() : null))
                     .map(tei -> transform(tei, searchParametersModel.getSelectedProgram(), true, FilterManager.getInstance().getSortingItem()));
         }
 
@@ -228,7 +248,6 @@ public class SearchRepositoryImpl implements SearchRepository {
             return trackedEntityInstanceQuery.allowOnlineCache().eq(allowCache).offlineFirst().get().toFlowable()
                     .map(this::filterDeleted)
                     .map(list -> TrackedEntityInstanceExtensionsKt.filterDeletedEnrollment(list, d2, searchParametersModel.getSelectedProgram() != null ? searchParametersModel.getSelectedProgram().uid() : null))
-                    .map(list -> TrackedEntityInstanceExtensionsKt.filterEvents(list, d2, FilterManager.getInstance().getPeriodFilters(), searchParametersModel.getSelectedProgram() != null ? searchParametersModel.getSelectedProgram().uid() : null))
                     .flatMapIterable(list -> list)
                     .map(tei -> transform(tei, searchParametersModel.getSelectedProgram(), false, FilterManager.getInstance().getSortingItem()))
                     .toList().toFlowable();
@@ -236,7 +255,6 @@ public class SearchRepositoryImpl implements SearchRepository {
             return trackedEntityInstanceQuery.allowOnlineCache().eq(allowCache).offlineOnly().get().toFlowable()
                     .map(this::filterDeleted)
                     .map(list -> TrackedEntityInstanceExtensionsKt.filterDeletedEnrollment(list, d2, searchParametersModel.getSelectedProgram() != null ? searchParametersModel.getSelectedProgram().uid() : null))
-                    .map(list -> TrackedEntityInstanceExtensionsKt.filterEvents(list, d2, FilterManager.getInstance().getPeriodFilters(), searchParametersModel.getSelectedProgram() != null ? searchParametersModel.getSelectedProgram().uid() : null))
                     .flatMapIterable(list -> list)
                     .map(tei -> transform(tei, searchParametersModel.getSelectedProgram(), true, FilterManager.getInstance().getSortingItem()))
                     .toList().toFlowable();
@@ -258,6 +276,9 @@ public class SearchRepositoryImpl implements SearchRepository {
                 trackedEntityInstanceQuery = trackedEntityInstanceQuery.byAttribute(dataId).eq(dataValue);
             } else if (dataValue.contains("_os_")) {
                 dataValue = dataValue.split("_os_")[1];
+                trackedEntityInstanceQuery = trackedEntityInstanceQuery.byAttribute(dataId).eq(dataValue);
+            } else if (dataValue.contains("_ou_")) {
+                dataValue = dataValue.split("_ou_")[0];
                 trackedEntityInstanceQuery = trackedEntityInstanceQuery.byAttribute(dataId).eq(dataValue);
             } else
                 trackedEntityInstanceQuery = trackedEntityInstanceQuery.byAttribute(dataId).like(dataValue);
@@ -296,7 +317,7 @@ public class SearchRepositoryImpl implements SearchRepository {
                         if (fromRelationshipUid != null) {
                             d2.trackedEntityModule().trackedEntityInstanceService().blockingInheritAttributes(fromRelationshipUid, uid, programUid);
                         }
-                        ValueStore valueStore = new ValueStoreImpl(d2, uid, DataEntryStore.EntryMode.ATTR, new DhisEnrollmentUtils(d2));
+                        ValueStore valueStore = new ValueStoreImpl(d2, uid, DataEntryStore.EntryMode.ATTR, new DhisEnrollmentUtils(d2), crashReportController);
 
                         if (queryData.containsKey(Constants.ENROLLMENT_DATE_UID))
                             queryData.remove(Constants.ENROLLMENT_DATE_UID);
@@ -304,6 +325,8 @@ public class SearchRepositoryImpl implements SearchRepository {
                             String dataValue = queryData.get(key);
                             if (dataValue.contains("_os_"))
                                 dataValue = dataValue.split("_os_")[1];
+                            else if (dataValue.contains("_ou_"))
+                                dataValue = dataValue.split("_ou_")[0];
 
                             boolean isGenerated = d2.trackedEntityModule().trackedEntityAttributes().uid(key).blockingGet().generated();
 
@@ -395,6 +418,7 @@ public class SearchRepositoryImpl implements SearchRepository {
     }
 
     private void setAttributeValue(SearchTeiModel searchTei, String attributeUid) {
+
         TrackedEntityAttribute attribute = d2.trackedEntityModule().trackedEntityAttributes().uid(attributeUid).blockingGet();
         TrackedEntityAttributeValue attributeValue = d2.trackedEntityModule().trackedEntityAttributeValues().value(attribute.uid(), searchTei.getTei().uid()).blockingGet();
         if (attributeValue != null) {
@@ -423,7 +447,7 @@ public class SearchRepositoryImpl implements SearchRepository {
 
         EventCollectionRepository scheduledEvents = d2.eventModule().events().byEnrollmentUid().in(UidsHelper.getUidsList(enrollments))
                 .byStatus().eq(EventStatus.SCHEDULE)
-                .byDueDate().before(new Date());
+                .byDueDate().beforeOrEqual(new Date());
 
         EventCollectionRepository overdueEvents = d2.eventModule().events().byEnrollmentUid().in(UidsHelper.getUidsList(enrollments)).byStatus().eq(EventStatus.OVERDUE);
 
@@ -467,39 +491,53 @@ public class SearchRepositoryImpl implements SearchRepository {
                 ).build()
         );
         for (Relationship relationship : relationships) {
-            RelationshipType relationshipType =
-                    d2.relationshipModule().relationshipTypes().uid(relationship.relationshipType()).blockingGet();
+            if (relationship.from().trackedEntityInstance() != null) {
+                RelationshipType relationshipType =
+                        d2.relationshipModule().relationshipTypes().uid(relationship.relationshipType()).blockingGet();
 
-            String relationshipTEIUid;
-            RelationshipViewModel.RelationshipDirection direction;
-            if (!searchTeiModel.getTei().uid().equals(relationship.from().trackedEntityInstance().trackedEntityInstance())) {
-                relationshipTEIUid = relationship.from().trackedEntityInstance().trackedEntityInstance();
-                direction = RelationshipViewModel.RelationshipDirection.FROM;
-            } else {
-                relationshipTEIUid = relationship.to().trackedEntityInstance().trackedEntityInstance();
-                direction = RelationshipViewModel.RelationshipDirection.TO;
+                String relationshipTEIUid;
+                RelationshipDirection direction;
+                if (!searchTeiModel.getTei().uid().equals(relationship.from().trackedEntityInstance().trackedEntityInstance())) {
+                    relationshipTEIUid = relationship.from().trackedEntityInstance().trackedEntityInstance();
+                    direction = RelationshipDirection.FROM;
+                } else {
+                    relationshipTEIUid = relationship.to().trackedEntityInstance().trackedEntityInstance();
+                    direction = RelationshipDirection.TO;
+                }
+
+                String fromTeiUid = relationship.from().trackedEntityInstance().trackedEntityInstance();
+                String toTeiUid = relationship.to().trackedEntityInstance().trackedEntityInstance();
+
+                TrackedEntityInstance fromTei = d2.trackedEntityModule().trackedEntityInstances().withTrackedEntityAttributeValues().uid(fromTeiUid).blockingGet();
+                TrackedEntityInstance toTei = d2.trackedEntityModule().trackedEntityInstances().withTrackedEntityAttributeValues().uid(toTeiUid).blockingGet();
+
+                List<kotlin.Pair<String, String>> fromValues = new ArrayList<>();
+                List<TrackedEntityAttributeValue> fromAttr = getTrackedEntityAttributesForRelationship(fromTei, selectedProgram);
+                List<kotlin.Pair<String, String>> toValues = new ArrayList<>();
+                List<TrackedEntityAttributeValue> toAttr = getTrackedEntityAttributesForRelationship(toTei, selectedProgram);
+                for (TrackedEntityAttributeValue attributeValue : fromAttr) {
+                    fromValues.add(new kotlin.Pair<>(attributeValue.trackedEntityAttribute(), attributeValue.value()));
+                }
+                for (TrackedEntityAttributeValue attributeValue : toAttr) {
+                    toValues.add(new kotlin.Pair<>(attributeValue.trackedEntityAttribute(), attributeValue.value()));
+                }
+                relationshipViewModels.add(new RelationshipViewModel(
+                        relationship,
+                        fromTei.geometry(),
+                        toTei.geometry(),
+                        relationshipType,
+                        direction,
+                        relationshipTEIUid,
+                        RelationshipOwnerType.TEI,
+                        fromValues,
+                        toValues,
+                        ExtensionsKt.profilePicturePath(fromTei, d2, selectedProgram.uid()),
+                        ExtensionsKt.profilePicturePath(toTei, d2, selectedProgram.uid()),
+                        getTeiDefaultRes(fromTei),
+                        getTeiDefaultRes(toTei),
+                        -1
+                ));
             }
-
-            String fromTeiUid = relationship.from().trackedEntityInstance().trackedEntityInstance();
-            String toTeiUid = relationship.to().trackedEntityInstance().trackedEntityInstance();
-
-            TrackedEntityInstance fromTei = d2.trackedEntityModule().trackedEntityInstances().withTrackedEntityAttributeValues().uid(fromTeiUid).blockingGet();
-            TrackedEntityInstance toTei = d2.trackedEntityModule().trackedEntityInstances().withTrackedEntityAttributeValues().uid(toTeiUid).blockingGet();
-
-            relationshipViewModels.add(RelationshipViewModel.create(
-                    relationship,
-                    relationshipType,
-                    direction,
-                    relationshipTEIUid,
-                    getTrackedEntityAttributesForRelationship(fromTei, selectedProgram),
-                    getTrackedEntityAttributesForRelationship(toTei, selectedProgram),
-                    fromTei.geometry(),
-                    toTei.geometry(),
-                    ExtensionsKt.profilePicturePath(fromTei, d2, selectedProgram.uid()),
-                    ExtensionsKt.profilePicturePath(toTei, d2, selectedProgram.uid()),
-                    getTeiDefaultRes(fromTei),
-                    getTeiDefaultRes(toTei)
-            ));
         }
 
         searchTeiModel.setRelationships(relationshipViewModels);
@@ -657,6 +695,7 @@ public class SearchRepositoryImpl implements SearchRepository {
                 periodUtils.getPeriodUIString(stage.periodType(), event.eventDate() != null ? event.eventDate() : event.dueDate(), Locale.getDefault()));
     }
 
+
     @Override
     public Observable<D2Progress> downloadTei(String teiUid) {
         return Observable.merge(
@@ -675,21 +714,6 @@ public class SearchRepositoryImpl implements SearchRepository {
             if (tei.deleted() != null && tei.deleted())
                 iterator.remove();
         }
-        return teis;
-    }
-
-    private List<TrackedEntityInstance> filterByPeriod(List<TrackedEntityInstance> teis, List<DatePeriod> periods) {
-        Iterator<TrackedEntityInstance> iterator = teis.iterator();
-        if (!periods.isEmpty())
-            while (iterator.hasNext()) {
-                TrackedEntityInstance tei = iterator.next();
-                boolean hasEventsByEventDate = !d2.eventModule().events().byTrackedEntityInstanceUids(Collections.singletonList(tei.uid())).byEventDate().inDatePeriods(periods).blockingIsEmpty();
-                boolean hasEventsByDueDate = !d2.eventModule().events().byTrackedEntityInstanceUids(Collections.singletonList(tei.uid())).byDueDate().inDatePeriods(periods).blockingIsEmpty();
-                if (!hasEventsByDueDate && !hasEventsByEventDate)
-                    iterator.remove();
-
-            }
-
         return teis;
     }
 
@@ -812,5 +836,110 @@ public class SearchRepositoryImpl implements SearchRepository {
     private boolean attrIsProfileImage(String attrUid) {
         return d2.trackedEntityModule().trackedEntityAttributes().uid(attrUid).blockingExists() &&
                 d2.trackedEntityModule().trackedEntityAttributes().uid(attrUid).blockingGet().valueType() == ValueType.IMAGE;
+    }
+
+    @Override
+    public void setCurrentProgram(String currentProgram) {
+        this.currentProgram = currentProgram;
+    }
+
+    private String currentProgram() {
+        return currentProgram;
+    }
+
+    @Override
+    public boolean programHasAnalytics() {
+        String programUid = currentProgram();
+        if (programUid != null) {
+            boolean hasCharts = charts != null && !charts.getProgramVisualizations(null, programUid).isEmpty();
+            return hasCharts;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean programHasCoordinates() {
+
+        String programUid = currentProgram();
+
+        if (programUid == null) return false;
+
+        boolean teTypeHasCoordinates = false;
+        FeatureType teTypeFeatureType = d2.trackedEntityModule().trackedEntityTypes()
+                .uid(teiType)
+                .blockingGet()
+                .featureType();
+
+        if (teTypeFeatureType != null && teTypeFeatureType != FeatureType.NONE) {
+            teTypeHasCoordinates = true;
+        }
+
+        boolean enrollmentHasCoordinates = false;
+        FeatureType enrollmentFeatureType = d2.programModule().programs()
+                .uid(programUid)
+                .blockingGet()
+                .featureType();
+
+        if(enrollmentFeatureType != null && enrollmentFeatureType != FeatureType.NONE) {
+            enrollmentHasCoordinates = true;
+        }
+
+        List<TrackedEntityTypeAttribute> teAttributes = d2.trackedEntityModule().trackedEntityTypeAttributes()
+                .byTrackedEntityTypeUid().eq(teiType)
+                .blockingGet();
+        List<String> teAttributeUids = new ArrayList<>();
+        for (TrackedEntityTypeAttribute teTypeAttr : teAttributes) {
+            teAttributeUids.add(teTypeAttr.trackedEntityAttribute().uid());
+        }
+
+        boolean teAttributeHasCoordinates = !d2.trackedEntityModule().trackedEntityAttributes()
+                .byUid().in(teAttributeUids)
+                .byValueType().eq(ValueType.COORDINATE)
+                .blockingIsEmpty();
+
+        boolean programAttributeHasCoordinates = false;
+        boolean eventHasCoordinates = false;
+        boolean eventDataElementHasCoordinates = false;
+        if (programUid != null) {
+            List<ProgramTrackedEntityAttribute> programAttributes = d2.programModule().programTrackedEntityAttributes()
+                    .byProgram().eq(programUid)
+                    .blockingGet();
+            List<String> programAttributeUids = new ArrayList<>();
+            for (ProgramTrackedEntityAttribute programAttr : programAttributes) {
+                programAttributeUids.add(programAttr.trackedEntityAttribute().uid());
+            }
+
+            programAttributeHasCoordinates = !d2.trackedEntityModule().trackedEntityAttributes()
+                    .byUid().in(programAttributeUids)
+                    .byValueType().eq(ValueType.COORDINATE)
+                    .blockingIsEmpty();
+
+            eventHasCoordinates = !d2.programModule().programStages()
+                    .byProgramUid().eq(programUid)
+                    .byFeatureType().notIn(FeatureType.NONE)
+                    .blockingIsEmpty();
+
+
+            List<Event> events = d2.eventModule().eventQuery().byIncludeDeleted()
+                    .eq(false)
+                    .byProgram()
+                    .eq(programUid)
+                    .blockingGet();
+            for (Event event : events) {
+                if (event.geometry() != null) {
+                    eventDataElementHasCoordinates = true;
+                    break;
+                }
+            }
+
+        }
+
+        return teTypeHasCoordinates ||
+                enrollmentHasCoordinates ||
+                teAttributeHasCoordinates ||
+                programAttributeHasCoordinates ||
+                eventHasCoordinates ||
+                eventDataElementHasCoordinates;
     }
 }

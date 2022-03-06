@@ -227,14 +227,22 @@
                 app:layout_constraintStart_toStartOf="parent"
                 tools:listitem="@layout/item_header_filter" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/form_recycler"
+            <FrameLayout
+                android:id="@+id/formViewContainer"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:focusableInTouchMode="true"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 app:layout_constraintEnd_toStartOf="@id/backdropGuideDiv"
                 app:layout_constraintStart_toStartOf="parent" />
+
+            <FrameLayout
+                android:id="@+id/mainComponent"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/backdropGuideDiv"
+                app:layout_constraintTop_toBottomOf="@+id/backdropGuideTop" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/mainLayout"
@@ -338,6 +346,18 @@
                     app:layout_constraintTop_toBottomOf="@id/progressLayout"
                     app:srcCompat="@drawable/ic_map_layers_ripple" />
 
+                <ImageView
+                    android:id="@+id/mapPositionButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="9dp"
+                    android:layout_marginEnd="8dp"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/mapLayerButton"
+                    app:srcCompat="@drawable/ic_map_position_ripple" />
+
+
                 <RelativeLayout
                     android:id="@+id/messageContainer"
                     android:layout_width="match_parent"
@@ -350,12 +370,25 @@
                     <TextView
                         android:id="@+id/message"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="wrap_content"
                         android:layout_margin="10dp"
                         android:gravity="center_horizontal"
                         android:textSize="18sp"
                         tools:text="You need to enter at least N attributes to do a search" />
 
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/showListBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="12dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_below="@id/message"
+                        android:text="@string/reload_list"
+                        android:textAllCaps="false"
+                        android:visibility="gone"
+                        app:icon="@drawable/ic_refresh"
+                        app:iconGravity="end"
+                        />
                 </RelativeLayout>
 
                 <RelativeLayout
@@ -375,15 +408,18 @@
                         app:progressColor="@{@color/colorPrimary}" />
                 </RelativeLayout>
 
-                <org.dhis2.utils.customviews.DhisBottomNavigationBar
-                    android:id="@+id/navigationBar"
-                    style="@style/DhisBottomNavigationView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:elevation="12dp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:menu="@menu/navigation_search_menu" />
             </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <org.dhis2.utils.customviews.navigationbar.NavigationBottomBar
+                android:id="@+id/navigationBar"
+                style="@style/DhisBottomNavigationView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:elevation="12dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/backdropGuideDiv"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:menu="@menu/navigation_search_menu" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 app:srcCompat="@drawable/ic_refresh"
