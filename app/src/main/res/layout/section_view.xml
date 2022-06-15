@@ -65,14 +65,18 @@
                 tools:text="99" />
 
 
+            <!--@Sou section label text wrap-->
             <TextView
                 android:id="@+id/sectionName"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_marginStart="8dp"
-                android:ellipsize="end"
-                android:maxLines="1"
+                android:ellipsize="none"
+                android:scrollHorizontally="false"
+                android:layout_weight="1"
+                android:maxLines="100"
                 android:text="@{item.label()}"
+                app:flow_wrapMode="aligned"
                 android:textColor="@color/textPrimary"
                 android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="parent"
