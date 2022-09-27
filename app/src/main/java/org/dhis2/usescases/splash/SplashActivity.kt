@@ -1,9 +1,11 @@
-package org.dhis2.usescases.splash
+package org.dhis2.yesme.usescases.splash
 
+import android.content.Intent
 import android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE
 import android.os.Bundle
 import android.os.Debug
 import android.text.TextUtils.isEmpty
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
@@ -14,13 +16,15 @@ import com.scottyab.rootbeer.RootBeer
 import javax.inject.Inject
 import javax.inject.Named
 import org.dhis2.App
-import org.dhis2.BuildConfig
-import org.dhis2.R
-import org.dhis2.databinding.ActivitySplashBinding
-import org.dhis2.usescases.general.ActivityGlobalAbstract
-import org.dhis2.usescases.login.LoginActivity
-import org.dhis2.usescases.main.MainActivity
-import org.dhis2.usescases.sync.SyncActivity
+import org.dhis2.yesme.BuildConfig
+import org.dhis2.yesme.R
+import org.dhis2.data.ActivityGoTo
+import org.dhis2.yesme.databinding.ActivitySplashBinding
+import org.dhis2.yesme.usescases.enrollment.EnrollmentActivity
+import org.dhis2.yesme.usescases.general.ActivityGlobalAbstract
+import org.dhis2.yesme.usescases.login.LoginActivity
+import org.dhis2.yesme.usescases.sync.SyncActivity
+import org.hisp.dhis.android.core.D2Manager
 
 class SplashActivity : ActivityGlobalAbstract(), SplashView {
     companion object {
@@ -82,8 +86,9 @@ class SplashActivity : ActivityGlobalAbstract(), SplashView {
         }
         if (resource != -1) {
             binding.flag.setImageResource(resource)
-            binding.logo.visibility = View.GONE
-            binding.flag.visibility = View.VISIBLE
+            //@Sou splash logo hide
+//            binding.logo.visibility = View.GONE
+            binding.flag.visibility = View.GONE
         }
     }
 
@@ -117,7 +122,26 @@ class SplashActivity : ActivityGlobalAbstract(), SplashView {
         initialSyncDone: Boolean
     ) {
         if (isUserLogged && initialSyncDone && !sessionLocked) {
-            startActivity(MainActivity::class.java, null, true, true, null)
+            //@Sou start goto on splash
+            //            startActivity(MainActivity::class.java, null, true, true, null)
+            Log.d("called--","1stelse");
+            val teav = D2Manager.getD2().trackedEntityModule().trackedEntityAttributeValues()
+                .byTrackedEntityInstance().eq(D2Manager.getD2().trackedEntityModule().trackedEntityInstances().blockingGet().get(0).uid()).blockingGet()
+            if (teav.size < 2)
+            {
+                val mainactivity = Intent(
+                    this@SplashActivity,
+                    EnrollmentActivity::class.java
+                )
+                mainactivity.putExtra("ENROLLMENT_UID_EXTRA", D2Manager.getD2().enrollmentModule().enrollments().blockingGet().get(0).uid()) //Optional parameters
+                mainactivity.putExtra("PROGRAM_UID_EXTRA", D2Manager.getD2().programModule().programs().blockingGet().get(0).uid())
+                startActivity(mainactivity)
+                finish()
+            }
+            else
+            {
+                startActivity(ActivityGoTo::class.java, null, true, true, null)
+            }
         } else if (isUserLogged && !initialSyncDone) {
             startActivity(SyncActivity::class.java, null, true, true, null)
         } else {
