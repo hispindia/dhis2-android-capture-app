@@ -1,23 +1,31 @@
-package org.dhis2.usescases.sync
+package org.dhis2.yesme.usescases.sync
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.work.WorkInfo
+import com.mapbox.mapboxsdk.Mapbox
+import kotlinx.android.synthetic.main.activity_login.*
 import javax.inject.Inject
-import org.dhis2.Bindings.Bindings
-import org.dhis2.Bindings.drawableFrom
-import org.dhis2.Bindings.userComponent
-import org.dhis2.R
-import org.dhis2.databinding.ActivitySynchronizationBinding
-import org.dhis2.usescases.general.ActivityGlobalAbstract
-import org.dhis2.usescases.login.LoginActivity
-import org.dhis2.usescases.main.MainActivity
+import org.dhis2.App
+import org.dhis2.yesme.Bindings.Bindings
+import org.dhis2.yesme.Bindings.drawableFrom
+import org.dhis2.yesme.Bindings.userComponent
+import org.dhis2.yesme.R
+import org.dhis2.data.ActivityGoTo
+import org.dhis2.data.EnrollDemographs
+import org.dhis2.yesme.databinding.ActivitySynchronizationBinding
+import org.dhis2.yesme.usescases.general.ActivityGlobalAbstract
+import org.dhis2.yesme.usescases.login.LoginActivity
 import org.dhis2.utils.OnDialogClickListener
 import org.dhis2.utils.extension.navigateTo
 import org.dhis2.utils.extension.share
+import org.dhis2.yesme.usescases.main.MainActivity
+import org.hisp.dhis.android.core.D2Manager
 
 class SyncActivity : ActivityGlobalAbstract(), SyncView {
 
@@ -28,9 +36,10 @@ class SyncActivity : ActivityGlobalAbstract(), SyncView {
 
     @Inject
     lateinit var animations: SyncAnimations
-
+    private var phone_number: String =""
     override fun onCreate(savedInstanceState: Bundle?) {
-        userComponent()?.plus(SyncModule(this))?.inject(this) ?: finish()
+        val serverComponent = (applicationContext as App).serverComponent()
+        userComponent()?.plus(SyncModule(this, serverComponent))?.inject(this) ?: finish()
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_synchronization)
         binding.presenter = presenter
@@ -133,7 +142,66 @@ class SyncActivity : ActivityGlobalAbstract(), SyncView {
     }
 
     override fun goToMain() {
-        navigateTo<MainActivity>(true, flagsToApply = Intent.FLAG_ACTIVITY_NEW_TASK)
+//        navigateTo<MainActivity>(true, flagsToApply = Intent.FLAG_ACTIVITY_NEW_TASK)
+        val settings: SharedPreferences =
+            Mapbox.getApplicationContext().getSharedPreferences("phone_no", 0)
+
+        phone_number = settings.getString("phone", 0.toString()).toString()
+        Log.d("test--",phone_number)
+        if(phone_number.equals("7982715559"))
+        {
+            Log.d("test--","done")
+            navigateTo<MainActivity>(true, flagsToApply = Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        else
+        {
+            Log.d("test--","notdone")
+            //@Sou on initial sync done
+            if(D2Manager.getD2().trackedEntityModule().trackedEntityInstances().blockingGet().size>0)
+            {
+                val teav = D2Manager.getD2().trackedEntityModule().trackedEntityAttributeValues()
+                    .byTrackedEntityInstance().eq(D2Manager.getD2().trackedEntityModule().trackedEntityInstances().blockingGet().get(0).uid()).blockingGet()
+                if (teav.size < 2)
+                {
+                    val mainactivity = Intent(
+                        this@SyncActivity,
+                        EnrollDemographs::class.java
+                    )
+
+                    if(D2Manager.getD2().enrollmentModule().enrollments().blockingGet().size>0)
+                    {
+                        mainactivity.putExtra("ENROLLMENT_UID_EXTRA", D2Manager.getD2().enrollmentModule().enrollments().blockingGet().get(0).uid()) //Optional parameters
+
+                    }
+                    mainactivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    mainactivity.putExtra("PROGRAM_UID_EXTRA", D2Manager.getD2().programModule().programs().blockingGet().get(0).uid())
+                    startActivity(mainactivity)
+                    finish()
+                }
+                //@Sou fix for screen stuck at sync after login
+                else
+                {
+                    navigateTo<ActivityGoTo>(true, flagsToApply = Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            }
+            else
+            {
+                val mainactivity = Intent(
+                    this@SyncActivity,
+                    EnrollDemographs::class.java
+                )
+
+                mainactivity.putExtra("ENROLLMENT_UID_EXTRA", D2Manager.getD2().enrollmentModule().enrollments().blockingGet().get(0).uid()) //Optional parameters
+                mainactivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                mainactivity.putExtra("PROGRAM_UID_EXTRA", D2Manager.getD2().programModule().programs().blockingGet().get(0).uid())
+                startActivity(mainactivity)
+                finish()
+            }
+        }
+        Log.d("dd---","00")
+
+
+
     }
 
     override fun goToLogin() {
