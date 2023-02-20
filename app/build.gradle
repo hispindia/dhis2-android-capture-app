@@ -47,7 +47,7 @@ android {
     buildToolsVersion versions.tools
 
     defaultConfig {
-        applicationId "com.dhis2"
+        applicationId "com.dhis2_haparent"
         minSdkVersion versions.minSdk
         targetSdkVersion versions.sdk
         versionCode versions.vCode
@@ -96,7 +96,7 @@ android {
         debug {
             // custom application suffix which allows to
             // install debug and release builds at the same time
-            applicationIdSuffix = ".debug"
+//            applicationIdSuffix = ".debug"
 
             // jacoco test coverage reports both for
             // androidTest and test source sets
@@ -141,21 +141,21 @@ android {
 
     productFlavors {
         dhis {
-            applicationId "com.dhis2"
+            applicationId "com.dhis2_haparent"
             dimension "default"
             versionCode versions.vCode
             versionName versions.vName
         }
 
         dhisPlayServices {
-            applicationId "com.dhis2"
+            applicationId "com.dhis2_haparent"
             dimension "default"
             versionCode versions.vCode
             versionName versions.vName
         }
 
         dhisUITesting {
-            applicationId "com.dhis2"
+            applicationId "com.dhis2_haparent"
             dimension "default"
             versionCode versions.vCode
             versionName versions.vName
