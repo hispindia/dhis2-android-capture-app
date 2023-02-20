@@ -3,7 +3,7 @@ package dhis2.org.analytics.charts.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import dhis2.org.analytics.charts.Charts
-import org.dhis2.commons.matomo.MatomoAnalyticsController
+import org.dhis2_haparent.commons.matomo.MatomoAnalyticsController
 
 @Suppress("UNCHECKED_CAST")
 class GroupAnalyticsViewModelFactory(

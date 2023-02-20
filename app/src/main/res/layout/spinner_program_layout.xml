@@ -6,7 +6,7 @@
 
         <variable
             name="program"
-            type="org.dhis2.usescases.searchTrackEntity.ProgramSpinnerModel" />
+            type="org.dhis2_haparent.usescases.searchTrackEntity.ProgramSpinnerModel" />
     </data>
 
     <TextView

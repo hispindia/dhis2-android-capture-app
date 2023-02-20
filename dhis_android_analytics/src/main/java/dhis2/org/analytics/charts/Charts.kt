@@ -3,7 +3,7 @@ package dhis2.org.analytics.charts
 import android.content.Context
 import dhis2.org.analytics.charts.data.Graph
 import dhis2.org.analytics.charts.ui.OrgUnitFilterType
-import org.dhis2.commons.featureconfig.data.FeatureConfigRepository
+import org.dhis2_haparent.commons.featureconfig.data.FeatureConfigRepository
 import org.hisp.dhis.android.core.D2
 import org.hisp.dhis.android.core.common.RelativePeriod
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnit

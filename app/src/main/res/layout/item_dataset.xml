@@ -10,11 +10,11 @@
 
         <variable
             name="viewModel"
-            type="org.dhis2.usescases.datasets.datasetDetail.datasetList.DataSetListViewModel" />
+            type="org.dhis2_haparent.usescases.datasets.datasetDetail.datasetList.DataSetListViewModel" />
 
         <variable
             name="dataset"
-            type="org.dhis2.usescases.datasets.datasetDetail.DataSetDetailModel" />
+            type="org.dhis2_haparent.usescases.datasets.datasetDetail.DataSetDetailModel" />
     </data>
 
     <com.google.android.material.card.MaterialCardView

@@ -9,7 +9,7 @@ import androidx.transition.TransitionManager
 import com.google.android.material.composethemeadapter.MdcTheme
 import dhis2.org.analytics.charts.data.ChartType
 import dhis2.org.analytics.charts.data.toChartBuilder
-import dhis2.org.databinding.ItemChartBinding
+import dhis2_haparent.org.databinding.ItemChartBinding
 import org.hisp.dhis.android.core.common.RelativePeriod
 
 class ChartViewHolder(

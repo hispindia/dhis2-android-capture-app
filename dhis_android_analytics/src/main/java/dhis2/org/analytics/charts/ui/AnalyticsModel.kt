@@ -5,7 +5,7 @@ import android.graphics.Typeface
 import android.view.View
 import androidx.annotation.IdRes
 import androidx.databinding.ObservableField
-import dhis2.org.R
+import dhis2_haparent.org.R
 import dhis2.org.analytics.charts.data.ChartType
 import dhis2.org.analytics.charts.data.Graph
 import dhis2.org.analytics.charts.extensions.getThisFromPeriod
@@ -14,7 +14,7 @@ import dhis2.org.analytics.charts.extensions.isInMonthly
 import dhis2.org.analytics.charts.extensions.isInOther
 import dhis2.org.analytics.charts.extensions.isInWeekly
 import dhis2.org.analytics.charts.extensions.isInYearly
-import org.dhis2.commons.popupmenu.AppMenuHelper
+import org.dhis2_haparent.commons.popupmenu.AppMenuHelper
 import org.hisp.dhis.android.core.common.RelativePeriod
 import org.hisp.dhis.android.core.program.ProgramIndicator
 

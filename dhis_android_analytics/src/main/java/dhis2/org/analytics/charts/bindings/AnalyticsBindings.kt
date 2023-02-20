@@ -7,7 +7,7 @@ import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.badge.BadgeDrawable.BOTTOM_END
 import com.google.android.material.badge.BadgeUtils
 import dhis2.org.analytics.charts.ui.ChartModel
-import org.dhis2.commons.resources.ColorUtils
+import org.dhis2_haparent.commons.resources.ColorUtils
 
 @BindingAdapter("filter_visualization")
 fun ImageView.setFilterVisualization(chartModel: ChartModel) {

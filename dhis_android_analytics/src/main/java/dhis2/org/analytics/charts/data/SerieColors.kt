@@ -1,7 +1,7 @@
 package dhis2.org.analytics.charts.data
 
 import android.graphics.Color
-import org.dhis2.commons.resources.ColorUtils
+import org.dhis2_haparent.commons.resources.ColorUtils
 
 class SerieColors {
     companion object {

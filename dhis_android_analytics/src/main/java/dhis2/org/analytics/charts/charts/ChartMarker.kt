@@ -11,9 +11,9 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.utils.MPPointF
 import com.github.mikephil.charting.utils.ViewPortHandler
-import dhis2.org.R
+import dhis2_haparent.org.R
 import kotlin.math.round
-import org.dhis2.commons.bindings.dp
+import org.dhis2_haparent.commons.bindings.dp
 
 @SuppressLint("ViewConstructor")
 class ChartMarker(

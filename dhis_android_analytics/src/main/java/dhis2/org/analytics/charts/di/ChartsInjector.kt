@@ -22,7 +22,7 @@ import dhis2.org.analytics.charts.providers.PeriodStepProvider
 import dhis2.org.analytics.charts.providers.PeriodStepProviderImpl
 import dhis2.org.analytics.charts.providers.RuleEngineNutritionDataProviderImpl
 import javax.inject.Singleton
-import org.dhis2.commons.resources.ResourceManager
+import org.dhis2_haparent.commons.resources.ResourceManager
 import org.hisp.dhis.android.core.D2
 
 @Singleton

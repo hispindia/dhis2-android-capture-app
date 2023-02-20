@@ -29,10 +29,10 @@ import android.content.Context
 import dagger.Module
 import dagger.Provides
 import org.dhis2.R
-import org.dhis2.commons.prefs.PreferenceProvider
-import org.dhis2.commons.resources.ResourceManager
-import org.dhis2.commons.schedulers.SchedulerProvider
-import org.dhis2.commons.sync.ConflictType
+import org.dhis2_haparent.commons.prefs.PreferenceProvider
+import org.dhis2_haparent.commons.resources.ResourceManager
+import org.dhis2_haparent.commons.schedulers.SchedulerProvider
+import org.dhis2_haparent.commons.sync.ConflictType
 import org.dhis2.data.dhislogic.DhisProgramUtils
 import org.dhis2.data.service.workManager.WorkManagerController
 import org.dhis2.usescases.settings.models.ErrorModelMapper

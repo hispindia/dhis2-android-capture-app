@@ -9,8 +9,8 @@ import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.utils.MPPointF
-import dhis2.org.R
-import org.dhis2.commons.bindings.dp
+import dhis2_haparent.org.R
+import org.dhis2_haparent.commons.bindings.dp
 
 @SuppressLint("ViewConstructor")
 class RadarChartMarker(

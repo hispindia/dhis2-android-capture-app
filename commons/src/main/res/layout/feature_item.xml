@@ -7,11 +7,11 @@
 
         <variable
             name="viewModel"
-            type="org.dhis2.commons.featureconfig.ui.FeatureConfigViewModel" />
+            type="org.dhis2_haparent.commons.featureconfig.ui.FeatureConfigViewModel" />
 
         <variable
             name="featureState"
-            type="org.dhis2.commons.featureconfig.model.FeatureState" />
+            type="org.dhis2_haparent.commons.featureconfig.model.FeatureState" />
     </data>
 
     <LinearLayout

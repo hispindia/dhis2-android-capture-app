@@ -9,10 +9,10 @@ import dhis2.org.analytics.charts.data.AnalyticGroup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import org.dhis2.commons.matomo.Actions
-import org.dhis2.commons.matomo.Categories
-import org.dhis2.commons.matomo.Labels
-import org.dhis2.commons.matomo.MatomoAnalyticsController
+import org.dhis2_haparent.commons.matomo.Actions
+import org.dhis2_haparent.commons.matomo.Categories
+import org.dhis2_haparent.commons.matomo.Labels
+import org.dhis2_haparent.commons.matomo.MatomoAnalyticsController
 import org.hisp.dhis.android.core.common.RelativePeriod
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnit
 

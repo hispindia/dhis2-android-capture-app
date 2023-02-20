@@ -5,11 +5,11 @@
 
     <data>
         <import type="android.view.View" />
-        <import type="org.dhis2.form.model.UiEventType"/>
+        <import type="org.dhis2_haparent.form.model.UiEventType"/>
 
         <variable
             name="item"
-            type="org.dhis2.form.model.FieldUiModel" />
+            type="org.dhis2_haparent.form.model.FieldUiModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

@@ -9,19 +9,19 @@ import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.github.mikephil.charting.utils.Utils
-import dhis2.org.R
+import dhis2_haparent.org.R
 import dhis2.org.analytics.charts.data.AnalyticGroup
 import dhis2.org.analytics.charts.di.AnalyticsComponentProvider
 import dhis2.org.analytics.charts.extensions.isNotCurrent
 import dhis2.org.analytics.charts.ui.di.AnalyticsFragmentModule
-import dhis2.org.databinding.AnalyticsGroupBinding
-import dhis2.org.databinding.AnalyticsItemBinding
+import dhis2_haparent.org.databinding.AnalyticsGroupBinding
+import dhis2_haparent.org.databinding.AnalyticsItemBinding
 import javax.inject.Inject
-import org.dhis2.commons.bindings.clipWithRoundedCorners
-import org.dhis2.commons.bindings.scrollToPosition
-import org.dhis2.commons.dialogs.AlertBottomDialog
-import org.dhis2.commons.orgunitselector.OUTreeFragment
-import org.dhis2.commons.orgunitselector.OnOrgUnitSelectionFinished
+import org.dhis2_haparent.commons.bindings.clipWithRoundedCorners
+import org.dhis2_haparent.commons.bindings.scrollToPosition
+import org.dhis2_haparent.commons.dialogs.AlertBottomDialog
+import org.dhis2_haparent.commons.orgunitselector.OUTreeFragment
+import org.dhis2_haparent.commons.orgunitselector.OnOrgUnitSelectionFinished
 import org.hisp.dhis.android.core.common.RelativePeriod
 import org.hisp.dhis.android.core.organisationunit.OrganisationUnit
 

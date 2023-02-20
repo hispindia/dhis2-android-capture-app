@@ -5,7 +5,7 @@
 
     <data>
 
-        <import type="org.dhis2.R" />
+        <import type="org.dhis2_haparent.R" />
         <import type="android.view.View" />
 
         <variable
@@ -18,7 +18,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.main.MainPresenter" />
+            type="org.dhis2_haparent.usescases.main.MainPresenter" />
 
         <variable
             name="totalFilters"
@@ -163,7 +163,7 @@
                     app:layout_constraintTop_toBottomOf="@id/toolbar"
                     tools:layout="@layout/fragment_program" />
 
-                <org.dhis2.utils.customviews.navigationbar.NavigationBottomBar
+                <org.dhis2_haparent.utils.customviews.navigationbar.NavigationBottomBar
                     android:id="@+id/navigationBar"
                     style="@style/DhisBottomNavigationView"
                     android:layout_width="match_parent"

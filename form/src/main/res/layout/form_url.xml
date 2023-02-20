@@ -7,11 +7,11 @@
 
         <import type="android.view.View" />
 
-        <import type="org.dhis2.form.model.UiEventType" />
+        <import type="org.dhis2_haparent.form.model.UiEventType" />
 
         <variable
             name="item"
-            type="org.dhis2.form.model.FieldUiModel" />
+            type="org.dhis2_haparent.form.model.FieldUiModel" />
 
         <variable
             name="textWatcher"
@@ -118,7 +118,7 @@
                     app:input_layout_style="@{item.style}"
                     tools:hint="hint">
 
-                    <org.dhis2.commons.customviews.TextInputAutoCompleteTextView
+                    <org.dhis2_haparent.commons.customviews.TextInputAutoCompleteTextView
                         android:id="@+id/input_editText"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"

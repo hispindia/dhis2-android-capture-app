@@ -13,7 +13,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.teiDashboard.TeiDashboardContracts.Presenter" />
+            type="org.dhis2_haparent.usescases.teiDashboard.TeiDashboardContracts.Presenter" />
 
         <variable
             name="trackEntity"
@@ -21,7 +21,7 @@
 
         <variable
             name="dashboardModel"
-            type="org.dhis2.usescases.teiDashboard.DashboardProgramModel" />
+            type="org.dhis2_haparent.usescases.teiDashboard.DashboardProgramModel" />
 
         <variable
             name="totalFilters"
@@ -159,7 +159,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
-        <org.dhis2.utils.customviews.navigationbar.NavigationBottomBar
+        <org.dhis2_haparent.utils.customviews.navigationbar.NavigationBottomBar
             android:id="@+id/navigationBar"
             style="@style/DhisBottomNavigationView"
             android:layout_width="match_parent"

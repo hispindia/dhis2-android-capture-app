@@ -8,7 +8,7 @@
 
         <variable
             name="filterItem"
-            type="org.dhis2.commons.filters.CatOptionComboFilter" />
+            type="org.dhis2_haparent.commons.filters.CatOptionComboFilter" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

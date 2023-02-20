@@ -1,9 +1,9 @@
 package dhis2.org.analytics.charts.ui
 
 import androidx.recyclerview.widget.RecyclerView
-import dhis2.org.R
-import dhis2.org.databinding.ItemIndicatorBinding
-import org.dhis2.commons.dialogs.CustomDialog
+import dhis2_haparent.org.R
+import dhis2_haparent.org.databinding.ItemIndicatorBinding
+import org.dhis2_haparent.commons.dialogs.CustomDialog
 import org.hisp.dhis.android.core.program.ProgramIndicator
 
 class IndicatorViewHolder(

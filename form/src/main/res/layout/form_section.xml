@@ -9,7 +9,7 @@
 
         <variable
             name="item"
-            type="org.dhis2.form.model.SectionUiModelImpl" />
+            type="org.dhis2_haparent.form.model.SectionUiModelImpl" />
 
     </data>
 

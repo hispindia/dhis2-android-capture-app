@@ -13,7 +13,7 @@
 
         <variable
             name="filterItem"
-            type="org.dhis2.commons.filters.FilterItem" />
+            type="org.dhis2_haparent.commons.filters.FilterItem" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

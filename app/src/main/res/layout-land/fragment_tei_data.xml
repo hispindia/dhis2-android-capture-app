@@ -19,11 +19,11 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.teiDashboard.dashboardfragments.teidata.TEIDataContracts.Presenter" />
+            type="org.dhis2_haparent.usescases.teiDashboard.dashboardfragments.teidata.TEIDataContracts.Presenter" />
 
         <variable
             name="dashboardModel"
-            type="org.dhis2.usescases.teiDashboard.DashboardProgramModel" />
+            type="org.dhis2_haparent.usescases.teiDashboard.DashboardProgramModel" />
 
         <variable
             name="program"
@@ -126,7 +126,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/cardLayout" />
 
-        <org.dhis2.utils.dialFloatingActionButton.DialFloatingActionButtonLayout
+        <org.dhis2_haparent.utils.dialFloatingActionButton.DialFloatingActionButtonLayout
             android:id="@+id/dialFabLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -135,6 +135,6 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-        </org.dhis2.utils.dialFloatingActionButton.DialFloatingActionButtonLayout>
+        </org.dhis2_haparent.utils.dialFloatingActionButton.DialFloatingActionButtonLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

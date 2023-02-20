@@ -5,9 +5,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import dhis2.org.databinding.ItemChartBinding
-import dhis2.org.databinding.ItemIndicatorBinding
-import dhis2.org.databinding.ItemSectionTittleBinding
+import dhis2_haparent.org.databinding.ItemChartBinding
+import dhis2_haparent.org.databinding.ItemIndicatorBinding
+import dhis2_haparent.org.databinding.ItemSectionTittleBinding
 import org.hisp.dhis.android.core.common.RelativePeriod
 
 class AnalyticsAdapter :

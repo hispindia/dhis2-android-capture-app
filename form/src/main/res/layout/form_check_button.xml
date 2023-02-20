@@ -6,12 +6,12 @@
     <data>
         <import type="android.view.View" />
         <import type="org.hisp.dhis.android.core.common.ValueType" />
-        <import type="org.dhis2.form.model.UiRenderType"/>
+        <import type="org.dhis2_haparent.form.model.UiRenderType"/>
         <import type="android.widget.LinearLayout" />
 
         <variable
             name="item"
-            type="org.dhis2.form.model.FieldUiModel" />
+            type="org.dhis2_haparent.form.model.FieldUiModel" />
 
     </data>
 

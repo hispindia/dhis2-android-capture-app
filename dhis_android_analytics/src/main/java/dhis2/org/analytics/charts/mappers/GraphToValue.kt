@@ -7,10 +7,10 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import dhis2.org.R
+import dhis2_haparent.org.R
 import dhis2.org.analytics.charts.data.ChartType
 import dhis2.org.analytics.charts.data.Graph
-import dhis2.org.databinding.ItemSingleValueBinding
+import dhis2_haparent.org.databinding.ItemSingleValueBinding
 
 class GraphToValue {
     fun map(context: Context, graph: Graph): View {

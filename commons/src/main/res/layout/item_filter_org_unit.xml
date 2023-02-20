@@ -8,7 +8,7 @@
 
         <variable
             name="filterItem"
-            type="org.dhis2.commons.filters.OrgUnitFilter" />
+            type="org.dhis2_haparent.commons.filters.OrgUnitFilter" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -23,7 +23,7 @@
             app:filterItem="@{filterItem}"
             app:layout_constraintTop_toBottomOf="parent" />
 
-        <org.dhis2.commons.filters.ou.OrgUnitFilterView
+        <org.dhis2_haparent.commons.filters.ou.OrgUnitFilterView
             android:id="@+id/filterOrgUnitView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

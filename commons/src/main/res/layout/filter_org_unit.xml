@@ -9,11 +9,11 @@
 
         <variable
             name="filterType"
-            type="org.dhis2.commons.filters.Filters" />
+            type="org.dhis2_haparent.commons.filters.Filters" />
 
         <variable
             name="filterItem"
-            type="org.dhis2.commons.filters.OrgUnitFilter" />
+            type="org.dhis2_haparent.commons.filters.OrgUnitFilter" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -69,7 +69,7 @@
                     android:layout_weight="1"
                     android:focusableInTouchMode="true">
 
-                    <org.dhis2.commons.customviews.TextInputAutoCompleteTextView
+                    <org.dhis2_haparent.commons.customviews.TextInputAutoCompleteTextView
                         android:id="@+id/orgUnitSearchEditText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

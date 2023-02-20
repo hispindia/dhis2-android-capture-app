@@ -7,7 +7,7 @@
 
         <variable
             name="viewModel"
-            type="org.dhis2.maps.geometry.point.PointViewModel" />
+            type="org.dhis2_haparent.maps.geometry.point.PointViewModel" />
 
     </data>
 

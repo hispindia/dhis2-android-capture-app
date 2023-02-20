@@ -33,7 +33,7 @@
 
         <variable
             name="presenter"
-            type="org.dhis2.usescases.searchTrackEntity.SearchTEContractsModule.Presenter" />
+            type="org.dhis2_haparent.usescases.searchTrackEntity.SearchTEContractsModule.Presenter" />
 
         <variable
             name="totalFilters"
@@ -220,7 +220,7 @@
                 app:layout_constraintTop_toBottomOf="@+id/backdropGuideTop"
                 tools:background="@color/white" />
 
-            <org.dhis2.utils.customviews.navigationbar.NavigationBottomBar
+            <org.dhis2_haparent.utils.customviews.navigationbar.NavigationBottomBar
                 android:id="@+id/navigationBar"
                 style="@style/DhisBottomNavigationView"
                 android:layout_width="0dp"

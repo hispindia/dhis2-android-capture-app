@@ -1,0 +1,5 @@
+package org.dhis2_haparent.usescases.eventsWithoutRegistration.eventCapture.eventInitialFragment
+
+import org.dhis2_haparent.usescases.general.FragmentGlobalAbstract
+
+class EventCaptureInitialFragment : FragmentGlobalAbstract()

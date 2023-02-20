@@ -1,7 +1,7 @@
 package dhis2.org.analytics.charts.data
 
 import androidx.annotation.DrawableRes
-import dhis2.org.R
+import dhis2_haparent.org.R
 import org.hisp.dhis.android.core.settings.WHONutritionChartType
 import org.hisp.dhis.android.core.visualization.VisualizationType
 

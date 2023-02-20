@@ -6,7 +6,7 @@
     <data>
         <variable
             name="item"
-            type="org.dhis2.form.model.FieldUiModel" />
+            type="org.dhis2_haparent.form.model.FieldUiModel" />
         <variable
             name="option"
             type="org.hisp.dhis.android.core.option.Option" />

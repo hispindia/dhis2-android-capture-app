@@ -1,7 +1,7 @@
 package dhis2.org.analytics.charts.ui
 
 import androidx.recyclerview.widget.RecyclerView
-import dhis2.org.databinding.ItemSectionTittleBinding
+import dhis2_haparent.org.databinding.ItemSectionTittleBinding
 
 class SectionTitleViewHolder(
     val binding: ItemSectionTittleBinding

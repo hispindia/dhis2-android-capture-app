@@ -49,7 +49,7 @@
             app:layout_constraintTop_toBottomOf="@id/mapLayerButton"
             app:srcCompat="@drawable/ic_map_position_ripple" />
 
-        <org.dhis2.maps.views.CarouselView
+        <org.dhis2_haparent.maps.views.CarouselView
             android:id="@+id/map_carousel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

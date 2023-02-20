@@ -1,0 +1,6 @@
+package org.dhis2_haparent.usescases.eventsWithoutRegistration.eventCapture.eventInitialFragment
+
+import dagger.Module
+
+@Module
+class EventCaptureInitialModule

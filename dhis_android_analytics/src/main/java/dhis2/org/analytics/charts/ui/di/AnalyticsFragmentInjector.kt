@@ -7,7 +7,7 @@ import dhis2.org.analytics.charts.Charts
 import dhis2.org.analytics.charts.ui.AnalyticMode
 import dhis2.org.analytics.charts.ui.GroupAnalyticsFragment
 import dhis2.org.analytics.charts.ui.GroupAnalyticsViewModelFactory
-import org.dhis2.commons.matomo.MatomoAnalyticsController
+import org.dhis2_haparent.commons.matomo.MatomoAnalyticsController
 
 @Subcomponent(modules = [AnalyticsFragmentModule::class])
 interface AnalyticsFragmentComponent {

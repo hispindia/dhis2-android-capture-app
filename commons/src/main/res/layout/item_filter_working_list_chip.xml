@@ -6,7 +6,7 @@
 
         <variable
             name="workingList"
-            type="org.dhis2.commons.filters.workingLists.WorkingListItem" />
+            type="org.dhis2_haparent.commons.filters.workingLists.WorkingListItem" />
     </data>
 
     <com.google.android.material.chip.Chip

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.dhis2.form">
+    package="org.dhis2_haparent.form">
 
     <application>
         <provider
@@ -13,7 +13,7 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <activity android:name=".data.scan.ScanCaptureActivity"/>
+        <activity android:name="org.dhis2_haparent.form.data.scan.ScanCaptureActivity"/>
 
     </application>
 </manifest>

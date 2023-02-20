@@ -9,7 +9,7 @@
 
         <variable
             name="event"
-            type="org.dhis2.commons.data.ProgramEventViewModel" />
+            type="org.dhis2_haparent.commons.data.ProgramEventViewModel" />
     </data>
 
     <LinearLayout

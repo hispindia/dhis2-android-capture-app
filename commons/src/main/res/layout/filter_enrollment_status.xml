@@ -11,11 +11,11 @@
 
         <variable
             name="filterType"
-            type="org.dhis2.commons.filters.Filters" />
+            type="org.dhis2_haparent.commons.filters.Filters" />
 
         <variable
             name="filterItem"
-            type="org.dhis2.commons.filters.EnrollmentStatusFilter" />
+            type="org.dhis2_haparent.commons.filters.EnrollmentStatusFilter" />
 
     </data>
 

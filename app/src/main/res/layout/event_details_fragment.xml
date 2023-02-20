@@ -10,11 +10,11 @@
 
         <import type="org.hisp.dhis.android.core.common.FeatureType" />
 
-        <import type="org.dhis2.usescases.eventsWithoutRegistration.eventDetails.models.EventTempStatus" />
+        <import type="org.dhis2_haparent.usescases.eventsWithoutRegistration.eventDetails.models.EventTempStatus" />
 
         <variable
             name="viewModel"
-            type="org.dhis2.usescases.eventsWithoutRegistration.eventDetails.ui.EventDetailsViewModel" />
+            type="org.dhis2_haparent.usescases.eventsWithoutRegistration.eventDetails.ui.EventDetailsViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

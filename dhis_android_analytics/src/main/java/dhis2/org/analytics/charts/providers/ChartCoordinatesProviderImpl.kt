@@ -6,7 +6,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.GregorianCalendar
 import java.util.Locale
-import org.dhis2.commons.resources.ResourceManager
+import org.dhis2_haparent.commons.resources.ResourceManager
 import org.hisp.dhis.android.core.D2
 import org.hisp.dhis.android.core.analytics.AnalyticsLegendStrategy
 import org.hisp.dhis.android.core.analytics.aggregated.GridResponseValue

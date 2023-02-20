@@ -35,8 +35,8 @@ import com.google.android.gms.auth.api.phone.SmsRetriever
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.common.api.Status
 import io.reactivex.Single
-import org.dhis2.commons.resources.ResourceManager
-import org.dhis2.commons.sync.ConflictType
+import org.dhis2_haparent.commons.resources.ResourceManager
+import org.dhis2_haparent.commons.sync.ConflictType
 import org.dhis2.usescases.sms.SmsSendingService
 import org.hisp.dhis.android.core.D2
 import org.hisp.dhis.android.core.sms.domain.interactor.SmsSubmitCase

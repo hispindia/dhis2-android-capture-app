@@ -1,7 +1,7 @@
 package dhis2.org.analytics.charts.data
 
 import android.content.Context
-import dhis2.org.R
+import dhis2_haparent.org.R
 import org.hisp.dhis.android.core.analytics.AnalyticsException
 
 class AnalyticResources(val context: Context) {

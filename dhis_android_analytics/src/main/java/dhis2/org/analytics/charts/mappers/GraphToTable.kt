@@ -6,16 +6,16 @@ import dhis2.org.analytics.charts.data.ChartType
 import dhis2.org.analytics.charts.data.Graph
 import dhis2.org.analytics.charts.data.SerieData
 import dhis2.org.analytics.charts.table.CellModel
-import org.dhis2.composetable.model.RowHeader
-import org.dhis2.composetable.model.TableCell
-import org.dhis2.composetable.model.TableHeader
-import org.dhis2.composetable.model.TableHeaderCell
-import org.dhis2.composetable.model.TableHeaderRow
-import org.dhis2.composetable.model.TableModel
-import org.dhis2.composetable.model.TableRowModel
-import org.dhis2.composetable.ui.DataTable
-import org.dhis2.composetable.ui.TableColors
-import org.dhis2.composetable.ui.TableTheme
+import org.dhis2_haparent.composetable.model.RowHeader
+import org.dhis2_haparent.composetable.model.TableCell
+import org.dhis2_haparent.composetable.model.TableHeader
+import org.dhis2_haparent.composetable.model.TableHeaderCell
+import org.dhis2_haparent.composetable.model.TableHeaderRow
+import org.dhis2_haparent.composetable.model.TableModel
+import org.dhis2_haparent.composetable.model.TableRowModel
+import org.dhis2_haparent.composetable.ui.DataTable
+import org.dhis2_haparent.composetable.ui.TableColors
+import org.dhis2_haparent.composetable.ui.TableTheme
 import org.hisp.dhis.android.core.arch.helpers.DateUtils
 
 class GraphToTable {

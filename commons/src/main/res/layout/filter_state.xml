@@ -11,11 +11,11 @@
 
         <variable
             name="filterType"
-            type="org.dhis2.commons.filters.Filters" />
+            type="org.dhis2_haparent.commons.filters.Filters" />
 
         <variable
             name="filterItem"
-            type="org.dhis2.commons.filters.SyncStateFilter" />
+            type="org.dhis2_haparent.commons.filters.SyncStateFilter" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
