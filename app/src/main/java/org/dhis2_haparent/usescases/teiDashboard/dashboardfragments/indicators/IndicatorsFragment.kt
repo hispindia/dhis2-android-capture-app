@@ -106,13 +106,13 @@ class IndicatorsFragment : FragmentGlobalAbstract(), IndicatorsView {
     ) {
         val periodList = mutableListOf<RelativePeriod>()
         AlertBottomDialog.instance
-            .setTitle(getString(dhis2.org.R.string.include_this_period_title))
-            .setMessage(getString(dhis2.org.R.string.include_this_period_body))
-            .setNegativeButton(getString(dhis2.org.R.string.no)) {
+            .setTitle(getString(dhis2_haparent.org.R.string.include_this_period_title))
+            .setMessage(getString(dhis2_haparent.org.R.string.include_this_period_body))
+            .setNegativeButton(getString(dhis2_haparent.org.R.string.no)) {
                 relativePeriod?.let { periodList.add(relativePeriod) }
                 presenter.filterByPeriod(chartModel, periodList)
             }
-            .setPositiveButton(getString(dhis2.org.R.string.yes)) {
+            .setPositiveButton(getString(dhis2_haparent.org.R.string.yes)) {
                 relativePeriod?.let { periodList.add(relativePeriod) }
                 current?.let { periodList.add(current) }
                 presenter.filterByPeriod(chartModel, periodList)
