@@ -1,4 +1,4 @@
-def gradle = '7.4.1'
+def gradle = '7.3.1'
 def kotlin = '1.8.10'
 def hilt = '2.43.2'
 def hiltCompiler = '1.0.0'
